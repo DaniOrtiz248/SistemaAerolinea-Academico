@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function Home() {
   const [searchData, setSearchData] = useState({
@@ -27,49 +29,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
-      {/* Header/Menu */}
-      <header className="bg-white shadow-lg sticky top-0 z-50">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <div className="text-2xl font-bold text-blue-600">
-                ✈️ Aero Penguin
-              </div>
-            </div>
-            
-            {/* Navigation Menu */}
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Vuelos
-                </a>
-                <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Destinos
-                </a>
-                <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Check-in
-                </a>
-                <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Mi Cuenta
-                </a>
-                <a href="#" className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                  Iniciar Sesión
-                </a>
-              </div>
-            </div>
-            
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button className="text-gray-900 hover:text-blue-600">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       {/* Hero Section with Advertising */}
       <section className="relative h-96 bg-gradient-to-r from-blue-600 to-purple-700 overflow-hidden">
@@ -281,62 +241,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Company Info */}
-            <div>
-              <h3 className="text-xl font-bold mb-4">✈️ Aero Penguin</h3>
-              <p className="text-gray-300 mb-4">
-                Tu aerolínea de confianza para volar a cualquier destino del mundo.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-300 hover:text-white">📘 Facebook</a>
-                <a href="#" className="text-gray-300 hover:text-white">🐦 Twitter</a>
-                <a href="#" className="text-gray-300 hover:text-white">📷 Instagram</a>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-white">Buscar Vuelos</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Check-in Online</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Estado de Vuelo</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Equipaje</a></li>
-              </ul>
-            </div>
-
-            {/* Customer Service */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Atención al Cliente</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-white">Contacto</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">FAQ</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Política de Cancelación</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Términos y Condiciones</a></li>
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Contacto</h4>
-              <div className="space-y-2 text-gray-300">
-                <p>📞 +1 (555) 123-4567</p>
-                <p>✉️ info@aeropenguin.com</p>
-                <p>📍 123 Airport Ave, Sky City</p>
-                <p>🕒 24/7 Atención al Cliente</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-            <p>&copy; 2025 Aero Penguin. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
