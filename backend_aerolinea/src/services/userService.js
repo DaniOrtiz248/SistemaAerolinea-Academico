@@ -1,4 +1,3 @@
-// src/services/userService.js
 const userRepo = require('../repositories/userRepository');
 
 async function listUsers() {
@@ -10,4 +9,12 @@ async function addUser(data) {
   return await userRepo.createUser(data);
 }
 
-module.exports = { listUsers, addUser };
+async function updateUser(id, userData) {
+  return await userRepository.updateUser(id, userData);
+}
+
+async function deleteUser(id) {
+  return await userRepository.deleteUser(id);
+}
+
+module.exports = { listUsers, addUser, updateUser, deleteUser };
