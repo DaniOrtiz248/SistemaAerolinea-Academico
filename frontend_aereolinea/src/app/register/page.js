@@ -6,13 +6,24 @@ import Footer from '../components/Footer';
 
 export default function Register() {
   const [registerData, setRegisterData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
+    usuario: {
+      descripcion_usuario: '',
+      correo_electronico: '',
+      contrasena: '',
+      id_rol: 3 // Valor fijo
+    },
+    usuarioPerfil: {
+      dni_usuario: '',
+      primer_nombre: '',
+      segundo_nombre: '',
+      primer_apellido: '',
+      segundo_apellido: '',
+      fecha_nacimiento: '',
+      lugar_nacimiento: '',
+      direccion_facturacion: '',
+      id_genero_usuario: 1
+    },
     confirmPassword: '',
-    phone: '',
-    dateOfBirth: '',
     acceptTerms: false,
     receivePromotions: true
   });
@@ -24,18 +35,51 @@ export default function Register() {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
-    
-    setRegisterData(prev => ({
-      ...prev,
-      [name]: newValue
-    }));
+
+    // Map input names to the correct nested structure
+    if ([
+      'descripcion_usuario',
+      'correo_electronico',
+      'contrasena'
+    ].includes(name)) {
+      setRegisterData(prev => ({
+        ...prev,
+        usuario: {
+          ...prev.usuario,
+          [name]: newValue
+        }
+      }));
+    } else if ([
+      'dni_usuario',
+      'primer_nombre',
+      'segundo_nombre',
+      'primer_apellido',
+      'segundo_apellido',
+      'fecha_nacimiento',
+      'lugar_nacimiento',
+      'direccion_facturacion',
+      'id_genero_usuario'
+    ].includes(name)) {
+      setRegisterData(prev => ({
+        ...prev,
+        usuarioPerfil: {
+          ...prev.usuarioPerfil,
+          [name]: name === 'id_genero_usuario' ? Number(newValue) : newValue
+        }
+      }));
+    } else {
+      setRegisterData(prev => ({
+        ...prev,
+        [name]: newValue
+      }));
+    }
 
     // Check password match when either password field changes
-    if (name === 'password' || name === 'confirmPassword') {
-      if (name === 'password') {
-        setPasswordMatch(value === registerData.confirmPassword || registerData.confirmPassword === '');
+    if (name === 'contrasena' || name === 'confirmPassword') {
+      if (name === 'contrasena') {
+        setPasswordMatch(newValue === registerData.confirmPassword || registerData.confirmPassword === '');
       } else {
-        setPasswordMatch(value === registerData.password);
+        setPasswordMatch(newValue === registerData.usuario.contrasena);
       }
     }
   };
@@ -43,7 +87,7 @@ export default function Register() {
   const handleRegister = (e) => {
     e.preventDefault();
     
-    if (registerData.password !== registerData.confirmPassword) {
+    if (registerData.usuario.contrasena !== registerData.confirmPassword) {
       setPasswordMatch(false);
       return;
     }
@@ -53,8 +97,32 @@ export default function Register() {
       return;
     }
 
-    console.log('Registration attempt:', registerData);
-    // Here you would implement the actual registration functionality
+    // Enviar el objeto con la estructura solicitada a la API
+    const payload = {
+      usuario: registerData.usuario,
+      usuarioPerfil: registerData.usuarioPerfil
+    };
+    fetch('http://localhost:3001/api/v1/users/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(async res => {
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(error || 'Error en el registro');
+        }
+        return res.json();
+      })
+      .then(data => {
+        alert('Registro exitoso');
+        // Aquí podrías redirigir o limpiar el formulario
+      })
+      .catch(err => {
+        alert('Error: ' + err.message);
+      });
   };
 
   return (
@@ -93,123 +161,51 @@ export default function Register() {
           </div>
           
           <form onSubmit={handleRegister} className="space-y-6">
-            {/* Name Fields */}
+            {/* Datos de Usuario */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre *
-                </label>
+                <label htmlFor="descripcion_usuario" className="block text-sm font-medium text-gray-700 mb-2">Descripción Usuario *</label>
                 <input
                   type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={registerData.firstName}
+                  id="descripcion_usuario"
+                  name="descripcion_usuario"
+                  value={registerData.usuario.descripcion_usuario}
                   onChange={handleInputChange}
-                  placeholder="Tu nombre"
+                  placeholder="Ej: Juan Pérez"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido *
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={registerData.lastName}
-                  onChange={handleInputChange}
-                  placeholder="Tu apellido"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Correo Electrónico *
-              </label>
-              <div className="relative">
+                <label htmlFor="correo_electronico" className="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico *</label>
                 <input
                   type="email"
-                  id="email"
-                  name="email"
-                  value={registerData.email}
+                  id="correo_electronico"
+                  name="correo_electronico"
+                  value={registerData.usuario.correo_electronico}
                   onChange={handleInputChange}
-                  placeholder="tu@email.com"
+                  placeholder="ejemplo@email.com"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Phone and Date of Birth */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Teléfono
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={registerData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Nacimiento
-                </label>
-                <input
-                  type="date"
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  value={registerData.dateOfBirth}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
               </div>
             </div>
-
-            {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Contraseña *
-                </label>
+                <label htmlFor="contrasena" className="block text-sm font-medium text-gray-700 mb-2">Contraseña *</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    value={registerData.password}
+                    id="contrasena"
+                    name="contrasena"
+                    value={registerData.usuario.contrasena}
                     onChange={handleInputChange}
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder="Ej: MiClaveSegura123"
                     required
                     minLength={8}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10 text-gray-700 placeholder:text-gray-500 focus:text-black"
                   />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     {showPassword ? (
                       <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
@@ -217,16 +213,14 @@ export default function Register() {
                     ) : (
                       <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268-2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     )}
                   </button>
                 </div>
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirmar Contraseña *
-                </label>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">Confirmar Contraseña *</label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -234,22 +228,11 @@ export default function Register() {
                     name="confirmPassword"
                     value={registerData.confirmPassword}
                     onChange={handleInputChange}
-                    placeholder="Repite tu contraseña"
+                    placeholder="Repite la contraseña"
                     required
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10 ${
-                      !passwordMatch ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10 text-gray-700 placeholder:text-gray-500 focus:text-black ${!passwordMatch ? 'border-red-500' : 'border-gray-300'}`}
                   />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     {showConfirmPassword ? (
                       <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
@@ -257,14 +240,132 @@ export default function Register() {
                     ) : (
                       <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268-2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     )}
                   </button>
                 </div>
-                {!passwordMatch && (
-                  <p className="mt-1 text-sm text-red-600">Las contraseñas no coinciden</p>
-                )}
+                {!passwordMatch && (<p className="mt-1 text-sm text-red-600">Las contraseñas no coinciden</p>)}
+              </div>
+            </div>
+            {/* El rol es fijo y no editable por el usuario */}
+            {/* Datos de Perfil */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div>
+                <label htmlFor="dni_usuario" className="block text-sm font-medium text-gray-700 mb-2">DNI *</label>
+                <input
+                  type="text"
+                  id="dni_usuario"
+                  name="dni_usuario"
+                  value={registerData.usuarioPerfil.dni_usuario}
+                  onChange={handleInputChange}
+                  placeholder="Ej: 87654321"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="primer_nombre" className="block text-sm font-medium text-gray-700 mb-2">Primer Nombre *</label>
+                <input
+                  type="text"
+                  id="primer_nombre"
+                  name="primer_nombre"
+                  value={registerData.usuarioPerfil.primer_nombre}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Juan"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="segundo_nombre" className="block text-sm font-medium text-gray-700 mb-2">Segundo Nombre</label>
+                <input
+                  type="text"
+                  id="segundo_nombre"
+                  name="segundo_nombre"
+                  value={registerData.usuarioPerfil.segundo_nombre}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Carlos"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="primer_apellido" className="block text-sm font-medium text-gray-700 mb-2">Primer Apellido *</label>
+                <input
+                  type="text"
+                  id="primer_apellido"
+                  name="primer_apellido"
+                  value={registerData.usuarioPerfil.primer_apellido}
+                  onChange={handleInputChange}
+                  placeholder="Ej: García"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="segundo_apellido" className="block text-sm font-medium text-gray-700 mb-2">Segundo Apellido</label>
+                <input
+                  type="text"
+                  id="segundo_apellido"
+                  name="segundo_apellido"
+                  value={registerData.usuarioPerfil.segundo_apellido}
+                  onChange={handleInputChange}
+                  placeholder="Ej: López"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="fecha_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">Fecha de Nacimiento *</label>
+                <input
+                  type="date"
+                  id="fecha_nacimiento"
+                  name="fecha_nacimiento"
+                  value={registerData.usuarioPerfil.fecha_nacimiento}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="lugar_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">Lugar de Nacimiento *</label>
+                <input
+                  type="text"
+                  id="lugar_nacimiento"
+                  name="lugar_nacimiento"
+                  value={registerData.usuarioPerfil.lugar_nacimiento}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Lima"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="direccion_facturacion" className="block text-sm font-medium text-gray-700 mb-2">Dirección de Facturación *</label>
+                <input
+                  type="text"
+                  id="direccion_facturacion"
+                  name="direccion_facturacion"
+                  value={registerData.usuarioPerfil.direccion_facturacion}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Av. Siempre Viva 742"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label htmlFor="id_genero_usuario" className="block text-sm font-medium text-gray-700 mb-2">Género *</label>
+                <select
+                  id="id_genero_usuario"
+                  name="id_genero_usuario"
+                  value={registerData.usuarioPerfil.id_genero_usuario}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 focus:text-black"
+                >
+                  <option value={1}>Masculino</option>
+                  <option value={2}>Femenino</option>
+                  <option value={3}>Otro</option>
+                </select>
               </div>
             </div>
 
@@ -273,20 +374,20 @@ export default function Register() {
               <h4 className="text-sm font-medium text-blue-900 mb-2">Requisitos de contraseña:</h4>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li className="flex items-center">
-                  <span className={`mr-2 ${registerData.password.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
-                    {registerData.password.length >= 8 ? '✓' : '○'}
+                  <span className={`mr-2 ${registerData.usuario.contrasena.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
+                    {registerData.usuario.contrasena.length >= 8 ? '✓' : '○'}
                   </span>
                   Mínimo 8 caracteres
                 </li>
                 <li className="flex items-center">
-                  <span className={`mr-2 ${/[A-Z]/.test(registerData.password) ? 'text-green-600' : 'text-gray-400'}`}>
-                    {/[A-Z]/.test(registerData.password) ? '✓' : '○'}
+                  <span className={`mr-2 ${/[A-Z]/.test(registerData.usuario.contrasena) ? 'text-green-600' : 'text-gray-400'}`}>
+                    {/[A-Z]/.test(registerData.usuario.contrasena) ? '✓' : '○'}
                   </span>
                   Al menos una letra mayúscula
                 </li>
                 <li className="flex items-center">
-                  <span className={`mr-2 ${/[0-9]/.test(registerData.password) ? 'text-green-600' : 'text-gray-400'}`}>
-                    {/[0-9]/.test(registerData.password) ? '✓' : '○'}
+                  <span className={`mr-2 ${/[0-9]/.test(registerData.usuario.contrasena) ? 'text-green-600' : 'text-gray-400'}`}>
+                    {/[0-9]/.test(registerData.usuario.contrasena) ? '✓' : '○'}
                   </span>
                   Al menos un número
                 </li>

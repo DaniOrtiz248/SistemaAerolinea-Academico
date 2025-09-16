@@ -2,6 +2,7 @@
 import express, { json } from 'express'
 import { sequelize } from './db/sequelize/sequelize.js'
 import { userRoutes } from './routes/userRoutes.js'
+import {corsMiddleware} from './middleware/cors.js'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 3000
 
 // Middlewares
 app.use(json())
+app.use(corsMiddleware())
 
 // Rutas
 app.use('/api/v1/users', userRoutes)
