@@ -5,14 +5,22 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
-    name: { 
+    descripcion_usuario: { 
         type: DataTypes.STRING 
     },
-    rol: { 
+    correo_electronico: { 
         type: DataTypes.STRING 
+    },
+    contrasena: { 
+        type: DataTypes.STRING 
+    },
+    id_rol: { 
+        type: DataTypes.INTEGER
     }
   }, {
     tableName: 'usuario',
     timestamps: false
   });
 };
+
+Usuario.belongsTo(Rol, { foreignKey: 'id_rol' });
