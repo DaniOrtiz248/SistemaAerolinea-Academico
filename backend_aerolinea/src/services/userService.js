@@ -1,37 +1,41 @@
-const userRepo = require('../repositories/userRepository');
+import { UserRepository } from '../repositories/userRepository.js'
+import { UserPerfilRepository } from '../repositories/userPerfilRepository.js'
 
-async function listUsers() {
-  return await userRepo.getAllUsers();
-}
-
-async function addUser(data) {
-  // aquí podrías validar cosas: correo único, longitud, etc.
-  return await userRepo.createUser(data);
-}
-
-async function updateUser(id, userData) {
-  return await userRepo.updateUser(id, userData);
-}
-
-async function deleteUser(id) {
-  return await userRepo.deleteUser(id);
-}
-
-async function login(email, password) {
-  const user = await userRepo.findByEmail(email);
-
-  if (!user) {
-    throw new Error('Usuario no encontrado');
+export class UserService {
+  static async listUsers () {
+    return await UserRepository.getAll()
   }
 
-  // Comparación de contraseña (sin hash por ahora)
-  if (user.contrasena !== password) {
-    throw new Error('Contraseña incorrecta');
+  static async create ({ usuario, usuarioPerfil }) {
+    // aquí podrías validar cosas: correo único, longitud, etc.
+    const usuarioReturn = await UserRepository.create({ usuario })
+    usuarioPerfil.id_usuario = usuarioReturn.id_usuario
+    const usuarioPerfilReturn = await UserPerfilRepository.create({ usuarioPerfil })
+    return { usuario: usuarioReturn.toJSON(), usuarioPerfil: usuarioPerfilReturn.toJSON() }
   }
 
-  // Si todo bien, retornamos info del usuario (sin contraseña)
-  const { contrasena, ...userData } = user.toJSON();
-  return userData;
-}
+  static async update ({ id, userData }) {
+    return await UserRepository.update({ id, userData })
+  }
 
-module.exports = { listUsers, addUser, updateUser, deleteUser, login };
+  static async delete ({ id }) {
+    return await UserRepository.delete({ id })
+  }
+
+  static async login ({ email, password }) {
+    const user = await UserRepository.findByEmail({ email })
+
+    if (!user) {
+      throw new Error('Usuario no encontrado')
+    }
+
+    // Comparación de contraseña (sin hash por ahora)
+    if (user.contrasena !== password) {
+      throw new Error('Contraseña incorrecta')
+    }
+
+    // Si todo bien, retornamos info del usuario (sin contraseña)
+    const { contrasena, ...userData } = user.toJSON()
+    return userData
+  }
+}

@@ -1,47 +1,46 @@
 // src/app.js
-require('dotenv').config();
-const express = require('express');
-const { sequelize } = require('./models');
-const userRoutes = require('./routes/userRoutes');
+import express, { json } from 'express'
+import { sequelize } from './db/sequelize/sequelize.js'
+import { userRoutes } from './routes/userRoutes.js'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const app = express()
+const PORT = process.env.PORT || 3000
 
 // Middlewares
-app.use(express.json());
+app.use(json())
 
 // Rutas
-app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/users', userRoutes)
 
 // Manejo de errores
 app.use((req, res, next) => {
-  res.status(404).json({ error: 'Ruta no encontrada' });
-});
+  res.status(404).json({ error: 'Ruta no encontrada' })
+})
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Error interno del servidor' });
-});
+  console.error(err.stack)
+  res.status(500).json({ error: 'Error interno del servidor' })
+})
 
 // Inicio del servidor
-async function start() {
+async function start () {
   try {
-    await sequelize.authenticate();
-    console.log('✅ Conectado a la base de datos (Clever Cloud)');
+    await sequelize.authenticate()
+    console.log('✅ Conectado a la base de datos correctamente')
 
     if (process.env.DB_SYNC === 'true') {
-      await sequelize.sync();
-      console.log('🛠️ Modelos sincronizados con la BD');
+      await sequelize.sync()
+      console.log('🛠️ Modelos sincronizados con la BD')
     }
 
     app.listen(PORT, () =>
       console.log(`🚀 Servidor en ejecución: http://localhost:${PORT}`)
-    );
+    )
   } catch (err) {
-    console.error('❌ Error de conexión a la BD:', err.message);
-    process.exit(1);
+    console.error('❌ Error de conexión a la BD:', err.message)
+    process.exit(1)
   }
 }
 
-start();
-
-
+start()
