@@ -12,7 +12,8 @@ const Usuario = sequelize.define('usuario', {
     type: DataTypes.STRING
   },
   correo_electronico: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    unique: true
   },
   contrasena: {
     type: DataTypes.STRING

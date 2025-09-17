@@ -2,7 +2,7 @@
 import express, { json } from 'express'
 import { sequelize } from './db/sequelize/sequelize.js'
 import { userRoutes } from './routes/userRoutes.js'
-import {corsMiddleware} from './middleware/cors.js'
+import { corsMiddleware } from './middleware/cors.js'
 import dotenv from 'dotenv'
 dotenv.config()
 

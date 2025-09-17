@@ -9,7 +9,7 @@ Content-Type: application/json
 
 {
   "usuario":{
-    "descripcion_usuario": "Nuevo Usuario",
+    "descripcion_usuario": "Usuario",
     "correo_electronico": "nuevo@usuario.com",
     "contrasena": "123456",
     "id_rol": 1
@@ -17,7 +17,7 @@ Content-Type: application/json
   "usuarioPerfil": {
     "dni_usuario": "12345678",
     "primer_nombre": "Nuevo",
-    "segundo_nombre": "Usuario",
+    "segundo_nombre": "",
     "primer_apellido": "Apellido1",
     "segundo_apellido": "Apellido2",
     "fecha_nacimiento": "1990-01-01",

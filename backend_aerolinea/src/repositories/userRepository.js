@@ -29,7 +29,7 @@ export class UserRepository {
     return 0
   }
 
-  static async findByEmail (correo) {
+  static async findByEmail ({ correo }) {
     return await Usuario.findOne({ where: { correo_electronico: correo } })
   }
 }

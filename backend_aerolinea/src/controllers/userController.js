@@ -1,4 +1,5 @@
 import { UserService } from '../services/userService.js'
+import { validateUser, validatePartialUser } from '../schema/userSchema.js'
 
 export class UserController {
   static async getAll (req, res) {
@@ -12,16 +13,30 @@ export class UserController {
   }
 
   static async create (req, res) {
+    const validation = validateUser(req.body)
+
+    if (!validation.success) {
+      return res.status(400).json({ error: validation.error.issues })
+    }
+
     try {
       const created = await UserService.create(req.body)
       res.status(201).json(created)
     } catch (err) {
-      console.error(err)
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        return res.status(409).json(err)
+      }
+
       res.status(500).json({ error: 'Error al crear usuario' })
     }
   }
 
   static async update (req, res) {
+    const validation = validatePartialUser(req.body)
+    if (!validation.success) {
+      return res.status(400).json({ error: validation.error })
+    }
+
     try {
       const id = req.params.id
       const updated = await UserService.update({ id, userData: req.body })

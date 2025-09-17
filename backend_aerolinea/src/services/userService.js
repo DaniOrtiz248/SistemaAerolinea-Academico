@@ -7,7 +7,16 @@ export class UserService {
   }
 
   static async create ({ usuario, usuarioPerfil }) {
-    // aquí podrías validar cosas: correo único, longitud, etc.
+    // Verificar si el correo ya existe --------------------- Aun por Reseolver las validaciones
+    const existUser = await UserRepository.findByEmail({ correo: usuario.correo_electronico })
+    if (existUser) {
+      const error = new Error({
+        message: 'El correo electrónico ya está en uso',
+        errors: [{ message: 'correo_electronico must be unique', path: ['correo_electronico'], value: usuario.correo_electronico }]
+      })
+      error.name = 'SequelizeUniqueConstraintError'
+      throw error
+    }
     const usuarioReturn = await UserRepository.create({ usuario })
     usuarioPerfil.id_usuario = usuarioReturn.id_usuario
     const usuarioPerfilReturn = await UserPerfilRepository.create({ usuarioPerfil })
