@@ -149,7 +149,7 @@ export default function Register() {
       </section>
 
       {/* Registration Form Section */}
-      <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10 pb-16">
+      <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 relative z-10 pb-16">
         <div className="bg-white rounded-xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
