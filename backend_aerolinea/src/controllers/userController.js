@@ -1,5 +1,6 @@
 import { UserService } from '../services/userService.js'
 import { validateUser, validatePartialUser } from '../schema/userSchema.js'
+import { email } from 'zod'
 
 export class UserController {
   static async getAll (req, res) {
@@ -23,8 +24,9 @@ export class UserController {
       const created = await UserService.create(req.body)
       res.status(201).json(created)
     } catch (err) {
+      console.error(err)
       if (err.name === 'SequelizeUniqueConstraintError') {
-        return res.status(409).json(err)
+        return res.status(409).json(err.errors)
       }
 
       res.status(500).json({ error: 'Error al crear usuario' })
@@ -63,13 +65,10 @@ export class UserController {
       console.log('🟡 req.body recibido:', req.body)
       const { correo_electronico, contrasena } = req.body
 
-      if (!correo_electronico || !contrasena) {
-        return res.status(400).json({ error: 'Correo y contraseña son obligatorios' })
-      }
+      const user = await UserService.login({ correo_electronico, contrasena })
 
-      const user = await UserService.login({ email: correo_electronico, password: contrasena })
       res.json({ mensaje: 'Inicio de sesión exitoso', usuario: user })
-      console.log(`✅ Login exitoso para el usuario: ${user.descripcion_usuario}`)
+      
     } catch (err) {
       console.error(err)
       res.status(401).json({ error: err.message || 'Error en inicio de sesión' })

@@ -8,15 +8,15 @@ export class UserService {
 
   static async create ({ usuario, usuarioPerfil }) {
     // Verificar si el correo ya existe --------------------- Aun por Reseolver las validaciones
-    const existUser = await UserRepository.findByEmail({ correo: usuario.correo_electronico })
-    if (existUser) {
-      const error = new Error({
-        message: 'El correo electrónico ya está en uso',
-        errors: [{ message: 'correo_electronico must be unique', path: ['correo_electronico'], value: usuario.correo_electronico }]
-      })
-      error.name = 'SequelizeUniqueConstraintError'
-      throw error
-    }
+    // const existUser = await UserRepository.findByEmail({ correo: usuario.correo_electronico })
+    // if (existUser) {
+    //   const error = new Error({
+    //     message: 'El correo electrónico ya está en uso',
+    //     errors: [{ message: 'correo_electronico must be unique', path: ['correo_electronico'], value: usuario.correo_electronico }]
+    //   })
+    //   error.name = 'SequelizeUniqueConstraintError'
+    //   throw error
+    // }
     const usuarioReturn = await UserRepository.create({ usuario })
     usuarioPerfil.id_usuario = usuarioReturn.id_usuario
     const usuarioPerfilReturn = await UserPerfilRepository.create({ usuarioPerfil })
@@ -31,20 +31,34 @@ export class UserService {
     return await UserRepository.delete({ id })
   }
 
-  static async login ({ email, password }) {
-    const user = await UserRepository.findByEmail({ email })
+  static async login ({ correo_electronico, contrasena }) {
 
+    if (!correo_electronico || !contrasena) {
+        throw new Error('Correo y contraseña son obligatorios');
+      }
+
+    if (typeof correo_electronico !== 'string' || typeof contrasena !== 'string') {
+      throw new Error('Correo y contraseña deben ser texto');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo_electronico)) {
+      throw new Error('Formato de correo inválido');
+    }
+
+    const user = await UserRepository.findByEmail({ correo: correo_electronico })
+    
     if (!user) {
       throw new Error('Usuario no encontrado')
     }
 
     // Comparación de contraseña (sin hash por ahora)
-    if (user.contrasena !== password) {
+    if (user.contrasena !== contrasena) {
       throw new Error('Contraseña incorrecta')
     }
 
     // Si todo bien, retornamos info del usuario (sin contraseña)
-    const { contrasena, ...userData } = user.toJSON()
+    const { contrasena: _omit, ...userData } = user.toJSON()
     return userData
   }
 }

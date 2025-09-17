@@ -21,10 +21,29 @@ export default function Login() {
     }));
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', loginData);
-    // Here you would implement the actual login functionality
+    try {
+      const res = await fetch('http://localhost:3001/api/v1/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          correo_electronico: loginData.email,
+          contrasena: loginData.password
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Error en inicio de sesión');
+      }
+      alert('Inicio de sesión exitoso');
+      // Aquí puedes guardar el usuario en el estado global, redirigir, etc.
+      // Por ejemplo: router.push('/dashboard');
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
   };
 
   return (
