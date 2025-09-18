@@ -29,11 +29,15 @@ export class UserRepository {
     return 0
   }
 
-  static async findByEmail ({ correo }) {
-    return await Usuario.findOne({ where: { correo_electronico: correo } })
+  // eslint-disable-next-line camelcase
+  static async findByEmail ({ correo_electronico }) {
+    // eslint-disable-next-line camelcase
+    return await Usuario.findOne({ where: { correo_electronico } })
   }
 
-  static async findByUsername ({ nombre_usuario }) {
-    return await Usuario.findOne({ where: { nombre_usuario } })
+  // eslint-disable-next-line camelcase
+  static async findByUsername ({ descripcion_usuario }) {
+    // eslint-disable-next-line camelcase
+    return await Usuario.findOne({ where: { descripcion_usuario } })
   }
 }

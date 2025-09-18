@@ -12,7 +12,7 @@ Content-Type: application/json
     "descripcion_usuario": "Usuario",
     "correo_electronico": "nuevo@usuario.com",
     "contrasena": "123456",
-    "id_rol": 1
+    "id_rol": 3
   },
   "usuarioPerfil": {
     "dni_usuario": "12345678",
@@ -24,5 +24,18 @@ Content-Type: application/json
     "lugar_nacimiento": "Ciudad",
     "direccion_facturacion": "Direccion 123",
     "id_genero_usuario": 1
+  }
+}
+
+### Crear usuario Admin
+POST http://localhost:3001/api/v1/users/crear-admin
+Content-Type: application/json
+
+{
+  "usuario":{
+    "descripcion_usuario": "Usuario Admin",
+    "correo_electronico": "admin@usuario.com",
+    "contrasena": "123456",
+    "id_rol": 2
   }
 }

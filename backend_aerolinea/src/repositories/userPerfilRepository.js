@@ -29,7 +29,9 @@ export class UserPerfilRepository {
     return 0
   }
 
-  static async findByEmail (correo) {
-    return await UsuarioPerfil.findOne({ where: { correo_electronico: correo } })
+  // eslint-disable-next-line camelcase
+  static async findByDNI ({ dni_usuario }) {
+    // eslint-disable-next-line camelcase
+    return await UsuarioPerfil.findOne({ where: { dni_usuario } })
   }
 }
