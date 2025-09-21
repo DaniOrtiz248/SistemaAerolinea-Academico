@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { Country, State, City } from 'country-state-city';
 
 export default function Register() {
   const [registerData, setRegisterData] = useState({
@@ -19,7 +20,9 @@ export default function Register() {
       primer_apellido: '',
       segundo_apellido: '',
       fecha_nacimiento: '',
-      lugar_nacimiento: '',
+      pais_nacimiento: '',
+      estado_nacimiento: '',
+      ciudad_nacimiento: '',
       direccion_facturacion: '',
       id_genero_usuario: 1
     },
@@ -31,6 +34,67 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+
+  const handleCountryChange = (e) => {
+  const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
+  const countryName = e.target.value;
+  
+  // Actualizar el país seleccionado
+  handleInputChange({
+    target: {
+      name: 'pais_nacimiento',
+      value: countryName
+    }
+  });
+
+  // Cargar estados del país seleccionado
+  const countryStates = State.getStatesOfCountry(countryCode);
+  setStates(countryStates);
+  setCities([]);
+
+  // Limpiar estado y ciudad seleccionados
+  handleInputChange({
+    target: {
+      name: 'estado_nacimiento',
+      value: ''
+    }
+  });
+  handleInputChange({
+    target: {
+      name: 'ciudad_nacimiento',
+      value: ''
+    }
+  });
+};
+
+const handleStateChange = (e) => {
+  const stateCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
+  const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-country');
+  const stateName = e.target.value;
+
+  // Actualizar el estado seleccionado
+  handleInputChange({
+    target: {
+      name: 'estado_nacimiento',
+      value: stateName
+    }
+  });
+
+  // Cargar ciudades del estado seleccionado
+  const stateCities = City.getCitiesOfState(countryCode, stateCode);
+  setCities(stateCities);
+
+  // Limpiar ciudad seleccionada
+  handleInputChange({
+    target: {
+      name: 'ciudad_nacimiento',
+      value: ''
+    }
+  });
+};
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -56,7 +120,9 @@ export default function Register() {
       'primer_apellido',
       'segundo_apellido',
       'fecha_nacimiento',
-      'lugar_nacimiento',
+      'pais_nacimiento',
+      'estado_nacimiento',
+      'ciudad_nacimiento',
       'direccion_facturacion',
       'id_genero_usuario'
     ].includes(name)) {
@@ -326,19 +392,69 @@ export default function Register() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
               </div>
-              <div>
-                <label htmlFor="lugar_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">Lugar de Nacimiento *</label>
-                <input
-                  type="text"
-                  id="lugar_nacimiento"
-                  name="lugar_nacimiento"
-                  value={registerData.usuarioPerfil.lugar_nacimiento}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Lima"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
-                />
-              </div>
+               <div>
+              <label htmlFor="pais_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">País de Nacimiento *</label>
+              <select
+                id="pais_nacimiento"
+                name="pais_nacimiento"
+                value={registerData.usuarioPerfil.pais_nacimiento}
+                onChange={handleCountryChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+              >
+                <option value="">Seleccione un país</option>
+                {Country.getAllCountries().map((country) => (
+                  <option key={country.isoCode} value={country.name} data-code={country.isoCode}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+            <label htmlFor="estado_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">Estado/Provincia *</label>
+            <select
+              id="estado_nacimiento"
+              name="estado_nacimiento"
+              value={registerData.usuarioPerfil.estado_nacimiento}
+              onChange={handleStateChange}
+              required
+              disabled={!registerData.usuarioPerfil.pais_nacimiento}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+            >
+              <option value="">Seleccione un estado</option>
+              {states.map((state) => (
+                <option 
+                  key={state.isoCode} 
+                  value={state.name}
+                  data-code={state.isoCode}
+                  data-country={state.countryCode}
+                >
+                  {state.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="ciudad_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">Ciudad *</label>
+            <select
+              id="ciudad_nacimiento"
+              name="ciudad_nacimiento"
+              value={registerData.usuarioPerfil.ciudad_nacimiento}
+              onChange={handleInputChange}
+              required
+              disabled={!registerData.usuarioPerfil.estado_nacimiento}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+            >
+              <option value="">Seleccione una ciudad</option>
+              {cities.map((city) => (
+                <option key={city.name} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
               <div>
                 <label htmlFor="direccion_facturacion" className="block text-sm font-medium text-gray-700 mb-2">Dirección de Facturación *</label>
                 <input
