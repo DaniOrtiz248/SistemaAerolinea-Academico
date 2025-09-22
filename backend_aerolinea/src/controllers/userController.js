@@ -89,31 +89,5 @@ export class UserController {
     }
   }
 
-  static async login (req, res) {
-    try {
-      console.log('🟡 req.body recibido:', req.body)
-      // eslint-disable-next-line camelcase
-      const { correo_electronico, contrasena } = req.body
-
-      // eslint-disable-next-line camelcase
-      const user = await UserService.login({ correo_electronico, contrasena })
-
-      const token = jwt.sign(
-        { id: user.id_usuario, descripcion_usuario: user.descripcion_usuario, email: user.correo_electronico, role: user.id_rol },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      )
-      res.cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict', // Se debe cambiar a none si se usan diferentes dominios para el front y back, se puede usar para subdominios
-        maxAge: 1000 * 60 * 60 // 1 hora
-      })
-
-      res.json({ mensaje: 'Inicio de sesión exitoso', usuario: user })
-    } catch (err) {
-      console.error(err)
-      res.status(401).json({ error: err.message || 'Error en inicio de sesión' })
-    }
-  }
+  
 }

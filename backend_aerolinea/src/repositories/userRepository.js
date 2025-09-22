@@ -29,15 +29,27 @@ export class UserRepository {
     return 0
   }
 
-  // eslint-disable-next-line camelcase
+
   static async findByEmail ({ correo_electronico }) {
-    // eslint-disable-next-line camelcase
+  
     return await Usuario.findOne({ where: { correo_electronico } })
   }
 
-  // eslint-disable-next-line camelcase
+ 
   static async findByUsername ({ descripcion_usuario }) {
-    // eslint-disable-next-line camelcase
     return await Usuario.findOne({ where: { descripcion_usuario } })
+  }
+
+  static async updatePassword ({ correo_electronico, contrasena }) {
+    const [updated] = await Usuario.update(
+      { 
+        contrasena 
+      }, 
+      { 
+        where: { correo_electronico } 
+      }
+    )
+    if (updated === 0) throw new Error('No se pudo actualizar la contraseña')
+    return await Usuario.findOne({ where: { correo_electronico } })
   }
 }
