@@ -1,7 +1,35 @@
+'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Header() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user'); // Remove invalid data
+      }
+    }
+  }, []);
+
+  // Don't render header for root users (they have their own dashboard header)
+  if (user && user.id_rol === 1) {
+    return null;
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.href = '/';
+  };
+
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,9 +65,25 @@ export default function Header() {
               <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Mi Cuenta
               </a>
-              <Link href="/login" className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                Iniciar Sesión
-              </Link>
+              
+              {/* Authentication section */}
+              {user ? (
+                <div className="flex items-center space-x-3">
+                  <span className="text-gray-700 text-sm">
+                    Hola, {user.descripcion_usuario}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
+              ) : (
+                <Link href="/login" className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                  Iniciar Sesión
+                </Link>
+              )}
             </div>
           </div>
           

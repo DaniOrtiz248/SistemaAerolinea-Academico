@@ -40,8 +40,20 @@ export default function Login() {
       if (!res.ok) {
         throw new Error(data.error || 'Error en inicio de sesión');
       }
-      alert('Inicio de sesión exitoso');
-      // Aquí puedes guardar el usuario en el estado global, redirigir, etc.
+      
+      // Store user data in localStorage - the backend returns 'usuario', not 'user'
+      const userData = data.usuario;
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Redirect based on user role
+      if (userData.id_rol === 1) {
+        // Root user - redirect to admin dashboard
+        window.location.href = '/root/dashboard';
+      } else {
+        // Other users - redirect to home page
+        alert('Inicio de sesión exitoso');
+        window.location.href = '/';
+      }
     } catch (err) {
       alert('Error: ' + err.message);
     }
@@ -95,9 +107,9 @@ export default function Login() {
                   name="identifier"
                   value={loginData.identifier}
                   onChange={handleInputChange}
-                  placeholder="Usuario o correo electrónico"
+                  placeholder="Usuario"
                   required
-                  className="w-full px-4 py-3 border  placeholder-gray-300 text-black-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
+                  className="w-full px-4 py-3 border text-gray-700 placeholder-gray-300 text-black-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,7 +133,7 @@ export default function Login() {
                   onChange={handleInputChange}
                   placeholder="Tu contraseña"
                   required
-                  className="w-full px-4 py-3 border placeholder-gray-300 text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10"
+                  className="w-full px-4 py-3  border placeholder-gray-300 text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
