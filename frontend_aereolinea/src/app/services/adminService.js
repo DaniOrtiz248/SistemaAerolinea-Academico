@@ -48,17 +48,10 @@ class AdminService {
   async createAdmin(adminData) {
     try {
       const userData = {
-        descripcion_usuario: adminData.usuario, // Using correct field name
+        descripcion_usuario: adminData.usuario,
         correo_electronico: adminData.correo_electronico,
         contrasena: adminData.contrasena,
-        id_rol: 2, // Admin role
-        usuarioPerfil: {
-          nombre: adminData.nombre,
-          apellido: adminData.apellido,
-          telefono: adminData.telefono || null,
-          fecha_nacimiento: adminData.fecha_nacimiento || null,
-          id_genero: adminData.id_genero
-        }
+        id_rol: 2
       };
 
       const response = await fetch(`${API_BASE_URL}/users/register`, {
@@ -71,7 +64,7 @@ class AdminService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear el administrador');
+        throw new Error(errorData.message || 'Error al crear el administrador');
       }
 
       const data = await response.json();
@@ -86,19 +79,11 @@ class AdminService {
   async updateAdmin(adminId, adminData) {
     try {
       const userData = {
-        descripcion_usuario: adminData.usuario, // Using correct field name
+        descripcion_usuario: adminData.usuario,
         correo_electronico: adminData.correo_electronico,
-        id_rol: 2, // Ensure it remains admin
-        usuarioPerfil: {
-          nombre: adminData.nombre,
-          apellido: adminData.apellido,
-          telefono: adminData.telefono || null,
-          fecha_nacimiento: adminData.fecha_nacimiento || null,
-          id_genero: adminData.id_genero
-        }
+        id_rol: 2
       };
 
-      // Only include password if it's provided
       if (adminData.contrasena && adminData.contrasena.trim()) {
         userData.contrasena = adminData.contrasena;
       }
@@ -113,7 +98,28 @@ class AdminService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al actualizar el administrador');
+        console.log('Error response from server:', errorData);
+        
+        let errorMessage = 'Error al actualizar el administrador';
+        
+        if (errorData.error) {
+          if (typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          } else if (Array.isArray(errorData.error)) {
+            errorMessage = errorData.error.map(err => {
+              if (typeof err === 'object' && err.message) {
+                return err.message;
+              }
+              return String(err);
+            }).join(', ');
+          } else if (typeof errorData.error === 'object') {
+            errorMessage = JSON.stringify(errorData.error);
+          }
+        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorMessage = errorData.errors.map(err => err.message || String(err)).join(', ');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -136,7 +142,24 @@ class AdminService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al eliminar el administrador');
+        console.log('Error response from server:', errorData);
+        
+        let errorMessage = 'Error al eliminar el administrador';
+        
+        if (errorData.error) {
+          if (typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          } else if (Array.isArray(errorData.error)) {
+            errorMessage = errorData.error.map(err => {
+              if (typeof err === 'object' && err.message) {
+                return err.message;
+              }
+              return String(err);
+            }).join(', ');
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       return { success: true };
@@ -169,9 +192,6 @@ class AdminService {
   }
 }
 
-// Create and export a singleton instance
 const adminService = new AdminService();
 export default adminService;
-
-// Also export the class if needed
 export { AdminService };

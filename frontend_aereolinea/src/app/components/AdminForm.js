@@ -5,12 +5,7 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
   const [formData, setFormData] = useState({
     usuario: '',
     correo_electronico: '',
-    contrasena: '',
-    nombre: '',
-    apellido: '',
-    telefono: '',
-    fecha_nacimiento: '',
-    id_genero: 1
+    contrasena: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -24,25 +19,14 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
         setFormData({
           usuario: admin.descripcion_usuario || '',
           correo_electronico: admin.correo_electronico || '',
-          contrasena: '', // Don't pre-fill password for security
-          nombre: admin.usuarioPerfil?.nombre || '',
-          apellido: admin.usuarioPerfil?.apellido || '',
-          telefono: admin.usuarioPerfil?.telefono || '',
-          fecha_nacimiento: admin.usuarioPerfil?.fecha_nacimiento ? 
-            admin.usuarioPerfil.fecha_nacimiento.split('T')[0] : '',
-          id_genero: admin.usuarioPerfil?.id_genero || 1
+          contrasena: '' // Don't pre-fill password for security
         });
       } else {
         // Creating new admin
         setFormData({
           usuario: '',
           correo_electronico: '',
-          contrasena: '',
-          nombre: '',
-          apellido: '',
-          telefono: '',
-          fecha_nacimiento: '',
-          id_genero: 1
+          contrasena: ''
         });
       }
       setErrors({});
@@ -91,14 +75,6 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
       newErrors.contrasena = 'La contraseña debe tener al menos 6 caracteres';
     }
 
-    if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre es requerido';
-    }
-
-    if (!formData.apellido.trim()) {
-      newErrors.apellido = 'El apellido es requerido';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -144,7 +120,7 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Account Information */}
-            <div className="border-b border-gray-200 pb-6">
+            <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de Cuenta</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -158,7 +134,7 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
                     name="usuario"
                     value={formData.usuario}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 text-gray-800 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.usuario ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Nombre de usuario"
@@ -176,7 +152,7 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
                     name="correo_electronico"
                     value={formData.correo_electronico}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.correo_electronico ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="correo@ejemplo.com"
@@ -195,103 +171,12 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
                   name="contrasena"
                   value={formData.contrasena}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.contrasena ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder={admin ? "Dejar vacío para mantener la actual" : "Contraseña"}
                 />
                 {errors.contrasena && <p className="mt-1 text-sm text-red-600">{errors.contrasena}</p>}
-              </div>
-            </div>
-
-            {/* Personal Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Información Personal</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre *
-                  </label>
-                  <input
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.nombre ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Nombre"
-                  />
-                  {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 mb-2">
-                    Apellido *
-                  </label>
-                  <input
-                    type="text"
-                    id="apellido"
-                    name="apellido"
-                    value={formData.apellido}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.apellido ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Apellido"
-                  />
-                  {errors.apellido && <p className="mt-1 text-sm text-red-600">{errors.apellido}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-2">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    id="telefono"
-                    name="telefono"
-                    value={formData.telefono}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="+1234567890"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="fecha_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">
-                    Fecha de Nacimiento
-                  </label>
-                  <input
-                    type="date"
-                    id="fecha_nacimiento"
-                    name="fecha_nacimiento"
-                    value={formData.fecha_nacimiento}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <label htmlFor="id_genero" className="block text-sm font-medium text-gray-700 mb-2">
-                  Género
-                </label>
-                <select
-                  id="id_genero"
-                  name="id_genero"
-                  value={formData.id_genero}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value={1}>Masculino</option>
-                  <option value={2}>Femenino</option>
-                  <option value={3}>Otro</option>
-                </select>
               </div>
             </div>
 
