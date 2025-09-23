@@ -32,7 +32,9 @@ const userSchema = z.object({
 
       return true
     }, { message: 'Fecha de nacimiento inválida' }),
-    lugar_nacimiento: z.string().min(2).max(50),
+    pais_nacimiento: z.string().min(2).max(50),
+    estado_nacimiento: z.string().min(2).max(50),
+    ciudad_nacimiento: z.string().min(2).max(50),
     direccion_facturacion: z.string().min(5).max(200),
     id_genero_usuario: z.number().int().positive()
   })
