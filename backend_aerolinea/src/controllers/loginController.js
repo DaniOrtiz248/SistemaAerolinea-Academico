@@ -37,10 +37,11 @@ static async login (req, res) {
       )
 
       res.cookie('access_token', token, {
-        httpOnly: true,  // La cookie no puede ser leída desde JavaScript
-        secure: false,   // Establecido como 'false' para desarrollo (debería ser 'true' en producción)
+        httpOnly: true, // La cookie no puede ser leída desde JavaScript
+        secure: false, // Establecido como 'false' para desarrollo (debería ser 'true' en producción)
         sameSite: 'Lax', // Cambia esto a 'None' si el frontend y backend están en dominios diferentes
-        maxAge: 1000 * 60 * 60 // La cookie expirará en 1 hora
+        maxAge: 1000 * 60 * 60, // La cookie expirará en 1 hora
+        path: '/' // La cookie estará disponible en todo el sitio
       })
 
 

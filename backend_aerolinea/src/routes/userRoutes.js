@@ -8,6 +8,9 @@ import { rootMiddleware } from '../middleware/authMiddleware.js'
 export const userRoutes = Router()
 
 userRoutes.post('/register', UserController.create)
+userRoutes.post('/login', loginController.login)
+userRoutes.post('/request-reset', loginController.requestPasswordReset)
+userRoutes.post('/reset-password', loginController.resetPassword)
 
 userRoutes.use(authMiddleware) // Middleware para proteger las rutas siguientes
 userRoutes.post('/crear-admin', rootMiddleware, UserController.createAdmin) // Endpoint temporal para crear un admin
@@ -15,6 +18,3 @@ userRoutes.get('/', UserController.getAll)
 userRoutes.put('/:id', UserController.update)
 userRoutes.delete('/:id', UserController.delete)
 
-userRoutes.post('/login', loginController.login)
-userRoutes.post('/request-reset', loginController.requestPasswordReset)
-userRoutes.post('/reset-password', loginController.resetPassword)

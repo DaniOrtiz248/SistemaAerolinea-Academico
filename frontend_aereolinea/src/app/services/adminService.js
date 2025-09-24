@@ -21,6 +21,7 @@ class AdminService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 👈 se envían cookies
       });
 
       if (!response.ok) {
@@ -29,7 +30,6 @@ class AdminService {
 
       const data = await response.json();
       
-      // Filter only admins (id_rol = 2) from the response
       let users = [];
       if (Array.isArray(data)) {
         users = data;
@@ -42,7 +42,6 @@ class AdminService {
         return [];
       }
       
-      // Filter only admins (id_rol = 2)
       const admins = users.filter(user => user.id_rol === 2);
       
       console.log('All users:', users);
@@ -62,7 +61,7 @@ class AdminService {
         descripcion_usuario: adminData.usuario,
         correo_electronico: adminData.correo_electronico,
         contrasena: adminData.contrasena,
-        id_rol: 2
+        id_rol: 2,
       };
 
       const response = await fetch(`${API_BASE_URL}/users/register`, {
@@ -71,6 +70,7 @@ class AdminService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
+        credentials: 'include', // 👈
       });
 
       if (!response.ok) {
@@ -92,7 +92,7 @@ class AdminService {
       const userData = {
         descripcion_usuario: adminData.usuario,
         correo_electronico: adminData.correo_electronico,
-        id_rol: 2
+        id_rol: 2,
       };
 
       if (adminData.contrasena && adminData.contrasena.trim()) {
@@ -105,6 +105,7 @@ class AdminService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
+        credentials: 'include', // 👈
       });
 
       if (!response.ok) {
@@ -149,6 +150,7 @@ class AdminService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 👈
       });
 
       if (!response.ok) {
@@ -188,6 +190,7 @@ class AdminService {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 👈
       });
 
       if (!response.ok) {

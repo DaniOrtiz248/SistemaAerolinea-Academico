@@ -17,7 +17,7 @@ export const corsMiddleware = ({ acceptedOrigins = ACCEPTED_ORIGINS } = {}) => c
       const hostname = url.hostname;
       
       // Allow localhost, 127.0.0.1, and local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-      if (hostname === 'localhost' || 
+      if (hostname === 'localhost' ||
           hostname === '127.0.0.1' ||
           hostname.startsWith('192.168.') ||
           hostname.startsWith('10.') ||
@@ -29,6 +29,8 @@ export const corsMiddleware = ({ acceptedOrigins = ACCEPTED_ORIGINS } = {}) => c
 
     callback(new Error('Not allowed by CORS'))
   },
-  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT', 'OPTIONS']
+  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 
 })

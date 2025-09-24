@@ -48,7 +48,8 @@ export default function Login() {
         body: JSON.stringify({
           identifier: loginData.identifier,
           contrasena: loginData.password
-        })
+        }),
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
@@ -60,15 +61,15 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(userData));
       
       
-      // // Redirect based on user role
-      // if (userData.id_rol === 1) {
-      //   // Root user - redirect to admin dashboard
-      //   window.location.href = '/root/dashboard';
-      // } else {
-      //   // Other users - redirect to home page
-      //   alert('Inicio de sesión exitoso');
-      //   window.location.href = '/';
-      // }
+      // Redirect based on user role
+      if (userData.id_rol === 1) {
+        // Root user - redirect to admin dashboard
+        window.location.href = '/root/dashboard';
+      } else {
+        // Other users - redirect to home page
+        alert('Inicio de sesión exitoso');
+        window.location.href = '/';
+      }
     } catch (err) {
       alert('Error: ' + err.message);
     }

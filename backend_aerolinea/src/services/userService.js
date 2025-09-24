@@ -73,4 +73,3 @@ export class UserService {
     return await UserRepository.delete({ id })
   }
 }
-

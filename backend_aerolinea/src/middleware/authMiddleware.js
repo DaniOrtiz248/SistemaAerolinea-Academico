@@ -6,19 +6,22 @@ import path from 'path'
 const cwd = process.cwd();
 
 // Construir la ruta completa al archivo
-const publicKeyPath = path.join(cwd, 'publicKey.pem'); // Esto debería funcionar correctamente
+const publicKeyPath = path.join(cwd, 'publicKey.pem')
 
 // Leer el archivo
-const publicKey = fs.readFileSync(publicKeyPath);
+const publicKey = fs.readFileSync(publicKeyPath)
 
 export const authMiddleware = (req, res, next) => {
-    const token = req.cookies.access_token
+    const token = req.cookies?.access_token
+    console.log('estoyyyy aquiiii', token)
     if (!token) {
         return res.status(401).json({ error: 'No autorizado' })
     }
 
     try {
+        
         const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] })
+        console.log('decoded:', decoded)
         req.user = decoded
         next()
     } catch (err) {
