@@ -1,5 +1,15 @@
-import pkg from 'jsonwebtoken'
-const { jwt } = pkg
+import jwt from 'jsonwebtoken'
+import fs from 'fs'
+import path from 'path'
+
+// Usar process.cwd() para obtener el directorio de trabajo actual
+const cwd = process.cwd();
+
+// Construir la ruta completa al archivo
+const publicKeyPath = path.join(cwd, 'publicKey.pem'); // Esto debería funcionar correctamente
+
+// Leer el archivo
+const publicKey = fs.readFileSync(publicKeyPath);
 
 export const authMiddleware = (req, res, next) => {
     const token = req.cookies.access_token
@@ -8,7 +18,7 @@ export const authMiddleware = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_PUBLIC, { algorithms: ['RS256'] })
+        const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] })
         req.user = decoded
         next()
     } catch (err) {

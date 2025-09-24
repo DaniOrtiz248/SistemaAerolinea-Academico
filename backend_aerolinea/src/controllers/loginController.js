@@ -2,9 +2,18 @@ import { userLoginService } from '../services/userLoginService.js'
 import { validateUser, validatePartialUser } from '../schema/userSchema.js'
 import { ValidationError } from '../utils/validateError.js'
 import { formatErrors } from '../utils/formatErrors.js'
-import pkg from 'jsonwebtoken'
-const { jwt } = pkg
+import jwt from 'jsonwebtoken'
+import path from 'path'
+import fs from 'fs'
 
+// Usar process.cwd() para obtener el directorio de trabajo actual
+const cwd = process.cwd();
+
+// Construir la ruta completa al archivo
+const privateKeyPath = path.join(cwd, 'privateKey.pem'); // Esto debería funcionar correctamente
+
+// Leer el archivo
+const privateKey = fs.readFileSync(privateKeyPath);
 
 export class loginController {
 static async login (req, res) {
@@ -13,6 +22,7 @@ static async login (req, res) {
       const { identifier, contrasena } = req.body
 
       const user = await userLoginService.login({ identifier, contrasena })
+      console.log('key:', privateKey)
 
       const token = jwt.sign(
         { 
@@ -21,16 +31,17 @@ static async login (req, res) {
             email: user.correo_electronico, 
             role: user.id_rol 
         },
-        process.env.JWT_SECRET,
+        privateKey,
         { expiresIn: '1h', algorithm: 'RS256'}
       )
 
       res.cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict', // Se debe cambiar a none si se usan diferentes dominios para el front y back, se puede usar para subdominios
-        maxAge: 1000 * 60 * 60 // 1 hora
+        httpOnly: true,  // La cookie no puede ser leída desde JavaScript
+        secure: false,   // Establecido como 'false' para desarrollo (debería ser 'true' en producción)
+        sameSite: 'Lax', // Cambia esto a 'None' si el frontend y backend están en dominios diferentes
+        maxAge: 1000 * 60 * 60 // La cookie expirará en 1 hora
       })
+
 
       res.json({ mensaje: 'Inicio de sesión exitoso', usuario: user })
     } catch (err) {
@@ -43,7 +54,7 @@ static async login (req, res) {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      SameSite: 'Lax'
     })
     res.json({ mensaje: 'Cierre de sesión exitoso' })
   }
