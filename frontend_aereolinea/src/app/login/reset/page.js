@@ -49,7 +49,7 @@ export default function ResetPassword() {
         throw new Error(data.error || 'Error al solicitar el PIN');
       }
 
-      alert('PIN enviado exitosamente. Revisa tu correo electrónico (en desarrollo puede aparecer en los logs del servidor)');
+      alert('PIN enviado exitosamente. Revisa tu correo electrónico');
       setStep(2);
     } catch (error) {
       alert('Error: ' + error.message);
@@ -73,8 +73,8 @@ export default function ResetPassword() {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      alert('La contraseña debe tener al menos 6 caracteres');
+    if (formData.newPassword.length < 8) {
+      alert('La contraseña debe tener al menos 8 caracteres');
       return;
     }
 
@@ -201,7 +201,7 @@ export default function ResetPassword() {
                     onChange={handleInputChange}
                     placeholder="Tu usuario o correo electrónico"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent pl-10"
+                    className="w-full px-4 py-3 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent pl-10"
                   />
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

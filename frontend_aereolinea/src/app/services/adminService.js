@@ -1,5 +1,16 @@
 // API service for admin management
-const API_BASE_URL = 'http://localhost:3001/api/v1';
+const getBackendUrl = () => {
+  if (typeof window !== 'undefined') {
+    // If we're on a mobile device accessing via IP, use the same IP for backend
+    const currentHost = window.location.hostname;
+    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+      return `http://${currentHost}:3001`;
+    }
+  }
+  return 'http://localhost:3001';
+};
+
+const API_BASE_URL = `${getBackendUrl()}/api/v1`;
 
 class AdminService {
   // Get all admins (users with id_rol = 2)

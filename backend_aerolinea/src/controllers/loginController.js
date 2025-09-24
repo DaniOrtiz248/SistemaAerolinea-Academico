@@ -1,4 +1,5 @@
 import { userLoginService } from '../services/userLoginService.js'
+import {sendPin} from '../utils/mailer.js'
 import { validateUser, validatePartialUser } from '../schema/userSchema.js'
 import { ValidationError } from '../utils/validateError.js'
 import { formatErrors } from '../utils/formatErrors.js'

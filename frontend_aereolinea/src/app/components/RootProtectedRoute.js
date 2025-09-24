@@ -81,17 +81,18 @@ export default function RootProtectedRoute({ children }) {
 
   return (
     <div>
-      {/* Logout floating button - only visible in root dashboard */}
+      {/* Logout floating button - responsive design */}
       <div className="fixed top-4 right-4 z-50">
         <button
           onClick={handleLogout}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors flex items-center"
+          className="bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-lg transition-colors flex items-center
+                     px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base"
           title="Cerrar Sesión"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Cerrar Sesión
+          <span className="hidden sm:inline sm:ml-2">Cerrar Sesión</span>
         </button>
       </div>
       {children}

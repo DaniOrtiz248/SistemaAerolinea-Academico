@@ -3,6 +3,7 @@ import { UserRepository } from '../repositories/userRepository.js'
 import { UserPerfilRepository } from '../repositories/userPerfilRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
+import { sendPin } from '../utils/mailer.js'
 
 // Envío de email y generación de token (nodemailer opcional)
 import crypto from 'crypto'
@@ -16,7 +17,7 @@ function generatePin (length = 6) {
   return pin
 }
 
-async function sendPinByEmail (to, pin) {
+/*async function sendPinByEmail (to, pin) {
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -34,7 +35,7 @@ async function sendPinByEmail (to, pin) {
     // En entorno de desarrollo registramos el PIN en logs
     console.log(`[DEV] PIN para ${to}: ${pin}`)
   }
-}
+}*/
 
 export class userLoginService {
   static errors = []
@@ -93,7 +94,7 @@ export class userLoginService {
     const expiresAt = Date.now() + 15 * 60 * 1000 // 15 minutos
 
     PasswordResetStore.set(correo, { pin, expiresAt })
-    await sendPinByEmail(correo, pin)
+    await sendPin(correo, pin)
 
     return { ok: true }
   }
