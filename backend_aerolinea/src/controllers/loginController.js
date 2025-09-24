@@ -13,7 +13,7 @@ static async login (req, res) {
       const { identifier, contrasena } = req.body
 
       const user = await userLoginService.login({ identifier, contrasena })
-/*
+
       const token = jwt.sign(
         { 
             id: user.id_usuario, 
@@ -22,14 +22,15 @@ static async login (req, res) {
             role: user.id_rol 
         },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '1h', algorithm: 'RS256'}
       )
+
       res.cookie('access_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict', // Se debe cambiar a none si se usan diferentes dominios para el front y back, se puede usar para subdominios
         maxAge: 1000 * 60 * 60 // 1 hora
-      })*/
+      })
 
       res.json({ mensaje: 'Inicio de sesión exitoso', usuario: user })
     } catch (err) {
