@@ -19,9 +19,6 @@ const userSchema = z.object({
     segundo_nombre: z.preprocess(transformEmptyToUndefined, z.string().min(2).max(100).optional()),
     primer_apellido: z.string().min(2).max(100),
     segundo_apellido: z.preprocess(transformEmptyToUndefined, z.string().min(2).max(100).optional()),
-    pais_nacimiento: z.string().min(2).max(100),
-    provincia_nacimiento: z.string().min(2).max(100),
-    ciudad_nacimiento: z.string().min(2).max(100),
     fecha_nacimiento: z.string().refine((date) => {
       const fecha = Date.parse(date)
       // Verifica que la fecha sea válida
@@ -35,6 +32,9 @@ const userSchema = z.object({
 
       return true
     }, { message: 'Fecha de nacimiento inválida' }),
+    pais_nacimiento: z.string().min(2).max(50),
+    estado_nacimiento: z.string().min(2).max(50),
+    ciudad_nacimiento: z.string().min(2).max(50),
     direccion_facturacion: z.string().min(5).max(200),
     id_genero_usuario: z.number().int().positive()
   })

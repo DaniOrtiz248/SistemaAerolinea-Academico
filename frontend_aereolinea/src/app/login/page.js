@@ -4,12 +4,14 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+
 export default function Login() {
   const [loginData, setLoginData] = useState({
-    email: '',
+    identifier: '',
     password: '',
     rememberMe: false
   });
+  
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -24,13 +26,27 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/v1/users/login', {
+      // Get the backend URL dynamically
+      const getBackendUrl = () => {
+        if (typeof window !== 'undefined') {
+          // If we're on a mobile device accessing via IP, use the same IP for backend
+          const currentHost = window.location.hostname;
+          if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+            return `http://${currentHost}:3001`;
+          }
+        }
+        return 'http://localhost:3001';
+      };
+
+      const backendUrl = getBackendUrl();
+      
+      const res = await fetch(`${backendUrl}/api/v1/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          correo_electronico: loginData.email,
+          identifier: loginData.identifier,
           contrasena: loginData.password
         })
       });
@@ -38,9 +54,21 @@ export default function Login() {
       if (!res.ok) {
         throw new Error(data.error || 'Error en inicio de sesión');
       }
-      alert('Inicio de sesión exitoso');
-      // Aquí puedes guardar el usuario en el estado global, redirigir, etc.
-      // Por ejemplo: router.push('/dashboard');
+      
+      // Store user data in localStorage - the backend returns 'usuario', not 'user'
+      const userData = data.usuario;
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      
+      // // Redirect based on user role
+      // if (userData.id_rol === 1) {
+      //   // Root user - redirect to admin dashboard
+      //   window.location.href = '/root/dashboard';
+      // } else {
+      //   // Other users - redirect to home page
+      //   alert('Inicio de sesión exitoso');
+      //   window.location.href = '/';
+      // }
     } catch (err) {
       alert('Error: ' + err.message);
     }
@@ -82,21 +110,21 @@ export default function Login() {
           </div>
           
           <form onSubmit={handleLogin} className="space-y-6">
-            {/* Email Field */}
+            {/* identifier Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-2">
                 Usuario
               </label>
               <div className="relative">
                 <input
-                  type="email"  
-                  id="email"
-                  name="email"
-                  value={loginData.email}
+                  type="text"  
+                  id="identifier"
+                  name="identifier"
+                  value={loginData.identifier}
                   onChange={handleInputChange}
-                  placeholder="pepito_123"
+                  placeholder="Usuario"
                   required
-                  className="w-full px-4 py-3 border  placeholder-gray-300 text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
+                  className="w-full px-4 py-3 border text-gray-700 placeholder-gray-300 text-black-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,7 +148,7 @@ export default function Login() {
                   onChange={handleInputChange}
                   placeholder="Tu contraseña"
                   required
-                  className="w-full px-4 py-3 border placeholder-gray-300 text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10"
+                  className="w-full px-4 py-3  border placeholder-gray-300 text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10 pr-10"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,10 +175,10 @@ export default function Login() {
             </div>
 
             {/* Remember Me and Forgot Password */}
-            <div className="flex justify-center" >
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+            <div className="flex justify-center">
+              <Link href="/login/reset" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
                 ¿Olvidaste tu contraseña?
-              </a>  
+              </Link>
             </div>
 
             {/* Login Button */}

@@ -1,11 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // Agregar para redirección
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Country, State, City } from 'country-state-city';
 
 export default function Register() {
+  const router = useRouter(); // Inicializar router para redirección
   const [registerData, setRegisterData] = useState({
     usuario: {
       descripcion_usuario: '',
@@ -37,6 +39,16 @@ export default function Register() {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [emailValid, setEmailValid] = useState(true); // Agregar estado para validación de email
+  // Agregar estados para mejor manejo de UI
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Agregar useEffect para cargar países al montar el componente
+  useEffect(() => {
+    const allCountries = Country.getAllCountries();
+    setCountries(allCountries);
+  }, []);
 
   const handleCountryChange = (e) => {
   const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
@@ -96,6 +108,11 @@ const handleStateChange = (e) => {
   });
 };
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
@@ -140,6 +157,11 @@ const handleStateChange = (e) => {
       }));
     }
 
+    // Validar email cuando cambie
+    if (name === 'correo_electronico') {
+      setEmailValid(validateEmail(newValue) || newValue === '');
+    }
+
     // Check password match when either password field changes
     if (name === 'contrasena' || name === 'confirmPassword') {
       if (name === 'contrasena') {
@@ -150,45 +172,248 @@ const handleStateChange = (e) => {
     }
   };
 
-  const handleRegister = (e) => {
-    e.preventDefault();
-    
-    if (registerData.usuario.contrasena !== registerData.confirmPassword) {
-      setPasswordMatch(false);
-      return;
-    }
+  // Función para limpiar todos los errores
+  const clearErrors = () => {
+    setErrors({});
+  };
 
-    if (!registerData.acceptTerms) {
-      alert('Debes aceptar los términos y condiciones');
-      return;
-    }
+  // Función para mostrar errores específicos
+  const setFieldError = (field, message) => {
+    setErrors(prev => ({
+      ...prev,
+      [field]: message
+    }));
+  };
 
-    // Enviar el objeto con la estructura solicitada a la API
-    const payload = {
-      usuario: registerData.usuario,
-      usuarioPerfil: registerData.usuarioPerfil
-    };
-    fetch('http://localhost:3001/api/v1/users/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+  // Función para limpiar formulario
+  const resetForm = () => {
+    setRegisterData({
+      usuario: {
+        descripcion_usuario: '',
+        correo_electronico: '',
+        contrasena: '',
+        id_rol: 3
       },
-      body: JSON.stringify(payload)
-    })
-      .then(async res => {
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(error || 'Error en el registro');
+      usuarioPerfil: {
+        dni_usuario: '',
+        primer_nombre: '',
+        segundo_nombre: '',
+        primer_apellido: '',
+        segundo_apellido: '',
+        fecha_nacimiento: '',
+        pais_nacimiento: '',
+        estado_nacimiento: '',
+        ciudad_nacimiento: '',
+        direccion_facturacion: '',
+        id_genero_usuario: 1
+      },
+      confirmPassword: '',
+      acceptTerms: false,
+      receivePromotions: true
+    });
+    
+    // Resetear estados relacionados
+    setStates([]);
+    setCities([]);
+    setPasswordMatch(true);
+    setEmailValid(true);
+    setErrors({});
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    clearErrors();
+    
+    try {
+      // Validaciones del frontend
+      const validationErrors = {};
+
+      // Validar campos obligatorios
+      if (!registerData.usuario.descripcion_usuario.trim()) {
+        validationErrors.descripcion_usuario = 'La descripción de usuario es obligatoria';
+      }
+
+      if (!registerData.usuario.correo_electronico.trim()) {
+        validationErrors.correo_electronico = 'El correo electrónico es obligatorio';
+      } else if (!validateEmail(registerData.usuario.correo_electronico)) {
+        validationErrors.correo_electronico = 'El formato del correo electrónico no es válido';
+      }
+
+      if (!registerData.usuario.contrasena || registerData.usuario.contrasena.length < 8) {
+        validationErrors.contrasena = 'La contraseña debe tener al menos 8 caracteres';
+      }
+
+      if (registerData.usuario.contrasena !== registerData.confirmPassword) {
+        validationErrors.confirmPassword = 'Las contraseñas no coinciden';
+        setPasswordMatch(false);
+      }
+
+      if (!registerData.usuarioPerfil.dni_usuario.trim()) {
+        validationErrors.dni_usuario = 'El DNI es obligatorio';
+      }
+
+      if (!registerData.usuarioPerfil.primer_nombre.trim()) {
+        validationErrors.primer_nombre = 'El primer nombre es obligatorio';
+      }
+
+      if (!registerData.usuarioPerfil.primer_apellido.trim()) {
+        validationErrors.primer_apellido = 'El primer apellido es obligatorio';
+      }
+
+      if (!registerData.usuarioPerfil.fecha_nacimiento) {
+        validationErrors.fecha_nacimiento = 'La fecha de nacimiento es obligatoria';
+      } else {
+        // Validar edad
+        const today = new Date();
+        const birthDate = new Date(registerData.usuarioPerfil.fecha_nacimiento);
+        if (birthDate >= today) {
+          validationErrors.fecha_nacimiento = 'La fecha de nacimiento debe ser anterior a hoy';
+        } else {
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          if (age < 18) {
+            validationErrors.fecha_nacimiento = 'Debes ser mayor de 18 años para registrarte';
+          }
         }
-        return res.json();
-      })
-      .then(data => {
-        alert('Registro exitoso');
-        // Aquí podrías redirigir o limpiar el formulario
-      })
-      .catch(err => {
-        alert('Error: ' + err.message);
+      }
+
+      if (!registerData.usuarioPerfil.pais_nacimiento.trim()) {
+        validationErrors.pais_nacimiento = 'El país de nacimiento es obligatorio';
+      }
+
+      if (!registerData.usuarioPerfil.estado_nacimiento.trim()) {
+        validationErrors.estado_nacimiento = 'El estado/provincia es obligatorio';
+      }
+
+      if (!registerData.usuarioPerfil.ciudad_nacimiento.trim()) {
+        validationErrors.ciudad_nacimiento = 'La ciudad es obligatoria';
+      }
+
+      if (!registerData.usuarioPerfil.direccion_facturacion.trim()) {
+        validationErrors.direccion_facturacion = 'La dirección de facturación es obligatoria';
+      }
+
+      if (!registerData.acceptTerms) {
+        validationErrors.acceptTerms = 'Debes aceptar los términos y condiciones';
+      }
+
+      // Si hay errores de validación, mostrarlos
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        setIsLoading(false);
+        
+        // Mostrar el primer error encontrado
+        const firstError = Object.values(validationErrors)[0];
+        alert(`Error de validación: ${firstError}`);
+        return;
+      }
+
+      // Preparar payload
+      const payload = {
+        usuario: {
+          descripcion_usuario: registerData.usuario.descripcion_usuario.trim(),
+          correo_electronico: registerData.usuario.correo_electronico.trim().toLowerCase(),
+          contrasena: registerData.usuario.contrasena,
+          id_rol: registerData.usuario.id_rol
+        },
+        usuarioPerfil: {
+          dni_usuario: registerData.usuarioPerfil.dni_usuario.trim(),
+          primer_nombre: registerData.usuarioPerfil.primer_nombre.trim(),
+          segundo_nombre: registerData.usuarioPerfil.segundo_nombre?.trim() || '',
+          primer_apellido: registerData.usuarioPerfil.primer_apellido.trim(),
+          segundo_apellido: registerData.usuarioPerfil.segundo_apellido?.trim() || '',
+          fecha_nacimiento: registerData.usuarioPerfil.fecha_nacimiento,
+          pais_nacimiento: registerData.usuarioPerfil.pais_nacimiento.trim(),
+          estado_nacimiento: registerData.usuarioPerfil.estado_nacimiento.trim(),
+          ciudad_nacimiento: registerData.usuarioPerfil.ciudad_nacimiento.trim(),
+          direccion_facturacion: registerData.usuarioPerfil.direccion_facturacion.trim(),
+          id_genero_usuario: registerData.usuarioPerfil.id_genero_usuario
+        }
+      };
+
+      console.log('Enviando registro:', payload);
+
+      // Get the backend URL dynamically
+      const getBackendUrl = () => {
+        if (typeof window !== 'undefined') {
+          // If we're on a mobile device accessing via IP, use the same IP for backend
+          const currentHost = window.location.hostname;
+          if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+            return `http://${currentHost}:3001`;
+          }
+        }
+        return 'http://localhost:3001';
+      };
+
+      const backendUrl = getBackendUrl();
+
+      const response = await fetch(`${backendUrl}/api/v1/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Error del servidor:', data);
+        
+        // Manejar errores específicos del backend
+        if (data.error && Array.isArray(data.error)) {
+          const backendErrors = {};
+          data.error.forEach(err => {
+            if (err.path && err.path.length > 0) {
+              const fieldPath = err.path.join('.');
+              backendErrors[fieldPath] = err.message;
+            }
+          });
+          
+          setErrors(backendErrors);
+          
+          const errorMessages = data.error.map(err => 
+            `${err.path ? err.path.join('.') + ': ' : ''}${err.message}`
+          ).join('\n');
+          
+          alert(`Errores de validación:\n${errorMessages}`);
+        } else if (data.message) {
+          if (data.message.includes('correo') || data.message.includes('email')) {
+            setFieldError('correo_electronico', data.message);
+          } else if (data.message.includes('DNI')) {
+            setFieldError('dni_usuario', data.message);
+          }
+          alert(`Error: ${data.message}`);
+        } else {
+          alert('Error en el registro. Por favor, inténtalo de nuevo.');
+        }
+        return;
+      }
+
+      // Registro exitoso
+      console.log('Registro exitoso:', data);
+      
+      // Mostrar mensaje de éxito
+      alert('¡Registro exitoso! Tu cuenta ha sido creada correctamente. Serás redirigido al inicio de sesión.');
+      
+      // Limpiar formulario
+      resetForm();
+      
+      // Redirigir al login después de un breve delay
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error en el registro:', error);
+      alert(`Error de conexión: ${error.message}. Por favor, verifica tu conexión e inténtalo de nuevo.`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -227,10 +452,12 @@ const handleStateChange = (e) => {
           </div>
           
           <form onSubmit={handleRegister} className="space-y-6">
-            {/* Datos de Usuario */}
+            {/* Ejemplo de campo con manejo de errores mejorado */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="descripcion_usuario" className="block text-sm font-medium text-gray-700 mb-2">Descripción Usuario *</label>
+                <label htmlFor="descripcion_usuario" className="block text-sm font-medium text-gray-700 mb-2">
+                  Descripción Usuario *
+                </label>
                 <input
                   type="text"
                   id="descripcion_usuario"
@@ -239,11 +466,19 @@ const handleStateChange = (e) => {
                   onChange={handleInputChange}
                   placeholder="Ej: Juan Pérez"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black ${
+                    errors.descripcion_usuario ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                  }`}
                 />
+                {errors.descripcion_usuario && (
+                  <p className="mt-1 text-sm text-red-600">{errors.descripcion_usuario}</p>
+                )}
               </div>
+
               <div>
-                <label htmlFor="correo_electronico" className="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico *</label>
+                <label htmlFor="correo_electronico" className="block text-sm font-medium text-gray-700 mb-2">
+                  Correo Electrónico *
+                </label>
                 <input
                   type="email"
                   id="correo_electronico"
@@ -252,8 +487,15 @@ const handleStateChange = (e) => {
                   onChange={handleInputChange}
                   placeholder="ejemplo@email.com"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black ${
+                    errors.correo_electronico || !emailValid ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                  }`}
                 />
+                {(errors.correo_electronico || !emailValid) && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.correo_electronico || 'Por favor ingresa un correo electrónico válido'}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -329,6 +571,9 @@ const handleStateChange = (e) => {
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
+                {errors.dni_usuario && (
+                  <p className="mt-1 text-sm text-red-600">{errors.dni_usuario}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="primer_nombre" className="block text-sm font-medium text-gray-700 mb-2">Primer Nombre *</label>
@@ -342,6 +587,9 @@ const handleStateChange = (e) => {
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
+                {errors.primer_nombre && (
+                  <p className="mt-1 text-sm text-red-600">{errors.primer_nombre}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="segundo_nombre" className="block text-sm font-medium text-gray-700 mb-2">Segundo Nombre</label>
@@ -367,6 +615,9 @@ const handleStateChange = (e) => {
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
+                {errors.primer_apellido && (
+                  <p className="mt-1 text-sm text-red-600">{errors.primer_apellido}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="segundo_apellido" className="block text-sm font-medium text-gray-700 mb-2">Segundo Apellido</label>
@@ -388,9 +639,14 @@ const handleStateChange = (e) => {
                   name="fecha_nacimiento"
                   value={registerData.usuarioPerfil.fecha_nacimiento}
                   onChange={handleInputChange}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
                 />
+                <p className="mt-1 text-xs text-gray-500">Debes ser mayor de 18 años</p>
+                {errors.fecha_nacimiento && (
+                  <p className="mt-1 text-sm text-red-600">{errors.fecha_nacimiento}</p>
+                )}
               </div>
                <div>
               <label htmlFor="pais_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">País de Nacimiento *</label>
@@ -409,6 +665,9 @@ const handleStateChange = (e) => {
                   </option>
                 ))}
               </select>
+              {errors.pais_nacimiento && (
+                <p className="mt-1 text-sm text-red-600">{errors.pais_nacimiento}</p>
+              )}
             </div>
             <div>
             <label htmlFor="estado_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">Estado/Provincia *</label>
@@ -433,6 +692,9 @@ const handleStateChange = (e) => {
                 </option>
               ))}
             </select>
+            {errors.estado_nacimiento && (
+                <p className="mt-1 text-sm text-red-600">{errors.estado_nacimiento}</p>
+              )}
           </div>
 
           <div>
@@ -453,6 +715,9 @@ const handleStateChange = (e) => {
                 </option>
               ))}
             </select>
+            {errors.ciudad_nacimiento && (
+                <p className="mt-1 text-sm text-red-600">{errors.ciudad_nacimiento}</p>
+              )}
           </div>
 
               <div>
@@ -465,8 +730,11 @@ const handleStateChange = (e) => {
                   onChange={handleInputChange}
                   placeholder="Ej: Av. Siempre Viva 742"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                {errors.direccion_facturacion && (
+                  <p className="mt-1 text-sm text-red-600">{errors.direccion_facturacion}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="id_genero_usuario" className="block text-sm font-medium text-gray-700 mb-2">Género *</label>
@@ -493,102 +761,48 @@ const handleStateChange = (e) => {
                   <span className={`mr-2 ${registerData.usuario.contrasena.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
                     {registerData.usuario.contrasena.length >= 8 ? '✓' : '○'}
                   </span>
-                  Mínimo 8 caracteres
+                  Mínimo 8 caracteres ({registerData.usuario.contrasena.length}/8)
                 </li>
                 <li className="flex items-center">
-                  <span className={`mr-2 ${/[A-Z]/.test(registerData.usuario.contrasena) ? 'text-green-600' : 'text-gray-400'}`}>
-                    {/[A-Z]/.test(registerData.usuario.contrasena) ? '✓' : '○'}
+                  <span className={`mr-2 ${passwordMatch && registerData.confirmPassword !== '' ? 'text-green-600' : 'text-gray-400'}`}>
+                    {passwordMatch && registerData.confirmPassword !== '' ? '✓' : '○'}
                   </span>
-                  Al menos una letra mayúscula
+                  Las contraseñas coinciden
                 </li>
                 <li className="flex items-center">
-                  <span className={`mr-2 ${/[0-9]/.test(registerData.usuario.contrasena) ? 'text-green-600' : 'text-gray-400'}`}>
-                    {/[0-9]/.test(registerData.usuario.contrasena) ? '✓' : '○'}
+                  <span className={`mr-2 ${emailValid && registerData.usuario.correo_electronico !== '' ? 'text-green-600' : 'text-gray-400'}`}>
+                    {emailValid && registerData.usuario.correo_electronico !== '' ? '✓' : '○'}
                   </span>
-                  Al menos un número
+                  Email válido
                 </li>
               </ul>
             </div>
 
-            {/* Terms and Promotions */}
-            <div className="space-y-4">
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  name="acceptTerms"
-                  checked={registerData.acceptTerms}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Acepto los{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-800 underline">
-                    términos y condiciones
-                  </a>{' '}
-                  y la{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-800 underline">
-                    política de privacidad
-                  </a>
-                  *
-                </span>
-              </label>
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  name="receivePromotions"
-                  checked={registerData.receivePromotions}
-                  onChange={handleInputChange}
-                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Deseo recibir ofertas especiales y promociones por correo electrónico
-                </span>
-              </label>
-            </div>
-
-            {/* Register Button */}
+            
+            {/* Botón de registro mejorado */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg hover:shadow-xl"
+              disabled={isLoading}
+              className={`w-full font-bold py-3 px-4 rounded-lg transition-colors shadow-lg hover:shadow-xl ${
+                isLoading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
-              Crear Cuenta
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creando cuenta...
+                </div>
+              ) : (
+                'Crear Cuenta'
+              )}
             </button>
 
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">O regístrate con</span>
-              </div>
-            </div>
 
-            {/* Social Register Buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 transition-colors"
-              >
-                <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                <span className="ml-2">Google</span>
-              </button>
-              <button
-                type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 transition-colors"
-              >
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                <span className="ml-2">Facebook</span>
-              </button>
-            </div>
           </form>
 
           {/* Login Link */}

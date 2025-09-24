@@ -36,9 +36,10 @@ async function start () {
       console.log('🛠️ Modelos sincronizados con la BD')
     }
 
-    app.listen(PORT, () =>
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor en ejecución: http://localhost:${PORT}`)
-    )
+      console.log(`🌐 También accesible desde la red local en: http://[TU_IP]:${PORT}`)
+    })
   } catch (err) {
     console.error('❌ Error de conexión a la BD:', err.message)
     process.exit(1)

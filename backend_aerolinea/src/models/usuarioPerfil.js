@@ -31,7 +31,7 @@ const UsuarioPerfil = sequelize.define('usuario_perfil', {
   pais_nacimiento: {
     type: DataTypes.STRING
   },
-  provincia_nacimiento: {
+  estado_nacimiento: {
     type: DataTypes.STRING
   },
   ciudad_nacimiento: {

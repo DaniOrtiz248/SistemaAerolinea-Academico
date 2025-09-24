@@ -9,21 +9,23 @@ Content-Type: application/json
 
 {
   "usuario":{
-    "descripcion_usuario": "Usuario",
-    "correo_electronico": "nuevo@usuario.com",
-    "contrasena": "123456",
+    "descripcion_usuario": "Usuario23",
+    "correo_electronico": "nuevo24@usuario.com",
+    "contrasena": "1234567",
     "id_rol": 3
   },
-  "usuarioPerfil": {
-    "dni_usuario": "12345678",
-    "primer_nombre": "Nuevo",
-    "segundo_nombre": "",
-    "primer_apellido": "Apellido1",
-    "segundo_apellido": "Apellido2",
-    "fecha_nacimiento": "1990-01-01",
-    "lugar_nacimiento": "Ciudad",
-    "direccion_facturacion": "Direccion 123",
-    "id_genero_usuario": 1
+    "usuarioPerfil": {
+    "dni_usuario": "87654321",
+    "primer_nombre": "Maria",
+    "segundo_nombre": "Elena",
+    "primer_apellido": "Rodriguez",
+    "segundo_apellido": "Lopez",
+    "fecha_nacimiento": "1985-05-15",
+    "pais_nacimiento": "México",
+    "estado_nacimiento": "Jalisco",
+    "ciudad_nacimiento": "Guadalajara",
+    "direccion_facturacion": "Av. Revolución 456, Col. Centro",
+    "id_genero_usuario": 2
   }
 }
 
@@ -38,4 +40,13 @@ Content-Type: application/json
     "contrasena": "123456",
     "id_rol": 2
   }
+}
+
+### log
+POST http://localhost:3001/api/v1/users/login
+Content-Type: application/json
+
+{
+  "identifier": "root",
+  "contrasena": "root1234"
 }
