@@ -49,7 +49,7 @@ export default function ResetPassword() {
         throw new Error(data.error || 'Error al solicitar el PIN');
       }
 
-      alert('PIN enviado exitosamente. Revisa tu correo electrónico (en desarrollo puede aparecer en los logs del servidor)');
+      alert('PIN enviado exitosamente. Revisa tu correo electrónico');
       setStep(2);
     } catch (error) {
       alert('Error: ' + error.message);
@@ -73,8 +73,8 @@ export default function ResetPassword() {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      alert('La contraseña debe tener al menos 6 caracteres');
+    if (formData.newPassword.length < 8) {
+      alert('La contraseña debe tener al menos 8 caracteres');
       return;
     }
 
