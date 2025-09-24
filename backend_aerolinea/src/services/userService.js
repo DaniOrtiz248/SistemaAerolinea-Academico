@@ -75,6 +75,7 @@ export class UserService {
   }
 
   static async login ({ correo_electronico, contrasena }) {
+    // TODO: Se puede usar zod para hacer las validaciones
     if (!correo_electronico || !contrasena) {
       throw new Error('Correo y contraseña son obligatorios')
     }

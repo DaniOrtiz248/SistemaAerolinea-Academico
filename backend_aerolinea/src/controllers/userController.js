@@ -16,8 +16,9 @@ export class UserController {
     }
   }
 
-  // Metodo para crear un usuario Cliente
+  // Metodo para crear/registrar un usuario Cliente
   static async create (req, res) {
+    // TODO: Crear la seccion de inicio de sesion cuando se registra el usuairo
     const validation = validateUser(req.body)
 
     if (!validation.success) {
@@ -112,6 +113,7 @@ export class UserController {
 
       res.json({ mensaje: 'Inicio de sesión exitoso', usuario: user })
     } catch (err) {
+      // TODO: Crear el formato para el retorno de errores, y errores
       console.error(err)
       res.status(401).json({ error: err.message || 'Error en inicio de sesión' })
     }
