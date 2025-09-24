@@ -9,7 +9,6 @@ export default function RootDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingAdmin, setEditingAdmin] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -39,12 +38,6 @@ export default function RootDashboard() {
   };
 
   const handleCreateAdmin = () => {
-    setEditingAdmin(null);
-    setShowForm(true);
-  };
-
-  const handleEditAdmin = (admin) => {
-    setEditingAdmin(admin);
     setShowForm(true);
   };
 
@@ -62,18 +55,11 @@ export default function RootDashboard() {
 
   const handleSaveAdmin = async (formData) => {
     try {
-      if (editingAdmin) {
-        // Update existing admin
-        await adminService.updateAdmin(editingAdmin.id_usuario, formData);
-        alert('Administrador actualizado exitosamente');
-      } else {
-        // Create new admin
-        await adminService.createAdmin(formData);
-        alert('Administrador creado exitosamente');
-      }
+      // Create new admin
+      await adminService.createAdmin(formData);
+      alert('Administrador creado exitosamente');
       
       setShowForm(false);
-      setEditingAdmin(null);
       await loadAdmins(); // Refresh the list
     } catch (err) {
       throw err; // Re-throw to let AdminForm handle the error display
@@ -82,7 +68,6 @@ export default function RootDashboard() {
 
   const handleCancelForm = () => {
     setShowForm(false);
-    setEditingAdmin(null);
   };
 
   // Filter admins based on search term
@@ -113,22 +98,22 @@ export default function RootDashboard() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <div className="bg-red-600 rounded-lg p-2 mr-3">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center flex-1 min-w-0">
+              <div className="bg-red-600 rounded-lg p-2 mr-3 flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Panel de Administración Root</h1>
-                <p className="text-sm text-gray-500">Gestión de Administradores</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Panel de Administración Root</h1>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Gestión de Administradores</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-3 mr-10">
-              <span className="text-sm text-gray-600">Usuario Root</span>
-              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">R</span>
+            <div className="flex items-center space-x-2 sm:space-x-3 ml-4 pr-16 sm:pr-10">
+              <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">Usuario Root</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-xs sm:text-sm">R</span>
               </div>
             </div>
           </div>
@@ -241,7 +226,6 @@ export default function RootDashboard() {
               <AdminCard
                 key={admin.id_usuario}
                 admin={admin}
-                onEdit={handleEditAdmin}
                 onDelete={handleDeleteAdmin}
               />
             ))
@@ -251,7 +235,6 @@ export default function RootDashboard() {
 
       {/* Admin Form Modal */}
       <AdminForm
-        admin={editingAdmin}
         onSave={handleSaveAdmin}
         onCancel={handleCancelForm}
         isOpen={showForm}

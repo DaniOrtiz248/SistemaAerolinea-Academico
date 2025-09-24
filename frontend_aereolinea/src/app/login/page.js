@@ -26,7 +26,21 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/v1/users/login', {
+      // Get the backend URL dynamically
+      const getBackendUrl = () => {
+        if (typeof window !== 'undefined') {
+          // If we're on a mobile device accessing via IP, use the same IP for backend
+          const currentHost = window.location.hostname;
+          if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+            return `http://${currentHost}:3001`;
+          }
+        }
+        return 'http://localhost:3001';
+      };
+
+      const backendUrl = getBackendUrl();
+      
+      const res = await fetch(`${backendUrl}/api/v1/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
