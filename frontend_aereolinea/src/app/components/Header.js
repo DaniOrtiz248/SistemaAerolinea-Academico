@@ -22,8 +22,8 @@ export default function Header() {
     }
   }, []);
 
-  // Don't render header for root users (they have their own dashboard header)
-  if (isMounted && user && user.id_rol === 1) {
+  // Don't render header for root users and administrators (they have their own dashboard headers)
+  if (isMounted && user && (user.id_rol === 1 || user.id_rol === 2)) {
     return null;
   }
 
@@ -74,9 +74,9 @@ export default function Header() {
                   Mi Cuenta
                 </Link>
               ) : (
-                <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                <Link href="/login?from=account" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Mi Cuenta
-                </a>
+                </Link>
               )}
               
               {/* Authentication section */}
@@ -144,9 +144,9 @@ export default function Header() {
                   Mi Cuenta
                 </Link>
               ) : (
-                <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                <Link href="/login?from=account" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                   Mi Cuenta
-                </a>
+                </Link>
               )}
               
               {/* Authentication section for mobile */}

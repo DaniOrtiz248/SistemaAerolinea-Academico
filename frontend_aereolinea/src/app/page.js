@@ -1,9 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
 export default function Home() {
+  const router = useRouter();
   const [searchData, setSearchData] = useState({
     origin: '',
     destination: '',
@@ -12,6 +15,32 @@ export default function Home() {
     passengers: 1,
     tripType: 'roundtrip'
   });
+
+
+  useEffect(() => {
+    // Verificar si el usuario es administrador y redirigirlo a su dashboard
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        
+        // Si es administrador (id_rol === 2), redirigir a su dashboard
+        if (parsedUser.id_rol === 2) {
+          router.push('/admin');
+          return;
+        }
+        
+        // Si es usuario root (id_rol === 1), redirigir a su dashboard
+        if (parsedUser.id_rol === 1) {
+          router.push('/root/dashboard');
+          return;
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+  }, [router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -93,7 +122,11 @@ export default function Home() {
             </div>
 
             {/* Flight Search Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${
+              searchData.tripType === 'roundtrip' 
+                ? 'lg:grid-cols-5' 
+                : 'lg:grid-cols-4 lg:max-w-4xl lg:mx-auto'
+            }`}>
               {/* Origin */}
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">

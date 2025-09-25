@@ -3,37 +3,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { Country, State, City } from 'country-state-city';
+import EditProfile from '../../components/EditProfile';
 
 export default function EditAccount() {
   const router = useRouter();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [message, setMessage] = useState('');
-  const [countries, setCountries] = useState([]);
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [formData, setFormData] = useState({
-    dni_usuario: '',
-    primer_nombre: '',
-    segundo_nombre: '',
-    primer_apellido: '',
-    segundo_apellido: '',
-    fecha_nacimiento: '',
-    pais_nacimiento: '',
-    estado_nacimiento: '',
-    ciudad_nacimiento: '',
-    direccion_facturacion: '',
-    id_genero_usuario: 1
-  });
-
-  // Cargar países al montar el componente
-  useEffect(() => {
-    const allCountries = Country.getAllCountries();
-    setCountries(allCountries);
-  }, []);
+  const [isEditing, setIsEditing] = useState(true); // Siempre en modo edición para esta página
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -46,8 +22,16 @@ export default function EditAccount() {
       try {
         const parsedUser = JSON.parse(userData);
         
+        // Solo permitir acceso a usuarios normales (id_rol === 3)
         if (parsedUser.id_rol !== 3) {
-          router.push('/');
+          // Redirigir según el rol del usuario
+          if (parsedUser.id_rol === 1) {
+            router.push('/root/dashboard');
+          } else if (parsedUser.id_rol === 2) {
+            router.push('/admin');
+          } else {
+            router.push('/');
+          }
           return;
         }
 
@@ -63,39 +47,8 @@ export default function EditAccount() {
         if (response.ok) {
           const result = await response.json();
           setUserProfile(result.data);
-          
-          // Llenar el formulario con los datos actuales
-          const perfil = result.data.usuarioPerfil || {};
-          setFormData({
-            dni_usuario: perfil.dni_usuario || '',
-            primer_nombre: perfil.primer_nombre || '',
-            segundo_nombre: perfil.segundo_nombre || '',
-            primer_apellido: perfil.primer_apellido || '',
-            segundo_apellido: perfil.segundo_apellido || '',
-            fecha_nacimiento: perfil.fecha_nacimiento ? perfil.fecha_nacimiento.split('T')[0] : '',
-            pais_nacimiento: perfil.pais_nacimiento || '',
-            estado_nacimiento: perfil.estado_nacimiento || '',
-            ciudad_nacimiento: perfil.ciudad_nacimiento || '',
-            direccion_facturacion: perfil.direccion_facturacion || '',
-            id_genero_usuario: perfil.id_genero_usuario || 1
-          });
-
-          // Cargar estados y ciudades si ya existe información
-          if (perfil.pais_nacimiento) {
-            const country = Country.getAllCountries().find(c => c.name === perfil.pais_nacimiento);
-            if (country) {
-              const countryStates = State.getStatesOfCountry(country.isoCode);
-              setStates(countryStates);
-              
-              if (perfil.estado_nacimiento) {
-                const state = countryStates.find(s => s.name === perfil.estado_nacimiento);
-                if (state) {
-                  const stateCities = City.getCitiesOfState(country.isoCode, state.isoCode);
-                  setCities(stateCities);
-                }
-              }
-            }
-          }
+        } else {
+          console.error('Error al obtener perfil');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -107,133 +60,9 @@ export default function EditAccount() {
     loadUserProfile();
   }, [router]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Limpiar error si existe
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const handleCountryChange = (e) => {
-    const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
-    const countryName = e.target.value;
-    
-    // Actualizar el país seleccionado
-    setFormData(prev => ({
-      ...prev,
-      pais_nacimiento: countryName,
-      estado_nacimiento: '',
-      ciudad_nacimiento: ''
-    }));
-
-    // Cargar estados del país seleccionado
-    const countryStates = State.getStatesOfCountry(countryCode);
-    setStates(countryStates);
-    setCities([]);
-  };
-
-  const handleStateChange = (e) => {
-    const stateCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
-    const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-country');
-    const stateName = e.target.value;
-
-    // Actualizar el estado seleccionado
-    setFormData(prev => ({
-      ...prev,
-      estado_nacimiento: stateName,
-      ciudad_nacimiento: ''
-    }));
-
-    // Cargar ciudades del estado seleccionado
-    const stateCities = City.getCitiesOfState(countryCode, stateCode);
-    setCities(stateCities);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUpdating(true);
-    setMessage('');
-    setErrors({});
-
+  const handleSaveProfile = async (profileData) => {
     try {
-      // Validaciones del frontend
-      const validationErrors = {};
-
-      // Validar campos obligatorios
-      if (!formData.dni_usuario.trim()) {
-        validationErrors.dni_usuario = 'El DNI es obligatorio';
-      }
-
-      if (!formData.primer_nombre.trim()) {
-        validationErrors.primer_nombre = 'El primer nombre es obligatorio';
-      }
-
-      if (!formData.primer_apellido.trim()) {
-        validationErrors.primer_apellido = 'El primer apellido es obligatorio';
-      }
-
-      if (!formData.fecha_nacimiento) {
-        validationErrors.fecha_nacimiento = 'La fecha de nacimiento es obligatoria';
-      } else {
-        // Validar edad - debe ser mayor de 18 años
-        const today = new Date();
-        const birthDate = new Date(formData.fecha_nacimiento);
-        if (birthDate >= today) {
-          validationErrors.fecha_nacimiento = 'La fecha de nacimiento debe ser anterior a hoy';
-        } else {
-          let age = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-          }
-          if (age < 18) {
-            validationErrors.fecha_nacimiento = 'Debes ser mayor de 18 años';
-          }
-        }
-      }
-
-      if (!formData.pais_nacimiento.trim()) {
-        validationErrors.pais_nacimiento = 'El país de nacimiento es obligatorio';
-      }
-
-      if (!formData.estado_nacimiento.trim()) {
-        validationErrors.estado_nacimiento = 'El estado/provincia es obligatorio';
-      }
-
-      if (!formData.ciudad_nacimiento.trim()) {
-        validationErrors.ciudad_nacimiento = 'La ciudad es obligatoria';
-      }
-
-      if (!formData.direccion_facturacion.trim()) {
-        validationErrors.direccion_facturacion = 'La dirección de facturación es obligatoria';
-      }
-
-      // Si hay errores de validación, mostrarlos
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        setMessage('Por favor, corrige los errores antes de continuar');
-        setUpdating(false);
-        return;
-      }
-
       const userData = JSON.parse(localStorage.getItem('user'));
-      
-      // Preparar datos con fecha normalizada para evitar problemas de zona horaria
-      const normalizedFormData = { ...formData };
-      if (normalizedFormData.fecha_nacimiento) {
-        // Convertir la fecha a formato ISO con zona horaria local para evitar conversión UTC
-        const [year, month, day] = normalizedFormData.fecha_nacimiento.split('-');
-        normalizedFormData.fecha_nacimiento = `${year}-${month}-${day}T12:00:00.000Z`;
-      }
       
       const response = await fetch(`http://localhost:3001/api/v1/users/profile/${userData.id_usuario}`, {
         method: 'PUT',
@@ -242,25 +71,27 @@ export default function EditAccount() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          usuarioPerfilData: normalizedFormData
+          usuarioPerfilData: profileData
         }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        setMessage('Información actualizada correctamente');
+        // Redirigir a la página de cuenta después de guardar exitosamente
         setTimeout(() => {
           router.push('/account');
-        }, 2000);
+        }, 1500);
       } else {
-        setMessage(result.message || 'Error al actualizar');
+        throw new Error(result.message || 'Error al actualizar');
       }
     } catch (error) {
-      setMessage('Error de conexión');
-    } finally {
-      setUpdating(false);
+      throw error; // Re-lanzar para que EditProfile maneje el error
     }
+  };
+
+  const handleCancelEdit = () => {
+    router.push('/account');
   };
 
   if (loading) {
@@ -289,12 +120,6 @@ export default function EditAccount() {
             <p className="text-gray-600 mt-2">Actualiza tu información personal</p>
           </div>
 
-          {message && (
-            <div className={`mb-4 p-4 rounded-lg ${message.includes('correctamente') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {message}
-            </div>
-          )}
-
           {/* Información NO EDITABLE */}
           <div className="mb-6 p-4 bg-gray-100 rounded-lg">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Información No Editable</h3>
@@ -318,259 +143,13 @@ export default function EditAccount() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Información Editable</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="dni_usuario" className="block text-sm font-medium text-gray-700 mb-2">
-                  DNI *
-                </label>
-                <input
-                  type="text"
-                  id="dni_usuario"
-                  name="dni_usuario"
-                  value={formData.dni_usuario}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 87654321"
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.dni_usuario ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                />
-                {errors.dni_usuario && (
-                  <p className="mt-1 text-sm text-red-600">{errors.dni_usuario}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="primer_nombre" className="block text-sm font-medium text-gray-700 mb-2">
-                  Primer Nombre *
-                </label>
-                <input
-                  type="text"
-                  id="primer_nombre"
-                  name="primer_nombre"
-                  value={formData.primer_nombre}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Juan"
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.primer_nombre ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                />
-                {errors.primer_nombre && (
-                  <p className="mt-1 text-sm text-red-600">{errors.primer_nombre}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="segundo_nombre" className="block text-sm font-medium text-gray-700 mb-2">
-                  Segundo Nombre
-                </label>
-                <input
-                  type="text"
-                  id="segundo_nombre"
-                  name="segundo_nombre"
-                  value={formData.segundo_nombre}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Carlos"
-                  className="w-full px-4 py-3 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="primer_apellido" className="block text-sm font-medium text-gray-700 mb-2">
-                  Primer Apellido *
-                </label>
-                <input
-                  type="text"
-                  id="primer_apellido"
-                  name="primer_apellido"
-                  value={formData.primer_apellido}
-                  onChange={handleInputChange}
-                  placeholder="Ej: García"
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.primer_apellido ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                />
-                {errors.primer_apellido && (
-                  <p className="mt-1 text-sm text-red-600">{errors.primer_apellido}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="segundo_apellido" className="block text-sm font-medium text-gray-700 mb-2">
-                  Segundo Apellido
-                </label>
-                <input
-                  type="text"
-                  id="segundo_apellido"
-                  name="segundo_apellido"
-                  value={formData.segundo_apellido}
-                  onChange={handleInputChange}
-                  placeholder="Ej: López"
-                  className="w-full px-4 py-3 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="fecha_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Nacimiento *
-                </label>
-                <input
-                  type="date"
-                  id="fecha_nacimiento"
-                  name="fecha_nacimiento"
-                  value={formData.fecha_nacimiento}
-                  onChange={handleInputChange}
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.fecha_nacimiento ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                />
-                <p className="text-sm text-gray-500 mt-1">Debes ser mayor de 18 años</p>
-                {errors.fecha_nacimiento && (
-                  <p className="mt-1 text-sm text-red-600">{errors.fecha_nacimiento}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="pais_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">
-                  País de Nacimiento *
-                </label>
-                <select
-                  id="pais_nacimiento"
-                  name="pais_nacimiento"
-                  value={formData.pais_nacimiento}
-                  onChange={handleCountryChange}
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.pais_nacimiento ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Seleccione un país</option>
-                  {countries.map((country) => (
-                    <option key={country.isoCode} value={country.name} data-code={country.isoCode}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.pais_nacimiento && (
-                  <p className="mt-1 text-sm text-red-600">{errors.pais_nacimiento}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="estado_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">
-                  Estado/Provincia *
-                </label>
-                <select
-                  id="estado_nacimiento"
-                  name="estado_nacimiento"
-                  value={formData.estado_nacimiento}
-                  onChange={handleStateChange}
-                  disabled={!formData.pais_nacimiento}
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.estado_nacimiento ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  } ${!formData.pais_nacimiento ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                >
-                  <option value="">Seleccione un estado</option>
-                  {states.map((state) => (
-                    <option 
-                      key={state.isoCode} 
-                      value={state.name}
-                      data-code={state.isoCode}
-                      data-country={state.countryCode}
-                    >
-                      {state.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.estado_nacimiento && (
-                  <p className="mt-1 text-sm text-red-600">{errors.estado_nacimiento}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="ciudad_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad *
-                </label>
-                <select
-                  id="ciudad_nacimiento"
-                  name="ciudad_nacimiento"
-                  value={formData.ciudad_nacimiento}
-                  onChange={handleInputChange}
-                  disabled={!formData.estado_nacimiento}
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.ciudad_nacimiento ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  } ${!formData.estado_nacimiento ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                >
-                  <option value="">Seleccione una ciudad</option>
-                  {cities.map((city) => (
-                    <option key={city.name} value={city.name}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.ciudad_nacimiento && (
-                  <p className="mt-1 text-sm text-red-600">{errors.ciudad_nacimiento}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="direccion_facturacion" className="block text-sm font-medium text-gray-700 mb-2">
-                  Dirección de Facturación *
-                </label>
-                <input
-                  type="text"
-                  id="direccion_facturacion"
-                  name="direccion_facturacion"
-                  value={formData.direccion_facturacion}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Av. Siempre Viva 742"
-                  className={`w-full px-4 py-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.direccion_facturacion ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
-                />
-                {errors.direccion_facturacion && (
-                  <p className="mt-1 text-sm text-red-600">{errors.direccion_facturacion}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="id_genero_usuario" className="block text-sm font-medium text-gray-700 mb-2">
-                  Género *
-                </label>
-                <select
-                  id="id_genero_usuario"
-                  name="id_genero_usuario"
-                  value={formData.id_genero_usuario}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value={1}>Masculino</option>
-                  <option value={2}>Femenino</option>
-                  <option value={3}>Otro</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-between pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => router.push('/account')}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              
-              <button
-                type="submit"
-                disabled={updating}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {updating ? 'Guardando...' : 'Guardar Cambios'}
-              </button>
-            </div>
-          </form>
+          {/* Usar el componente reutilizable EditProfile */}
+          <EditProfile
+            userProfile={userProfile}
+            onSave={handleSaveProfile}
+            onCancel={handleCancelEdit}
+            showMessage={true}
+          />
         </div>
       </div>
 

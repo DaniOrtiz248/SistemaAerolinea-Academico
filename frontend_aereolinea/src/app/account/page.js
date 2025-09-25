@@ -24,7 +24,14 @@ export default function MyAccount() {
         
         // Solo permitir acceso a usuarios normales (id_rol === 3)
         if (parsedUser.id_rol !== 3) {
-          router.push('/');
+          // Redirigir según el rol del usuario
+          if (parsedUser.id_rol === 1) {
+            router.push('/root/dashboard');
+          } else if (parsedUser.id_rol === 2) {
+            router.push('/admin');
+          } else {
+            router.push('/');
+          }
           return;
         }
 

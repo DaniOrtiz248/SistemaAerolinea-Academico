@@ -1,19 +1,28 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 
 export default function Login() {
+  const searchParams = useSearchParams();
   const [loginData, setLoginData] = useState({
     identifier: '',
     password: '',
     rememberMe: false
   });
-  
-
   const [showPassword, setShowPassword] = useState(false);
+  const [showAccountMessage, setShowAccountMessage] = useState(false);
+
+  useEffect(() => {
+    // Verificar si el usuario viene desde "Mi Cuenta"
+    const fromAccount = searchParams.get('from');
+    if (fromAccount === 'account') {
+      setShowAccountMessage(true);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -61,12 +70,29 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(userData));
       
       
-      // Redirect based on user role
+      // Redirect based on user role and where they came from
+      const fromAccount = searchParams.get('from');
+      
       if (userData.id_rol === 1) {
-        // Root user - redirect to admin dashboard
+        // Root user - redirect to root dashboard
         window.location.href = '/root/dashboard';
+      } else if (userData.id_rol === 2) {
+        // Administrator user - redirect to admin dashboard
+        alert('Inicio de sesión exitoso - Bienvenido Administrador');
+        window.location.href = '/admin';
+      } else if (userData.id_rol === 3) {
+        // Regular users
+        if (fromAccount === 'account') {
+          // If they came from "Mi Cuenta", redirect them there
+          alert('Inicio de sesión exitoso - Redirigiendo a tu cuenta');
+          window.location.href = '/account';
+        } else {
+          // Otherwise, redirect to home page
+          alert('Inicio de sesión exitoso');
+          window.location.href = '/';
+        }
       } else {
-        // Other users - redirect to home page
+        // Fallback for other roles
         alert('Inicio de sesión exitoso');
         window.location.href = '/';
       }
@@ -109,6 +135,25 @@ export default function Login() {
               Accede a tu cuenta de Aero Penguin
             </p>
           </div>
+
+          {/* Message when coming from "Mi Cuenta" */}
+          {showAccountMessage && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-blue-700">
+                    <strong>Para acceder a tu cuenta</strong>, necesitas iniciar sesión primero. 
+                    Después podrás gestionar tu información personal y reservas.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           
           <form onSubmit={handleLogin} className="space-y-6">
             {/* identifier Field */}
