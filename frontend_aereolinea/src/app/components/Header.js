@@ -69,9 +69,15 @@ export default function Header() {
               <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Check-in
               </a>
-              <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Mi Cuenta
-              </a>
+              {user && user.id_rol === 3 ? (
+                <Link href="/account" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Mi Cuenta
+                </Link>
+              ) : (
+                <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Mi Cuenta
+                </a>
+              )}
               
               {/* Authentication section */}
               {isMounted ? (
@@ -133,9 +139,15 @@ export default function Header() {
               <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                 Check-in
               </a>
-              <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                Mi Cuenta
-              </a>
+              {user && user.id_rol === 3 ? (
+                <Link href="/account" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                  Mi Cuenta
+                </Link>
+              ) : (
+                <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                  Mi Cuenta
+                </a>
+              )}
               
               {/* Authentication section for mobile */}
               <div className="border-t border-gray-200 pt-4">

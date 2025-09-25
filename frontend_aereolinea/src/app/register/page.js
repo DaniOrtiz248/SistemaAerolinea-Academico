@@ -312,7 +312,14 @@ const handleStateChange = (e) => {
         return;
       }
 
-      // Preparar payload
+      // Preparar payload con fecha normalizada
+      let normalizedFechaNacimiento = registerData.usuarioPerfil.fecha_nacimiento;
+      if (normalizedFechaNacimiento) {
+        // Convertir la fecha a formato ISO con zona horaria local para evitar conversión UTC
+        const [year, month, day] = normalizedFechaNacimiento.split('-');
+        normalizedFechaNacimiento = `${year}-${month}-${day}T12:00:00.000Z`;
+      }
+
       const payload = {
         usuario: {
           descripcion_usuario: registerData.usuario.descripcion_usuario.trim(),
@@ -326,7 +333,7 @@ const handleStateChange = (e) => {
           segundo_nombre: registerData.usuarioPerfil.segundo_nombre?.trim() || '',
           primer_apellido: registerData.usuarioPerfil.primer_apellido.trim(),
           segundo_apellido: registerData.usuarioPerfil.segundo_apellido?.trim() || '',
-          fecha_nacimiento: registerData.usuarioPerfil.fecha_nacimiento,
+          fecha_nacimiento: normalizedFechaNacimiento,
           pais_nacimiento: registerData.usuarioPerfil.pais_nacimiento.trim(),
           estado_nacimiento: registerData.usuarioPerfil.estado_nacimiento.trim(),
           ciudad_nacimiento: registerData.usuarioPerfil.ciudad_nacimiento.trim(),
