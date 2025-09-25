@@ -1,3 +1,29 @@
+### 1. LOGIN - CORREGIDO (cambiar de /api/users/ a /api/v1/users/)
+POST http://localhost:3001/api/v1/users/login
+Content-Type: application/json
+
+{
+    "identifier": "PEPESITO",
+    "contrasena": "12345678"
+}
+
+
+PUT http://localhost:3001/api/v1/users/profile/1
+Content-Type: application/json
+
+{
+  "usuarioPerfilData": {
+    "primer_nombre": "Juan",
+    "primer_apellido": "Pérez",
+    "fecha_nacimiento": "1990-05-15",
+    "direccion_facturacion": "Calle 123 #45-67"
+  }
+}
+
+
+
+
+
 ### Obtener usuarios
 
 GET http://localhost:3001/api/v1/users/
@@ -47,6 +73,63 @@ POST http://localhost:3001/api/v1/users/login
 Content-Type: application/json
 
 {
-  "identifier": "root",
-  "contrasena": "root1234"
+  "identifier": "PEPE",
+  "contrasena": "PEPE12345"
 }
+
+
+
+### Actualizar usuario
+PUT http://localhost:3001/api/v1/users/1
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwiZGVzY3JpcGNpb25fdXN1YXJpbyI6IlBFUEVTSVRPIiwiZW1haWwiOiJwZXBlc2l0b0BnbWFpbC5jb20iLCJyb2xlIjozLCJpYXQiOjE3NTg3NzM1NjgsImV4cCI6MTc1ODc3NzE2OH0.LiZk6if2vH1x21rIGg64t7YcXGUe-TwypA2qfk_HLvDhalwXisX0K8W1pi-td-LYWov_hJEB1afPYLqs_IdrtyZlvJ5NY7DXEmdQGQQuAW9lIcZcBVfrmV4OrMqHYPzZYC3sacljih4ssaPH5tn5V4eYx_dmnpu12l_4-6GextyOg35GDrM8JgHqASx8rUNIDi4_NTEoxheSM2c-ZlDqHcMAYS0iT4ImrDIV2Hk6dgg2S6vsGPzb4lK5SEoG5RRzd8NOiruwQkloSH4vKoj0VMt_qqmn5iFoMQzj1DKNMNEU346eyMhHIlnY81R7fFdo8QfD8IMdYS5u9ND-ejRpoA
+Content-Type: application/json
+
+{
+    "primer_nombre": "José Luis",
+    "primer_apellido": "Pérez"
+}
+
+### Actualizar solo algunos datos del perfil
+PUT http://localhost:3001/api/v1/users/profile/1
+Authorization: Bearer [TU_TOKEN_AQUI]
+Content-Type: application/json
+
+{
+  "usuarioPerfilData": {
+    "primer_nombre": "José Luis",
+    "primer_apellido": "Pérez",
+    "direccion_facturacion": "Nueva dirección Calle 123 #45-67"
+  }
+}
+
+### 1. Login PEPE
+POST http://localhost:3001/api/v1/users/login
+Content-Type: application/json
+
+{
+  "identifier": "PEPE",
+  "contrasena": "PEPE12345"
+}
+
+### 2. Obtener perfil actual (reemplaza TOKEN_AQUI con el token del login)
+GET http://localhost:3001/api/v1/users/profile/1
+Authorization: Bearer TOKEN_AQUI
+
+### 3. Actualizar perfil completo
+PUT http://localhost:3001/api/v1/users/profile/1
+Authorization: Bearer TOKEN_AQUI
+Content-Type: application/json
+
+{
+  "usuarioData": {
+    "imagen_usuario": "pepe_nueva_foto.jpg"
+  },
+  "usuarioPerfilData": {
+    "primer_nombre": "José",
+    "primer_apellido": "Pérez",
+    "fecha_nacimiento": "1990-03-15",
+    "pais_nacimiento": "Colombia",
+    "direccion_facturacion": "Carrera 50 #30-25"
+  }
+}
+

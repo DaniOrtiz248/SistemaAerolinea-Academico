@@ -9,14 +9,14 @@ export class UserPerfilRepository {
     return await UsuarioPerfil.create(usuarioPerfil)
   }
 
-  static async update ({ id, userData }) {
-    const [updated] = await UsuarioPerfil.update(userData, {
-      where: { id_usuario: id }
+  static async update ({ id_usuario, userPerfilData }) {
+    const [updated] = await UsuarioPerfil.update(userPerfilData, {
+      where: { id_usuario }
     })
     if (updated === 0) {
-      throw new Error('Usuario no encontrado o sin cambios')
+      throw new Error('Perfil de usuario no encontrado o sin cambios')
     }
-    return await UsuarioPerfil.findByPk(id)
+    return await UsuarioPerfil.findOne({ where: { id_usuario } })
   }
 
   static async delete ({ id }) {
@@ -29,9 +29,7 @@ export class UserPerfilRepository {
     return 0
   }
 
-  // eslint-disable-next-line camelcase
-  static async findByDNI ({ dni_usuario }) {
-    // eslint-disable-next-line camelcase
-    return await UsuarioPerfil.findOne({ where: { dni_usuario } })
+  static async findByUserId ({ id_usuario }) {
+    return await UsuarioPerfil.findOne({ where: { id_usuario } })
   }
 }

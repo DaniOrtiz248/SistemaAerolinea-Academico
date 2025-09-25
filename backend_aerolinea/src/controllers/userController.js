@@ -90,5 +90,80 @@ export class UserController {
     }
   }
 
-  
+  static async updateProfile (req, res) {
+    try {
+      const { id_usuario } = req.params
+      const { usuarioData, usuarioPerfilData } = req.body
+
+      const allowedUsuarioFields = ['imagen_usuario']
+      const allowedPerfilFields = [
+        'primer_nombre', 
+        'segundo_nombre', 
+        'primer_apellido', 
+        'segundo_apellido',
+        'fecha_nacimiento',
+        'pais_nacimiento',
+        'estado_nacimiento', 
+        'ciudad_nacimiento',
+        'direccion_facturacion',
+        'id_genero_usuario'
+      ]
+
+      const filteredUsuarioData = {}
+      const filteredPerfilData = {}
+
+      if (usuarioData) {
+        Object.keys(usuarioData).forEach(key => {
+          if (allowedUsuarioFields.includes(key)) {
+            filteredUsuarioData[key] = usuarioData[key]
+          }
+        })
+      }
+
+      if (usuarioPerfilData) {
+        Object.keys(usuarioPerfilData).forEach(key => {
+          if (allowedPerfilFields.includes(key)) {
+            filteredPerfilData[key] = usuarioPerfilData[key]
+          }
+        })
+      }
+
+      const result = await UserService.updateProfile({
+        id_usuario: parseInt(id_usuario),
+        usuarioData: Object.keys(filteredUsuarioData).length > 0 ? filteredUsuarioData : null,
+        usuarioPerfilData: Object.keys(filteredPerfilData).length > 0 ? filteredPerfilData : null
+      })
+
+      res.status(200).json({
+        success: true,
+        message: 'Perfil actualizado correctamente',
+        data: result
+      })
+    } catch (error) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || 'Error interno del servidor'
+      })
+    }
+  }
+
+  static async getUserProfile (req, res) {
+    try {
+      const { id_usuario } = req.params
+      
+      const result = await UserService.getUserProfile({
+        id_usuario: parseInt(id_usuario)
+      })
+
+      res.status(200).json({
+        success: true,
+        data: result
+      })
+    } catch (error) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || 'Error interno del servidor'
+      })
+    }
+  }
 }

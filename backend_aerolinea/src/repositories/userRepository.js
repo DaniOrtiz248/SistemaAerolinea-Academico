@@ -52,4 +52,8 @@ export class UserRepository {
     if (updated === 0) throw new Error('No se pudo actualizar la contraseña')
     return await Usuario.findOne({ where: { correo_electronico } })
   }
+
+  static async findByPk ({ id }) {
+    return await Usuario.findByPk(id)
+  }
 }

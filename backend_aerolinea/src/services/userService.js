@@ -72,4 +72,49 @@ export class UserService {
   static async delete ({ id }) {
     return await UserRepository.delete({ id })
   }
+
+  static async updateProfile ({ id_usuario, usuarioData, usuarioPerfilData }) {
+    // Validar que el usuario existe
+    const existingUser = await UserRepository.findByPk({ id: id_usuario })
+    if (!existingUser) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuario no encontrado')
+    }
+
+    // Si hay datos de usuario básicos para actualizar
+    let updatedUsuario = null
+    if (usuarioData && Object.keys(usuarioData).length > 0) {
+      updatedUsuario = await UserRepository.update({ 
+        id: id_usuario, 
+        userData: usuarioData 
+      })
+    }
+
+    // Si hay datos de perfil para actualizar
+    let updatedUsuarioPerfil = null
+    if (usuarioPerfilData && Object.keys(usuarioPerfilData).length > 0) {
+      updatedUsuarioPerfil = await UserPerfilRepository.update({ 
+        id_usuario, 
+        userPerfilData: usuarioPerfilData 
+      })
+    }
+
+    return {
+      usuario: updatedUsuario ? updatedUsuario.toJSON() : null,
+      usuarioPerfil: updatedUsuarioPerfil ? updatedUsuarioPerfil.toJSON() : null
+    }
+  }
+
+  static async getUserProfile ({ id_usuario }) {
+    const usuario = await UserRepository.findByPk({ id: id_usuario })
+    const usuarioPerfil = await UserPerfilRepository.findByUserId({ id_usuario })
+    
+    if (!usuario) {
+      throw new AppError(404, 'USER_NOT_FOUND', 'Usuario no encontrado')
+    }
+
+    return {
+      usuario: usuario.toJSON(),
+      usuarioPerfil: usuarioPerfil ? usuarioPerfil.toJSON() : null
+    }
+  }
 }

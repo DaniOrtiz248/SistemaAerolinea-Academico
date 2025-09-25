@@ -18,3 +18,8 @@ userRoutes.get('/', UserController.getAll)
 userRoutes.put('/:id', UserController.update)
 userRoutes.delete('/:id', UserController.delete)
 
+// ✅ Estas dos rutas SÍ funcionan porque los métodos existen
+userRoutes.get('/profile/:id_usuario', UserController.getUserProfile)
+userRoutes.put('/profile/:id_usuario', UserController.updateProfile)
+
+
