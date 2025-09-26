@@ -244,7 +244,7 @@ export default function ResetPassword() {
                   placeholder="Ingresa el PIN de 6 dígitos"
                   required
                   maxLength="6"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-lg tracking-wider"
+                  className="w-full px-4 py-3 text-gray-800  border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-lg tracking-wider"
                 />
               </div>
 
@@ -261,7 +261,7 @@ export default function ResetPassword() {
                   placeholder="Mínimo 6 caracteres"
                   required
                   minLength="6"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export default function ResetPassword() {
                   onChange={handleInputChange}
                   placeholder="Repite la nueva contraseña"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
