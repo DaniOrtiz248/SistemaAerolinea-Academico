@@ -124,7 +124,7 @@ class AdminService {
       }
 
       const response = await fetch(`${API_BASE_URL}/users/${adminId}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },

@@ -34,6 +34,14 @@ export class UserService {
     }
   }
 
+  static async validarActualizarUsuarioPerfil (usuarioPerfil, id_usuario) {
+    // Verificar si el DNI ya existe en otro perfil (excluyendo el actual)
+    const existDNI = await UserPerfilRepository.findByDNI(usuarioPerfil)
+    if (existDNI && existDNI.id_usuario !== parseInt(id_usuario)) {
+      this.errors.push(new AppError(409, 'DNI_EXISTS', 'El DNI ya está registrado por otro usuario', 'dni_usuario'))
+    }
+  }
+
   static async create ({ usuario, usuarioPerfil }) {
     // Validar datos antes de crear
     await this.validarCrearUsuario(usuario)
@@ -72,6 +80,30 @@ export class UserService {
     }
   }
 
+  static async createAdminProfile ({ id_usuario, usuarioPerfilData }) {
+    try {
+      // Verificar que el usuario existe y es administrador
+      const usuario = await UserRepository.findByPk({ id: id_usuario })
+      if (!usuario) {
+        throw new AppError(404, 'USER_NOT_FOUND', 'Usuario no encontrado')
+      }
+      
+      if (usuario.id_rol !== 2) {
+        throw new AppError(403, 'NOT_ADMIN', 'Solo los administradores pueden crear perfiles')
+      }
+      
+      // Crear el perfil
+      const usuarioPerfilReturn = await UserPerfilRepository.create({ 
+        usuarioPerfil: usuarioPerfilData 
+      })
+      
+      return usuarioPerfilReturn.toJSON()
+    } catch (error) {
+      console.error('Error creating admin profile:', error)
+      throw error
+    }
+  }
+
   static async update ({ id, userData }) {
     return await UserRepository.update({ id, userData })
   }
@@ -80,48 +112,52 @@ export class UserService {
     return await UserRepository.delete({ id })
   }
 
-  static async updateProfile ({ id_usuario, usuarioData, usuarioPerfilData }) {
-    // Validar que el usuario existe
-    const existingUser = await UserRepository.findByPk({ id: id_usuario })
-    if (!existingUser) {
-      throw new AppError(404, 'USER_NOT_FOUND', 'Usuario no encontrado')
-    }
-
-    // Si hay datos de usuario básicos para actualizar
-    let updatedUsuario = null
-    if (usuarioData && Object.keys(usuarioData).length > 0) {
-      updatedUsuario = await UserRepository.update({ 
-        id: id_usuario, 
-        userData: usuarioData 
-      })
-    }
-
-    // Si hay datos de perfil para actualizar
-    let updatedUsuarioPerfil = null
-    if (usuarioPerfilData && Object.keys(usuarioPerfilData).length > 0) {
-      updatedUsuarioPerfil = await UserPerfilRepository.update({ 
-        id_usuario, 
-        userPerfilData: usuarioPerfilData 
-      })
-    }
-
-    return {
-      usuario: updatedUsuario ? updatedUsuario.toJSON() : null,
-      usuarioPerfil: updatedUsuarioPerfil ? updatedUsuarioPerfil.toJSON() : null
+  static async getUserProfile ({ id_usuario }) {
+    try {
+      const usuario = await UserRepository.findByPk({ id: id_usuario })
+      if (!usuario) {
+        throw new AppError(404, 'USER_NOT_FOUND', 'Usuario no encontrado')
+      }
+      
+      const usuarioPerfil = await UserPerfilRepository.findByUserId({ id_usuario })
+      
+      return {
+        usuario: usuario.toJSON(),
+        usuarioPerfil: usuarioPerfil ? usuarioPerfil.toJSON() : null
+      }
+    } catch (error) {
+      console.error('Error getting user profile:', error)
+      throw error
     }
   }
 
-  static async getUserProfile ({ id_usuario }) {
-    const usuario = await UserRepository.findByPk({ id: id_usuario })
-    const usuarioPerfil = await UserPerfilRepository.findByUserId({ id_usuario })
-    
-    if (!usuario) {
-      throw new AppError(404, 'USER_NOT_FOUND', 'Usuario no encontrado')
+  static async updateProfile ({ id_usuario, usuarioData, usuarioPerfilData }) {
+    // Validar datos del perfil antes de actualizar
+    if (usuarioPerfilData) {
+      await this.validarActualizarUsuarioPerfil(usuarioPerfilData, id_usuario)
+      if (this.errors.length > 0) {
+        const errors = this.errors
+        this.errors = []
+        throw new ValidationError(errors)
+      }
     }
 
-    return {
-      usuario: usuario.toJSON(),
-      usuarioPerfil: usuarioPerfil ? usuarioPerfil.toJSON() : null
+    try {
+      // Actualizar datos del usuario si se proporcionan
+      if (usuarioData) {
+        await UserRepository.update({ id: id_usuario, userData: usuarioData })
+      }
+      
+      // Actualizar datos del perfil
+      if (usuarioPerfilData) {
+        await UserPerfilRepository.update({ id_usuario, userPerfilData: usuarioPerfilData })
+      }
+      
+      // Retornar los datos actualizados
+      return await this.getUserProfile({ id_usuario })
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      throw error
     }
   }
 }

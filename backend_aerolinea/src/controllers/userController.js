@@ -93,80 +93,100 @@ export class UserController {
     }
   }
 
+  static async getUserProfile (req, res) {
+    try {
+      const { id_usuario } = req.params
+      console.log('Getting profile for user:', id_usuario)
+      
+      const result = await UserService.getUserProfile({ id_usuario: parseInt(id_usuario) })
+      console.log('User profile result:', result)
+      
+      // Si no tiene perfil y es administrador (rol = 2), crearlo automáticamente
+      if (!result.usuarioPerfil && result.usuario.id_rol === 2) {
+        console.log('Creating automatic profile for admin user:', id_usuario)
+        
+        const defaultProfile = {
+          id_usuario: parseInt(id_usuario),
+          dni_usuario: '',
+          primer_nombre: '',
+          segundo_nombre: '',
+          primer_apellido: '',
+          segundo_apellido: '',
+          fecha_nacimiento: null,
+          pais_nacimiento: '',
+          estado_nacimiento: '',
+          ciudad_nacimiento: '',
+          direccion_facturacion: '',
+          id_genero_usuario: null
+        }
+        
+        try {
+          const createdProfile = await UserService.createAdminProfile({ 
+            id_usuario: parseInt(id_usuario), 
+            usuarioPerfilData: defaultProfile 
+          })
+          
+          result.usuarioPerfil = createdProfile
+          console.log('Profile created successfully:', createdProfile)
+        } catch (profileError) {
+          console.error('Error creating admin profile:', profileError)
+          // Continuar sin perfil en lugar de fallar completamente
+        }
+      }
+      
+      res.status(200).json({ success: true, data: result })
+    } catch (error) {
+      console.error('Error getting user profile:', error)
+      res.status(500).json({ success: false, error: 'Error al obtener el perfil del usuario', details: error.message })
+    }
+  }
+
   static async updateProfile (req, res) {
     try {
       const { id_usuario } = req.params
       const { usuarioData, usuarioPerfilData } = req.body
-
-      const allowedUsuarioFields = ['imagen_usuario']
-      const allowedPerfilFields = [
-        'primer_nombre', 
-        'segundo_nombre', 
-        'primer_apellido', 
-        'segundo_apellido',
-        'fecha_nacimiento',
-        'pais_nacimiento',
-        'estado_nacimiento', 
-        'ciudad_nacimiento',
-        'direccion_facturacion',
-        'id_genero_usuario'
-      ]
-
-      const filteredUsuarioData = {}
-      const filteredPerfilData = {}
-
-      if (usuarioData) {
-        Object.keys(usuarioData).forEach(key => {
-          if (allowedUsuarioFields.includes(key)) {
-            filteredUsuarioData[key] = usuarioData[key]
-          }
-        })
-      }
-
-      if (usuarioPerfilData) {
-        Object.keys(usuarioPerfilData).forEach(key => {
-          if (allowedPerfilFields.includes(key)) {
-            filteredPerfilData[key] = usuarioPerfilData[key]
-          }
-        })
-      }
-
-      const result = await UserService.updateProfile({
-        id_usuario: parseInt(id_usuario),
-        usuarioData: Object.keys(filteredUsuarioData).length > 0 ? filteredUsuarioData : null,
-        usuarioPerfilData: Object.keys(filteredPerfilData).length > 0 ? filteredPerfilData : null
-      })
-
-      res.status(200).json({
-        success: true,
-        message: 'Perfil actualizado correctamente',
-        data: result
-      })
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        success: false,
-        message: error.message || 'Error interno del servidor'
-      })
-    }
-  }
-
-  static async getUserProfile (req, res) {
-    try {
-      const { id_usuario } = req.params
       
-      const result = await UserService.getUserProfile({
-        id_usuario: parseInt(id_usuario)
+      // Verificar si el usuario existe
+      const userProfile = await UserService.getUserProfile({ id_usuario })
+      
+      if (!userProfile.usuario) {
+        return res.status(404).json({ error: 'Usuario no encontrado' })
+      }
+      
+      // Si no tiene perfil y es administrador (rol = 2), crearlo primero
+      if (!userProfile.usuarioPerfil && userProfile.usuario.id_rol === 2) {
+        const profileData = {
+          id_usuario: parseInt(id_usuario),
+          ...usuarioPerfilData
+        }
+        
+        const createdProfile = await UserService.createAdminProfile({ 
+          id_usuario: parseInt(id_usuario), 
+          usuarioPerfilData: profileData 
+        })
+        
+        return res.json({ 
+          data: { 
+            usuario: userProfile.usuario, 
+            usuarioPerfil: createdProfile 
+          } 
+        })
+      }
+      
+      // Si ya tiene perfil, actualizarlo
+      const result = await UserService.updateProfile({ 
+        id_usuario, 
+        usuarioData, 
+        usuarioPerfilData 
       })
-
-      res.status(200).json({
-        success: true,
-        data: result
-      })
+      
+      res.json({ data: result })
     } catch (error) {
-      res.status(error.statusCode || 500).json({
-        success: false,
-        message: error.message || 'Error interno del servidor'
-      })
+      console.error('Error updating profile:', error)
+      if (error instanceof ValidationError) {
+        return res.status(400).json(formatErrors(error))
+      }
+      res.status(500).json({ error: 'Error al actualizar el perfil' })
     }
   }
 }

@@ -39,9 +39,20 @@ export default function AdminProfile() {
 
         if (response.ok) {
           const result = await response.json();
+          console.log('Profile data received:', result);
           setUserProfile(result.data);
+          
+          // Si no tiene perfil pero es admin, mostrar mensaje informativo
+          if (!result.data.usuarioPerfil) {
+            console.log('Perfil creado automáticamente para administrador');
+          }
         } else {
-          console.error('Error al obtener perfil');
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Error al obtener perfil:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
         }
       } catch (error) {
         console.error('Error:', error);
@@ -68,9 +79,8 @@ export default function AdminProfile() {
         }),
       });
 
-      const result = await response.json();
-
       if (response.ok) {
+        const result = await response.json();
         // Actualizar el estado local con los nuevos datos
         setUserProfile(result.data || userProfile);
         setIsEditing(false);
@@ -81,7 +91,30 @@ export default function AdminProfile() {
           window.location.reload();
         }, 1500);
       } else {
-        throw new Error(result.message || 'Error al actualizar');
+        const errorData = await response.json();
+        console.log('Error response:', errorData);
+        
+        // Manejar errores de validación específicos del backend
+        // La estructura del backend es: { error: { fields: [...] } }
+        if (errorData.error && errorData.error.fields && Array.isArray(errorData.error.fields)) {
+          const validationErrors = {};
+          
+          errorData.error.fields.forEach(err => {
+            if (err.code === 'DNI_EXISTS') {
+              validationErrors.dni_usuario = err.message || 'El DNI ya está registrado por otro usuario';
+            }
+            // Agregar más validaciones si es necesario
+          });
+          
+          // Si hay errores de validación específicos, crear un error especial
+          if (Object.keys(validationErrors).length > 0) {
+            const error = new Error('Errores de validación');
+            error.validationErrors = validationErrors;
+            throw error;
+          }
+        }
+        
+        throw new Error(errorData.error || 'Error al actualizar');
       }
     } catch (error) {
       throw error; // Re-lanzar para que EditProfile maneje el error

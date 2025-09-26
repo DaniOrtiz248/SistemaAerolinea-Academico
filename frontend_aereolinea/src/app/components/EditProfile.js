@@ -212,7 +212,18 @@ export default function EditProfile({
         setMessage('Información actualizada correctamente');
       }
     } catch (error) {
-      setMessage('Error de conexión');
+      console.error('Error saving profile:', error);
+      
+      // Manejar errores específicos de validación del backend
+      if (error.validationErrors) {
+        setErrors(prev => ({
+          ...prev,
+          ...error.validationErrors
+        }));
+        setMessage('Por favor, corrige los errores antes de continuar');
+      } else {
+        setMessage(error.message || 'Error de conexión');
+      }
     } finally {
       setUpdating(false);
     }
