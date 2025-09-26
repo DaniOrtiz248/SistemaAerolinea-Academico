@@ -17,26 +17,6 @@ function generatePin (length = 6) {
   return pin
 }
 
-/*async function sendPinByEmail (to, pin) {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: false,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    })
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to,
-      subject: 'PIN de restablecimiento de contraseña - Aero Penguin',
-      text: `Tu PIN es: ${pin}. Tiene validez de 15 minutos.`
-    })
-  } else {
-    // En entorno de desarrollo registramos el PIN en logs
-    console.log(`[DEV] PIN para ${to}: ${pin}`)
-  }
-}*/
-
 export class userLoginService {
   static errors = []
 

@@ -64,22 +64,46 @@ class AdminService {
         id_rol: 2,
       };
 
-      const response = await fetch(`${API_BASE_URL}/users/register`, {
+      // Enviar la estructura que espera el backend
+      const payload = { usuario: userData }
+
+      const response = await fetch(`${API_BASE_URL}/users/crear-admin`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-        credentials: 'include', // 👈
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al crear el administrador');
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.log('Backend response:', JSON.stringify(errorData, null, 2));
+        
+        const validationErrors = {};
+        
+        // Manejar errores de validación específicos del backend
+        // La estructura que envía el backend es: { code: 'VALIDATION_ERROR', fields: [...] }
+        if (errorData.fields && Array.isArray(errorData.fields)) {
+          errorData.fields.forEach(err => {
+            if (err.code === 'USERNAME_EXISTS') {
+              validationErrors.usuario = err.message || 'El nombre de usuario ya está en uso';
+            } else if (err.code === 'EMAIL_EXISTS') {
+              validationErrors.correo_electronico = err.message || 'El correo electrónico ya está registrado';
+            }
+          });
+        }
+        
+        // Si hay errores de validación específicos, crear un error especial
+        if (Object.keys(validationErrors).length > 0) {
+          const error = new Error('Errores de validación');
+          error.validationErrors = validationErrors;
+          throw error;
+        }
+        
+        // Si no hay errores de validación específicos, pero hay un error general
+        throw new Error('Error al crear el administrador');
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
       console.error('Error creating admin:', error);
       throw error;

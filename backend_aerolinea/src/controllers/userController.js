@@ -42,24 +42,27 @@ export class UserController {
 
   // Metodo para crear un usuario Admin
   static async createAdmin (req, res) {
-    const validation = validatePartialUser(req.body)
-
-    if (!validation.success) {
-      return res.status(400).json({ error: validation.error.issues })
-    }
-
     try {
-      req.body.usuario.id_rol = 2 // Forzar rol de admin
-      const created = await UserService.createAdmin(req.body)
-      res.status(201).json(created)
+      // Normalizar: aceptar tanto { usuario: {...} } como los campos en root
+      const payload = req.body && req.body.usuario ? req.body : { usuario: req.body }
+
+      const validation = validatePartialUser(payload)
+      console.log('Validation result:', payload)
+
+      if (!validation.success) {
+        return res.status(400).json({ error: validation.error.issues })
+      }
+
+      payload.usuario.id_rol = 2 // Forzar rol de admin
+      const created = await UserService.createAdmin(payload)
+      return res.status(201).json(created)
     } catch (err) {
       console.log(err)
       if (err instanceof ValidationError) {
         const formatted = formatErrors(err)
         return res.status(formatted.status).json(formatted.error)
       }
-
-      res.status(500).json({ error: 'Error al crear usuario Administrador' })
+      return res.status(500).json({ error: 'Error al crear usuario Administrador' })
     }
   }
 

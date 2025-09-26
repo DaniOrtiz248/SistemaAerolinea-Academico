@@ -92,7 +92,16 @@ export default function AdminForm({ admin, onSave, onCancel, isOpen }) {
       await onSave(formData);
     } catch (error) {
       console.error('Error saving admin:', error);
-      setErrors({ submit: 'Error al guardar el administrador' });
+      
+      // Manejar errores de validación específicos del backend
+      if (error.validationErrors) {
+        setErrors(prev => ({
+          ...prev,
+          ...error.validationErrors
+        }));
+      } else {
+        setErrors({ submit: error.message || 'Error al guardar el administrador' });
+      }
     } finally {
       setIsLoading(false);
     }

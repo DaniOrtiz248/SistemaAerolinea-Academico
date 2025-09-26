@@ -20,7 +20,7 @@ export class UserService {
     // Verificar si el correo ya existe
     const existEmail = await UserRepository.findByEmail(usuario)
     if (existEmail) {
-      this.errors.push(new AppError(409, 'USER_EXISTS', 'El correo electrónico ya está registrado', 'correo_electronico'))
+      this.errors.push(new AppError(409, 'EMAIL_EXISTS', 'El correo electrónico ya está registrado', 'correo_electronico'))
     }
 
     return true
@@ -51,18 +51,25 @@ export class UserService {
   }
 
   static async createAdmin ({ usuario }) {
-    // ------------------------------------------------------
     // Validar datos antes de crear
     await this.validarCrearUsuario(usuario)
+    
+    // Verificar si hay errores de validación ANTES de intentar crear
     if (this.errors.length > 0) {
       const errors = this.errors
-      this.errors = []
+      this.errors = [] // Limpiar errores
       throw new ValidationError(errors)
     }
-    // Crear usuario y perfil
-    const usuarioReturn = await UserRepository.create({ usuario })
-
-    return { usuario: usuarioReturn.toJSON() }
+    
+    try {
+      // Crear usuario
+      const usuarioReturn = await UserRepository.create({ usuario })
+      return { usuario: usuarioReturn.toJSON() }
+    } catch (error) {
+      // Manejar errores de base de datos u otros errores técnicos
+      console.error('Error creating admin user:', error)
+      throw error
+    }
   }
 
   static async update ({ id, userData }) {
