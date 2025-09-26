@@ -297,9 +297,9 @@ const handleStateChange = (e) => {
         validationErrors.direccion_facturacion = 'La dirección de facturación es obligatoria';
       }
 
-      if (!registerData.acceptTerms) {
+     /*if (!registerData.acceptTerms) {
         validationErrors.acceptTerms = 'Debes aceptar los términos y condiciones';
-      }
+      }*/
 
       // Si hay errores de validación, mostrarlos
       if (Object.keys(validationErrors).length > 0) {

@@ -32,4 +32,8 @@ export class UserPerfilRepository {
   static async findByUserId ({ id_usuario }) {
     return await UsuarioPerfil.findOne({ where: { id_usuario } })
   }
+
+  static async findByDNI ({ dni_usuario }) {
+    return await UsuarioPerfil.findOne({ where: { dni_usuario } })
+  }
 }
