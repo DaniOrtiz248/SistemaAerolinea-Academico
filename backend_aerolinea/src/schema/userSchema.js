@@ -8,7 +8,7 @@ function transformEmptyToUndefined (val) {
 // Esquema de validación para la creación y actualización de usuarios
 const userSchema = z.object({
   usuario: z.object({
-    descripcion_usuario: z.string().min(3).max(50),
+    descripcion_usuario: z.string().min(3).max(50).regex(/^[a-zA-Z][a-zA-Z0-9_]*$/),
     correo_electronico: z.string().email().max(100),
     contrasena: z.string().min(6).max(100),
     id_rol: z.number().int().positive()
