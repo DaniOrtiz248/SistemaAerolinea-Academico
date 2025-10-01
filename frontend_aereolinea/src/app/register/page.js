@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Agregar para redirección
+import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Country, State, City } from 'country-state-city';
@@ -240,7 +240,12 @@ const handleStateChange = (e) => {
         validationErrors.correo_electronico = 'El formato del correo electrónico no es válido';
       }
 
-      if (!registerData.usuario.contrasena || registerData.usuario.contrasena.length < 8) {
+      // Validación mejorada de contraseña - SIN ESPACIOS EN ABSOLUTO
+      if (!registerData.usuario.contrasena || registerData.usuario.contrasena.trim() === '') {
+        validationErrors.contrasena = 'La contraseña es obligatoria';
+      } else if (registerData.usuario.contrasena.includes(' ')) {
+        validationErrors.contrasena = 'La contraseña no puede contener espacios';
+      } else if (registerData.usuario.contrasena.length < 8) {
         validationErrors.contrasena = 'La contraseña debe tener al menos 8 caracteres';
       }
 
@@ -765,10 +770,22 @@ const handleStateChange = (e) => {
               <h4 className="text-sm font-medium text-blue-900 mb-2">Requisitos de contraseña:</h4>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li className="flex items-center">
-                  <span className={`mr-2 ${registerData.usuario.contrasena.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
-                    {registerData.usuario.contrasena.length >= 8 ? '✓' : '○'}
+                  <span className={`mr-2 ${registerData.usuario.contrasena && registerData.usuario.contrasena.trim() !== '' ? 'text-green-600' : 'text-gray-400'}`}>
+                    {registerData.usuario.contrasena && registerData.usuario.contrasena.trim() !== '' ? '✓' : '○'}
                   </span>
-                  Mínimo 8 caracteres ({registerData.usuario.contrasena.length}/8)
+                  No puede estar vacía
+                </li>
+                <li className="flex items-center">
+                  <span className={`mr-2 ${registerData.usuario.contrasena && !registerData.usuario.contrasena.includes(' ') ? 'text-green-600' : 'text-gray-400'}`}>
+                    {registerData.usuario.contrasena && !registerData.usuario.contrasena.includes(' ') ? '✓' : '○'}
+                  </span>
+                  No puede contener espacios
+                </li>
+                <li className="flex items-center">
+                  <span className={`mr-2 ${registerData.usuario.contrasena && registerData.usuario.contrasena.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
+                    {registerData.usuario.contrasena && registerData.usuario.contrasena.length >= 8 ? '✓' : '○'}
+                  </span>
+                  Mínimo 8 caracteres ({registerData.usuario.contrasena ? registerData.usuario.contrasena.length : 0}/8)
                 </li>
                 <li className="flex items-center">
                   <span className={`mr-2 ${passwordMatch && registerData.confirmPassword !== '' ? 'text-green-600' : 'text-gray-400'}`}>

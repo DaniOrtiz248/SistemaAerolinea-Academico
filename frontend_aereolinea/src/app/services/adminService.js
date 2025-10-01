@@ -13,6 +13,23 @@ const getBackendUrl = () => {
 const API_BASE_URL = `${getBackendUrl()}/api/v1`;
 
 class AdminService {
+  // Función auxiliar para validar contraseña
+  validatePassword(password) {
+    if (!password || password.trim() === '') {
+      return 'La contraseña es obligatoria';
+    }
+    
+    if (password.includes(' ')) {
+      return 'La contraseña no puede contener espacios';
+    }
+    
+    if (password.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres';
+    }
+    
+    return null; // Sin errores
+  }
+
   // Get all admins (users with id_rol = 2)
   async getAdmins() {
     try {
@@ -57,6 +74,16 @@ class AdminService {
   // Create a new admin
   async createAdmin(adminData) {
     try {
+      // Validación de contraseña en el frontend
+      const passwordError = this.validatePassword(adminData.contrasena);
+      if (passwordError) {
+        const error = new Error('Errores de validación');
+        error.validationErrors = {
+          contrasena: passwordError
+        };
+        throw error;
+      }
+
       const userData = {
         descripcion_usuario: adminData.usuario,
         correo_electronico: adminData.correo_electronico,
@@ -88,6 +115,8 @@ class AdminService {
               validationErrors.usuario = err.message || 'El nombre de usuario ya está en uso';
             } else if (err.code === 'EMAIL_EXISTS') {
               validationErrors.correo_electronico = err.message || 'El correo electrónico ya está registrado';
+            } else if (err.code === 'PASSWORD_INVALID') {
+              validationErrors.contrasena = err.message || 'La contraseña no cumple con los requisitos';
             }
           });
         }
@@ -119,7 +148,16 @@ class AdminService {
         id_rol: 2,
       };
 
+      // Validar contraseña solo si se está proporcionando una nueva
       if (adminData.contrasena && adminData.contrasena.trim()) {
+        const passwordError = this.validatePassword(adminData.contrasena);
+        if (passwordError) {
+          const error = new Error('Errores de validación');
+          error.validationErrors = {
+            contrasena: passwordError
+          };
+          throw error;
+        }
         userData.contrasena = adminData.contrasena;
       }
 
@@ -135,6 +173,28 @@ class AdminService {
       if (!response.ok) {
         const errorData = await response.json();
         console.log('Error response from server:', errorData);
+        
+        const validationErrors = {};
+        
+        // Manejar errores de validación del backend
+        if (errorData.fields && Array.isArray(errorData.fields)) {
+          errorData.fields.forEach(err => {
+            if (err.code === 'USERNAME_EXISTS') {
+              validationErrors.usuario = err.message || 'El nombre de usuario ya está en uso';
+            } else if (err.code === 'EMAIL_EXISTS') {
+              validationErrors.correo_electronico = err.message || 'El correo electrónico ya está registrado';
+            } else if (err.code === 'PASSWORD_INVALID') {
+              validationErrors.contrasena = err.message || 'La contraseña no cumple con los requisitos';
+            }
+          });
+        }
+        
+        // Si hay errores de validación específicos, crear un error especial
+        if (Object.keys(validationErrors).length > 0) {
+          const error = new Error('Errores de validación');
+          error.validationErrors = validationErrors;
+          throw error;
+        }
         
         let errorMessage = 'Error al actualizar el administrador';
         
