@@ -13,12 +13,11 @@ userRoutes.post('/request-reset', loginController.requestPasswordReset)
 userRoutes.post('/reset-password', loginController.resetPassword)
 
 userRoutes.use(authMiddleware) // Middleware para proteger las rutas siguientes
-userRoutes.post('/crear-admin', rootMiddleware, UserController.createAdmin) // Endpoint temporal para crear un admin
+userRoutes.post('/crear-admin', rootMiddleware, UserController.createAdmin) // Endpoint para crear un admin
 userRoutes.get('/', UserController.getAll)
 userRoutes.put('/:id', UserController.update)
 userRoutes.delete('/:id', UserController.delete)
 
-// ✅ Estas dos rutas SÍ funcionan porque los métodos existen
 userRoutes.get('/profile/:id_usuario', UserController.getUserProfile)
 userRoutes.put('/profile/:id_usuario', UserController.updateProfile)
 
