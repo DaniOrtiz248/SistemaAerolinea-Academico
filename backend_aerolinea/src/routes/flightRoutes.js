@@ -4,4 +4,11 @@ import { authMiddleware } from '../middleware/authMiddleware.js'
 
 export const flightRoutes = Router()
 
-flightRoutes.post('/create-flight', FlightController.create)
+// Rutas públicas - para búsqueda de vuelos
+flightRoutes.get('/', FlightController.listFlights)
+flightRoutes.get('/search', FlightController.searchFlights)
+flightRoutes.get('/:ccv', FlightController.getFlightById)
+
+// Rutas protegidas - para administración de vuelos
+flightRoutes.use(authMiddleware) // Middleware para proteger las rutas siguientes
+flightRoutes.post('/', FlightController.createFlight)

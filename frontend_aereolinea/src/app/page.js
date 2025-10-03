@@ -56,6 +56,31 @@ export default function Home() {
     // Here you would implement the actual search functionality
   };
 
+  const handleViewFlights = async (destination = null) => {
+    try {
+      const response = await fetch('http://localhost:3001/api/v1/flights', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Flights data:', result);
+        // Aquí puedes manejar los datos de vuelos como desees
+        // Por ejemplo, redirigir a una página de resultados o mostrar un modal
+        alert(`Se encontraron ${result.data.length} vuelos disponibles. Ver consola para detalles.`);
+      } else {
+        console.error('Error fetching flights:', response.status);
+        alert('Error al obtener los vuelos');
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('Error de conexión al obtener los vuelos');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
       <Header />
@@ -198,7 +223,7 @@ export default function Home() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                  {[1, 2, 3, 4, 5].map(num => (
                     <option key={num} value={num}>
                       {num} {num === 1 ? 'Pasajero' : 'Pasajeros'}
                     </option>
@@ -240,7 +265,10 @@ export default function Home() {
                 <h3 className="font-bold text-lg text-gray-900">{destination.city}</h3>
                 <p className="text-gray-600">{destination.country}</p>
                 <p className="text-blue-600 font-bold text-xl mt-2">Desde {destination.price}</p>
-                <button className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button 
+                  onClick={() => handleViewFlights(destination)}
+                  className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
                   Ver Vuelos
                 </button>
               </div>
