@@ -51,62 +51,88 @@ export default function Register() {
   }, []);
 
   const handleCountryChange = (e) => {
-  const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
-  const countryName = e.target.value;
-  
-  // Actualizar el país seleccionado
-  handleInputChange({
-    target: {
-      name: 'pais_nacimiento',
-      value: countryName
+    const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
+    const countryName = e.target.value;
+    
+    // Actualizar el país seleccionado
+    handleInputChange({
+      target: {
+        name: 'pais_nacimiento',
+        value: countryName
+      }
+    });
+
+    // Cargar estados del país seleccionado
+    const countryStates = State.getStatesOfCountry(countryCode);
+    setStates(countryStates);
+    setCities([]);
+
+    // Si no hay estados disponibles, establecer "NA" automáticamente
+    if (countryStates.length === 0) {
+      handleInputChange({
+        target: {
+          name: 'estado_nacimiento',
+          value: 'NA'
+        }
+      });
+      handleInputChange({
+        target: {
+          name: 'ciudad_nacimiento',
+          value: 'NA'
+        }
+      });
+    } else {
+      // Limpiar estado y ciudad seleccionados si hay estados disponibles
+      handleInputChange({
+        target: {
+          name: 'estado_nacimiento',
+          value: ''
+        }
+      });
+      handleInputChange({
+        target: {
+          name: 'ciudad_nacimiento',
+          value: ''
+        }
+      });
     }
-  });
+  };
 
-  // Cargar estados del país seleccionado
-  const countryStates = State.getStatesOfCountry(countryCode);
-  setStates(countryStates);
-  setCities([]);
+  const handleStateChange = (e) => {
+    const stateCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
+    const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-country');
+    const stateName = e.target.value;
 
-  // Limpiar estado y ciudad seleccionados
-  handleInputChange({
-    target: {
-      name: 'estado_nacimiento',
-      value: ''
+    // Actualizar el estado seleccionado
+    handleInputChange({
+      target: {
+        name: 'estado_nacimiento',
+        value: stateName
+      }
+    });
+
+    // Cargar ciudades del estado seleccionado
+    const stateCities = City.getCitiesOfState(countryCode, stateCode);
+    setCities(stateCities);
+
+    // Si no hay ciudades disponibles, establecer "NA" automáticamente
+    if (stateCities.length === 0) {
+      handleInputChange({
+        target: {
+          name: 'ciudad_nacimiento',
+          value: 'NA'
+        }
+      });
+    } else {
+      // Limpiar ciudad seleccionada si hay ciudades disponibles
+      handleInputChange({
+        target: {
+          name: 'ciudad_nacimiento',
+          value: ''
+        }
+      });
     }
-  });
-  handleInputChange({
-    target: {
-      name: 'ciudad_nacimiento',
-      value: ''
-    }
-  });
-};
-
-const handleStateChange = (e) => {
-  const stateCode = e.target.options[e.target.selectedIndex].getAttribute('data-code');
-  const countryCode = e.target.options[e.target.selectedIndex].getAttribute('data-country');
-  const stateName = e.target.value;
-
-  // Actualizar el estado seleccionado
-  handleInputChange({
-    target: {
-      name: 'estado_nacimiento',
-      value: stateName
-    }
-  });
-
-  // Cargar ciudades del estado seleccionado
-  const stateCities = City.getCitiesOfState(countryCode, stateCode);
-  setCities(stateCities);
-
-  // Limpiar ciudad seleccionada
-  handleInputChange({
-    target: {
-      name: 'ciudad_nacimiento',
-      value: ''
-    }
-  });
-};
+  };
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -290,10 +316,12 @@ const handleStateChange = (e) => {
         validationErrors.pais_nacimiento = 'El país de nacimiento es obligatorio';
       }
 
+      // Modificar validación de estado - permitir "NA"
       if (!registerData.usuarioPerfil.estado_nacimiento.trim()) {
         validationErrors.estado_nacimiento = 'El estado/provincia es obligatorio';
       }
 
+      // Modificar validación de ciudad - permitir "NA"
       if (!registerData.usuarioPerfil.ciudad_nacimiento.trim()) {
         validationErrors.ciudad_nacimiento = 'La ciudad es obligatoria';
       }
@@ -693,17 +721,26 @@ const handleStateChange = (e) => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
             >
               <option value="">Seleccione un estado</option>
-              {states.map((state) => (
-                <option 
-                  key={state.isoCode} 
-                  value={state.name}
-                  data-code={state.isoCode}
-                  data-country={state.countryCode}
-                >
-                  {state.name}
-                </option>
-              ))}
+              {states.length === 0 && registerData.usuarioPerfil.pais_nacimiento ? (
+                <option value="NA">No aplica</option>
+              ) : (
+                states.map((state) => (
+                  <option 
+                    key={state.isoCode} 
+                    value={state.name}
+                    data-code={state.isoCode}
+                    data-country={state.countryCode}
+                  >
+                    {state.name}
+                  </option>
+                ))
+              )}
             </select>
+            {registerData.usuarioPerfil.estado_nacimiento === 'NA' && (
+              <p className="mt-1 text-xs text-blue-600">
+                Este país no tiene divisiones estatales disponibles
+              </p>
+            )}
             {errors.estado_nacimiento && (
                 <p className="mt-1 text-sm text-red-600">{errors.estado_nacimiento}</p>
               )}
@@ -721,12 +758,21 @@ const handleStateChange = (e) => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder:text-gray-500 focus:text-black"
             >
               <option value="">Seleccione una ciudad</option>
-              {cities.map((city) => (
-                <option key={city.name} value={city.name}>
-                  {city.name}
-                </option>
-              ))}
+              {cities.length === 0 && registerData.usuarioPerfil.estado_nacimiento && registerData.usuarioPerfil.estado_nacimiento !== '' ? (
+                <option value="NA">No aplica</option>
+              ) : (
+                cities.map((city) => (
+                  <option key={city.name} value={city.name}>
+                    {city.name}
+                  </option>
+                ))
+              )}
             </select>
+            {registerData.usuarioPerfil.ciudad_nacimiento === 'NA' && (
+              <p className="mt-1 text-xs text-blue-600">
+                Este estado/provincia no tiene ciudades disponibles
+              </p>
+            )}
             {errors.ciudad_nacimiento && (
                 <p className="mt-1 text-sm text-red-600">{errors.ciudad_nacimiento}</p>
               )}
