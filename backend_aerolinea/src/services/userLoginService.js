@@ -1,13 +1,8 @@
 /* eslint-disable camelcase */
 import { UserRepository } from '../repositories/userRepository.js'
-import { UserPerfilRepository } from '../repositories/userPerfilRepository.js'
-import { AppError } from '../utils/appError.js'
-import { ValidationError } from '../utils/validateError.js'
 import { sendPin } from '../utils/mailer.js'
 
 // Envío de email y generación de token
-import crypto from 'crypto'
-import nodemailer from 'nodemailer'
 
 const PasswordResetStore = new Map() // key: correo_electronico, value: { pin, expiresAt }
 

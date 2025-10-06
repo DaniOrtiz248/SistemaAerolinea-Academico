@@ -2,8 +2,6 @@ import { UserService } from '../services/userService.js'
 import { validateUser, validatePartialUser } from '../schema/userSchema.js'
 import { ValidationError } from '../utils/validateError.js'
 import { formatErrors } from '../utils/formatErrors.js'
-import pkg from 'jsonwebtoken'
-const { jwt } = pkg
 
 export class UserController {
   static async getAll (req, res) {

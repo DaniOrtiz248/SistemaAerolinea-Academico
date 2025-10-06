@@ -15,10 +15,12 @@
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.4",
     "nodemailer": "^7.0.6",
     "path": "^0.12.7",
     "sequelize": "^6.37.7",
+    "sharp": "^0.34.4",
     "zod": "4.1.9"
   },
   "devDependencies": {

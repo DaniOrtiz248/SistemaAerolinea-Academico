@@ -10,6 +10,8 @@ export class UserPerfilRepository {
   }
 
   static async update ({ id_usuario, userPerfilData }) {
+    console.log('Este es el id_usuario en el repo', id_usuario)
+    console.log('Este es el userPerfilData en el repo', userPerfilData)
     const [updated] = await UsuarioPerfil.update(userPerfilData, {
       where: { id_usuario }
     })

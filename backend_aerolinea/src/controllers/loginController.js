@@ -30,7 +30,7 @@ static async login (req, res) {
             id: user.id_usuario, 
             descripcion_usuario: user.descripcion_usuario, 
             email: user.correo_electronico, 
-            role: user.id_rol 
+            role: user.id_rol
         },
         privateKey,
         { expiresIn: '1h', algorithm: 'RS256'}

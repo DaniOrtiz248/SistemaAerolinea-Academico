@@ -133,7 +133,7 @@ export class UserService {
 
   static async updateProfile ({ id_usuario, usuarioData, usuarioPerfilData }) {
     // Validar datos del perfil antes de actualizar
-    if (usuarioPerfilData) {
+    if (usuarioPerfilData?.dni_usuario) {
       await this.validarActualizarUsuarioPerfil(usuarioPerfilData, id_usuario)
       if (this.errors.length > 0) {
         const errors = this.errors

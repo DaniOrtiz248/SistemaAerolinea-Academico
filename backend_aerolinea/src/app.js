@@ -3,6 +3,7 @@ import express, { json } from 'express'
 import { sequelize } from './db/sequelize/sequelize.js'
 import { userRoutes } from './routes/userRoutes.js'
 import { flightRoutes } from './routes/flightRoutes.js'
+import { imageRoutes } from './routes/imageRoutes.js'
 import { corsMiddleware } from './middleware/cors.js'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
@@ -19,6 +20,7 @@ app.use(corsMiddleware())
 
 // Rutas
 app.use('/api/v1/users', userRoutes)
+app.use('/api/v1/uploads', imageRoutes)
 app.use('/api/v1/flights', flightRoutes)
 app.use('/api/v1/flights', flightRoutes)
 

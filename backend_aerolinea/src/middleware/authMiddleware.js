@@ -13,7 +13,6 @@ const publicKey = fs.readFileSync(publicKeyPath)
 
 export const authMiddleware = (req, res, next) => {
     const token = req.cookies?.access_token
-    console.log('estoyyyy aquiiii', token)
     if (!token) {
         return res.status(401).json({ error: 'No autorizado' })
     }
