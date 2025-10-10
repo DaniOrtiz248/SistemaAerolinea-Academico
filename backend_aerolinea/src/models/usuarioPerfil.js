@@ -45,6 +45,10 @@ const UsuarioPerfil = sequelize.define('usuario_perfil', {
   },
   imagen_usuario: {
     type: DataTypes.STRING
+  },
+  en_noticias:{
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
   tableName: 'usuario_perfil',
