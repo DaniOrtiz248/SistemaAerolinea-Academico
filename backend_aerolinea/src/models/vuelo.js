@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize'
 import { sequelize } from '../db/sequelize/sequelize.js'
+import Ciudad from './ciudad.js'
 
 const Vuelo = sequelize.define('vuelo', {
     ccv: {
@@ -43,6 +44,17 @@ const Vuelo = sequelize.define('vuelo', {
 }, {
     tableName: 'vuelo',
     timestamps: false
+})
+
+// Establecer relaciones
+Vuelo.belongsTo(Ciudad, {
+    foreignKey: 'ciudad_origen',
+    as: 'ciudadOrigen'
+})
+
+Vuelo.belongsTo(Ciudad, {
+    foreignKey: 'ciudad_destino',
+    as: 'ciudadDestino'
 })
 
 export default Vuelo

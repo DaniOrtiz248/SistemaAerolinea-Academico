@@ -1,14 +1,40 @@
 import Vuelo from '../models/vuelo.js'
+import Ciudad from '../models/ciudad.js'
 
 export class FlightRepository {
   static async getAll () {
     return await Vuelo.findAll({
+      include: [
+        {
+          model: Ciudad,
+          as: 'ciudadOrigen',
+          attributes: ['id_ciudad', 'nombre_ciudad']
+        },
+        {
+          model: Ciudad,
+          as: 'ciudadDestino',
+          attributes: ['id_ciudad', 'nombre_ciudad']
+        }
+      ],
       order: [['fecha_vuelo', 'ASC'], ['hora_salida_vuelo', 'ASC']]
     })
   }
 
   static async findById ({ ccv }) {
-    return await Vuelo.findByPk(ccv)
+    return await Vuelo.findByPk(ccv, {
+      include: [
+        {
+          model: Ciudad,
+          as: 'ciudadOrigen',
+          attributes: ['id_ciudad', 'nombre_ciudad']
+        },
+        {
+          model: Ciudad,
+          as: 'ciudadDestino',
+          attributes: ['id_ciudad', 'nombre_ciudad']
+        }
+      ]
+    })
   }
 
   static async findByOriginDestination ({ ciudad_origen, ciudad_destino, fecha_vuelo }) {
@@ -23,6 +49,18 @@ export class FlightRepository {
 
     return await Vuelo.findAll({
       where: whereClause,
+      include: [
+        {
+          model: Ciudad,
+          as: 'ciudadOrigen',
+          attributes: ['id_ciudad', 'nombre_ciudad']
+        },
+        {
+          model: Ciudad,
+          as: 'ciudadDestino',
+          attributes: ['id_ciudad', 'nombre_ciudad']
+        }
+      ],
       order: [['fecha_vuelo', 'ASC'], ['hora_salida_vuelo', 'ASC']]
     })
   }

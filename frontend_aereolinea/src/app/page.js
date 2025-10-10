@@ -7,6 +7,9 @@ import Footer from './components/Footer';
 
 export default function Home() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [flights, setFlights] = useState([]);
+  const [loadingFlights, setLoadingFlights] = useState(false);
   const [searchData, setSearchData] = useState({
     origin: '',
     destination: '',
@@ -18,6 +21,8 @@ export default function Home() {
 
 
   useEffect(() => {
+    setMounted(true);
+    
     // Verificar si el usuario es administrador y redirigirlo a su dashboard
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -57,6 +62,7 @@ export default function Home() {
   };
 
   const handleViewFlights = async (destination = null) => {
+    setLoadingFlights(true);
     try {
       const response = await fetch('http://localhost:3001/api/v1/flights', {
         method: 'GET',
@@ -68,9 +74,24 @@ export default function Home() {
       if (response.ok) {
         const result = await response.json();
         console.log('Flights data:', result);
-        // Aquí puedes manejar los datos de vuelos como desees
-        // Por ejemplo, redirigir a una página de resultados o mostrar un modal
-        alert(`Se encontraron ${result.data.length} vuelos disponibles. Ver consola para detalles.`);
+        
+        if (result.success && result.data) {
+          setFlights(result.data);
+          
+          if (result.data.length > 0) {
+            alert(`Se encontraron ${result.data.length} vuelos disponibles. Revisa la sección de vuelos más abajo.`);
+            
+            // Scroll suave a la sección de vuelos
+            setTimeout(() => {
+              const flightsSection = document.getElementById('flights-section');
+              if (flightsSection) {
+                flightsSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 500);
+          } else {
+            alert('No hay vuelos disponibles en este momento.');
+          }
+        }
       } else {
         console.error('Error fetching flights:', response.status);
         alert('Error al obtener los vuelos');
@@ -78,6 +99,8 @@ export default function Home() {
     } catch (error) {
       console.error('Network error:', error);
       alert('Error de conexión al obtener los vuelos');
+    } finally {
+      setLoadingFlights(false);
     }
   };
 
@@ -301,6 +324,83 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Flights Results Section */}
+      {mounted && flights.length > 0 && (
+        <section id="flights-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            ✈️ Vuelos Disponibles
+          </h2>
+          
+          {loadingFlights ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando vuelos...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {flights.map((flight) => (
+                <div key={flight.ccv} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow border border-gray-200">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-bold text-lg">Vuelo #{flight.ccv}</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        flight.estado === 1 ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'
+                      }`}>
+                        {flight.estado === 1 ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center text-gray-700">
+                        <span className="font-semibold mr-2">🛫 Origen:</span>
+                        <span>{flight.ciudadOrigen?.nombre_ciudad || `Ciudad ${flight.ciudad_origen}`}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-gray-700">
+                        <span className="font-semibold mr-2">🛬 Destino:</span>
+                        <span>{flight.ciudadDestino?.nombre_ciudad || `Ciudad ${flight.ciudad_destino}`}</span>
+                      </div>
+                      
+                      {flight.fecha_vuelo && (
+                        <div className="flex items-center text-gray-700">
+                          <span className="font-semibold mr-2">📅 Fecha:</span>
+                          <span>{new Date(flight.fecha_vuelo).toLocaleDateString('es-ES')}</span>
+                        </div>
+                      )}
+                      
+                      {flight.hora_salida_vuelo && (
+                        <div className="flex items-center text-gray-700">
+                          <span className="font-semibold mr-2">🕐 Salida:</span>
+                          <span>{new Date(flight.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      )}
+                      
+                      {flight.hora_llegada_vuelo && (
+                        <div className="flex items-center text-gray-700">
+                          <span className="font-semibold mr-2">🕐 Llegada:</span>
+                          <span>{new Date(flight.hora_llegada_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <span className="text-gray-600 font-medium">Precio:</span>
+                        <span className="text-2xl font-bold text-blue-600">${flight.costo_unitario}</span>
+                      </div>
+                    </div>
+                    
+                    <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md">
+                      Reservar Ahora
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <Footer />
     </div>
