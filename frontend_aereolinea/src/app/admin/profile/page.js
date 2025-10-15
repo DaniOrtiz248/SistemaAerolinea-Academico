@@ -68,6 +68,8 @@ export default function AdminProfile() {
     try {
       const userData = JSON.parse(localStorage.getItem('user'));
       
+      console.log('Enviando datos del perfil:', profileData); // Debug
+      
       const response = await fetch(`http://localhost:3001/api/v1/users/profile/${userData.id_usuario}`, {
         method: 'PUT',
         headers: {
@@ -79,8 +81,11 @@ export default function AdminProfile() {
         }),
       });
 
+      console.log('Respuesta del servidor:', response.status, response.statusText); // Debug
+
       if (response.ok) {
         const result = await response.json();
+        console.log('Resultado exitoso:', result); // Debug
         // Actualizar el estado local con los nuevos datos
         setUserProfile(result.data || userProfile);
         setIsEditing(false);
@@ -91,12 +96,12 @@ export default function AdminProfile() {
           window.location.reload();
         }, 1500);
       } else {
-        const errorData = await response.json();
-        console.log('Error response:', errorData);
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+        console.log('Error response completa:', errorData); // Debug
         
         // Manejar errores de validación específicos del backend
         // La estructura del backend es: { error: { fields: [...] } }
-        if (errorData.error && errorData.error.fields && Array.isArray(errorData.error.fields)) {
+        if (errorData.error && typeof errorData.error === 'object' && errorData.error.fields && Array.isArray(errorData.error.fields)) {
           const validationErrors = {};
           
           errorData.error.fields.forEach(err => {
@@ -114,9 +119,23 @@ export default function AdminProfile() {
           }
         }
         
-        throw new Error(errorData.error || 'Error al actualizar');
+        // Manejar diferentes formatos de error
+        let errorMessage = 'Error al actualizar el perfil';
+        
+        if (typeof errorData.error === 'string') {
+          errorMessage = errorData.error;
+        } else if (errorData.error && errorData.error.message) {
+          errorMessage = errorData.error.message;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.details) {
+          errorMessage = errorData.details;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
+      console.error('Error en handleSaveProfile:', error); // Debug
       throw error; // Re-lanzar para que EditProfile maneje el error
     }
   };
@@ -169,6 +188,32 @@ export default function AdminProfile() {
             />
           ) : (
             <div className="space-y-6">
+              {/* Imagen de Perfil */}
+              <div className="flex justify-center mb-6">
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border-4 border-blue-500 shadow-lg">
+                  {userProfile?.usuario?.id_usuario ? (
+                    <img 
+                      src={`http://localhost:3001/api/v1/uploads/images/profile/${userProfile.usuario.id_usuario}.jpeg`}
+                      alt="Imagen de perfil" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Si la imagen no existe, mostrar el icono por defecto
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                  ) : null}
+                  <svg 
+                    className="w-16 h-16 text-gray-400" 
+                    fill="currentColor" 
+                    viewBox="0 0 20 20"
+                    style={{ display: userProfile?.usuario?.id_usuario ? 'none' : 'block' }}
+                  >
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Información de Usuario */}
                 <div className="bg-gray-50 p-4 rounded-lg">

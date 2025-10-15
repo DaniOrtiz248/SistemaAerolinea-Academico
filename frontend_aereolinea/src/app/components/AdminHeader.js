@@ -93,8 +93,21 @@ export default function AdminHeader() {
                     Administrador
                   </p>
                 </div>
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border-2 border-white/30">
+                  <img 
+                    src={`http://localhost:3001/api/v1/uploads/images/profile/${user.id_usuario}.jpeg`}
+                    alt="Imagen de perfil" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Si la imagen no existe, mostrar la inicial
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <span 
+                    className="w-full h-full flex items-center justify-center text-sm font-bold"
+                    style={{ display: 'none' }}
+                  >
                     {user.descripcion_usuario?.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -131,9 +144,29 @@ export default function AdminHeader() {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-blue-700/50 rounded-lg mt-2">
               {user && (
-                <div className="px-3 py-2 border-b border-white/20 mb-2">
-                  <p className="text-sm font-medium">{user.descripcion_usuario}</p>
-                  <p className="text-xs text-blue-200">Administrador</p>
+                <div className="px-3 py-2 border-b border-white/20 mb-2 flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border-2 border-white/30 flex-shrink-0">
+                    <img 
+                      src={`http://localhost:3001/api/v1/uploads/images/profile/${user.id_usuario}.jpeg`}
+                      alt="Imagen de perfil" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Si la imagen no existe, mostrar la inicial
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <span 
+                      className="w-full h-full flex items-center justify-center text-sm font-bold"
+                      style={{ display: 'none' }}
+                    >
+                      {user.descripcion_usuario?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{user.descripcion_usuario}</p>
+                    <p className="text-xs text-blue-200">Administrador</p>
+                  </div>
                 </div>
               )}
               

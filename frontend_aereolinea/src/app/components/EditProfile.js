@@ -30,6 +30,9 @@ export default function EditProfile({
   const [errors, setErrors] = useState({});
   const [updating, setUpdating] = useState(false);
   const [message, setMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Cargar países al montar el componente
   useEffect(() => {
@@ -54,6 +57,12 @@ export default function EditProfile({
         direccion_facturacion: perfil.direccion_facturacion || '',
         id_genero_usuario: perfil.id_genero_usuario || 1
       });
+
+      // Cargar imagen de perfil si existe
+      if (userProfile?.usuario?.id_usuario) {
+        const imageUrl = `http://localhost:3001/api/v1/uploads/images/profile/${userProfile.usuario.id_usuario}.jpeg`;
+        setImagePreview(imageUrl);
+      }
 
       // Cargar estados y ciudades si ya existe información
       if (perfil.pais_nacimiento) {
@@ -125,6 +134,143 @@ export default function EditProfile({
     setCities(stateCities);
   };
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validar tipo de archivo
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          imagen: 'Solo se permiten imágenes (JPEG, PNG, WebP)'
+        }));
+        return;
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({
+          ...prev,
+          imagen: 'La imagen no debe superar los 5MB'
+        }));
+        return;
+      }
+
+      // Limpiar error previo
+      setErrors(prev => {
+        const { imagen, ...rest } = prev;
+        return rest;
+      });
+
+      setSelectedImage(file);
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Subir imagen automáticamente
+      await handleUploadImage(file);
+    }
+  };
+
+  const handleUploadImage = async (file) => {
+    if (!file) {
+      setMessage('Por favor selecciona una imagen');
+      return;
+    }
+
+    setUploadingImage(true);
+    setMessage('');
+
+    try {
+      const formData = new FormData();
+      formData.append('imagen', file);
+
+      console.log('=== SUBIENDO IMAGEN ===');
+      console.log('Archivo:', file.name, file.size, file.type);
+
+      const response = await fetch('http://localhost:3001/api/v1/uploads/create', {
+        method: 'POST',
+        credentials: 'include', // Importante: enviar cookies con la petición
+        body: formData
+      });
+
+      console.log('Status de respuesta:', response.status, response.statusText);
+
+      if (!response.ok) {
+        // Intentar obtener el error en formato JSON, o usar el status text
+        let errorMessage = 'Error al subir la imagen';
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json();
+            console.error('Error JSON del servidor:', errorData);
+            
+            // Construir mensaje de error detallado
+            if (errorData.error) {
+              errorMessage = errorData.error;
+              if (errorData.details) {
+                errorMessage += ` (${errorData.details})`;
+              }
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else {
+              errorMessage = `Error ${response.status}: ${response.statusText}`;
+            }
+          } catch (jsonError) {
+            console.error('Error al parsear JSON de error:', jsonError);
+            errorMessage = `Error ${response.status}: ${response.statusText}`;
+          }
+        } else {
+          // No es JSON, obtener como texto
+          const errorText = await response.text();
+          console.error('Error del servidor (texto):', errorText);
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      console.log('Respuesta exitosa:', data);
+      
+      if (showMessage) {
+        setMessage('Imagen actualizada correctamente');
+      }
+      
+      setSelectedImage(null);
+      
+      // Recargar la imagen del servidor
+      if (userProfile?.usuario?.id_usuario) {
+        const imageUrl = `http://localhost:3001/api/v1/uploads/images/profile/${userProfile.usuario.id_usuario}.jpeg?t=${Date.now()}`;
+        setImagePreview(imageUrl);
+      }
+      
+      console.log('=== IMAGEN SUBIDA EXITOSAMENTE ===');
+    } catch (error) {
+      console.error('=== ERROR AL SUBIR IMAGEN ===');
+      console.error('Error completo:', error);
+      setMessage(error.message || 'Error al subir la imagen');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    // Restaurar la imagen original del servidor
+    if (userProfile?.usuario?.id_usuario) {
+      const imageUrl = `http://localhost:3001/api/v1/uploads/images/profile/${userProfile.usuario.id_usuario}.jpeg?t=${Date.now()}`;
+      setImagePreview(imageUrl);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
   const validateForm = () => {
     const validationErrors = {};
 
@@ -180,15 +326,19 @@ export default function EditProfile({
     return validationErrors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit  = async (e) => {
     e.preventDefault();
     setUpdating(true);
     setMessage('');
     setErrors({});
 
     try {
+      console.log('=== INICIO DEL SUBMIT ===');
+      console.log('FormData inicial:', formData);
+      
       // Validaciones del frontend
       const validationErrors = validateForm();
+      console.log('Errores de validación:', validationErrors);
 
       // Si hay errores de validación, mostrarlos
       if (Object.keys(validationErrors).length > 0) {
@@ -205,17 +355,30 @@ export default function EditProfile({
         normalizedFormData.fecha_nacimiento = `${year}-${month}-${day}T12:00:00.000Z`;
       }
 
+      // Limpiar campos opcionales vacíos (enviarlos como undefined en lugar de strings vacíos)
+      if (!normalizedFormData.segundo_nombre || normalizedFormData.segundo_nombre.trim() === '') {
+        delete normalizedFormData.segundo_nombre;
+      }
+      if (!normalizedFormData.segundo_apellido || normalizedFormData.segundo_apellido.trim() === '') {
+        delete normalizedFormData.segundo_apellido;
+      }
+
+      console.log('Datos normalizados a enviar:', normalizedFormData);
+
       // Llamar función onSave pasada como prop
       await onSave(normalizedFormData);
       
       if (showMessage) {
         setMessage('Información actualizada correctamente');
       }
+      console.log('=== SUBMIT EXITOSO ===');
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('=== ERROR EN SUBMIT ===');
+      console.error('Error completo:', error);
       
       // Manejar errores específicos de validación del backend
       if (error.validationErrors) {
+        console.log('Errores de validación del backend:', error.validationErrors);
         setErrors(prev => ({
           ...prev,
           ...error.validationErrors
@@ -236,6 +399,55 @@ export default function EditProfile({
           {message}
         </div>
       )}
+
+      {/* Sección de Imagen de Perfil */}
+      <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Imagen de Perfil</h3>
+        
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          {/* Preview de la imagen */}
+          <div className="flex-shrink-0">
+            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border-4 border-gray-300">
+              {imagePreview ? (
+                <img 
+                  src={imagePreview} 
+                  alt="Imagen de perfil" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+          </div>
+
+          {/* Controles de imagen */}
+          <div className="flex-grow">
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="imagen_perfil" className="block text-sm font-medium text-gray-700 mb-2">
+                  {uploadingImage ? 'Subiendo imagen...' : 'Seleccionar nueva imagen'}
+                </label>
+                <input
+                  type="file"
+                  id="imagen_perfil"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleImageChange}
+                  disabled={uploadingImage}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                {errors.imagen && (
+                  <p className="mt-1 text-sm text-red-600">{errors.imagen}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Formatos: JPEG, PNG, WebP. Máximo 5MB. La imagen se subirá automáticamente.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Información NO EDITABLE */}
       <div className="p-4 bg-gray-100 rounded-lg">

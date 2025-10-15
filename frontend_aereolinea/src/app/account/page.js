@@ -87,6 +87,32 @@ export default function MyAccount() {
           </div>
 
           <div className="space-y-6">
+            {/* Imagen de Perfil */}
+            <div className="flex justify-center mb-6">
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border-4 border-blue-500 shadow-lg">
+                {userProfile?.usuario?.id_usuario ? (
+                  <img 
+                    src={`http://localhost:3001/api/v1/uploads/images/profile/${userProfile.usuario.id_usuario}.jpeg`}
+                    alt="Imagen de perfil" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Si la imagen no existe, mostrar el icono por defecto
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                ) : null}
+                <svg 
+                  className="w-16 h-16 text-gray-400" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                  style={{ display: userProfile?.usuario?.id_usuario ? 'none' : 'block' }}
+                >
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Información de Usuario */}
               <div className="bg-gray-50 p-4 rounded-lg">
