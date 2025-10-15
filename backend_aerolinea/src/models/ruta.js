@@ -14,6 +14,19 @@ const Ruta = sequelize.define('ruta', {
         allowNull: false,
         unique: true
     },
+    esNacional: {
+        type: DataTypes.BIT,
+        allowNull: false,
+        defaultValue: 1
+    },
+    precio_primer_clase: {
+        type: DataTypes.BIGINT,
+        allowNull: false
+    },
+    precio_primer_clase: {
+        type: DataTypes.BIGINT,
+        allowNull: false
+    },
     ciudad_origen: {
         type: DataTypes.INTEGER,
         allowNull: false
@@ -21,7 +34,7 @@ const Ruta = sequelize.define('ruta', {
     ciudad_destino: {
         type: DataTypes.INTEGER,
         allowNull: false
-    }
+    },
 }, {
     tableName: 'ruta',
     timestamps: false

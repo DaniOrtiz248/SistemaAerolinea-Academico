@@ -28,7 +28,11 @@ const Vuelo = sequelize.define('vuelo', {
     ruta_relacionada:{
         type: DataTypes.INTEGER,
         allowNull: false
-    }
+    },
+    porcentaje_promocion: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
 }, {
     tableName: 'vuelo',
     timestamps: false
