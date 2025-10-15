@@ -7,13 +7,11 @@ function transformEmptyToUndefined (val) {
 
 const flightSchema = z.object({
   estado: z.number().int().min(0), // Required
-  tipo_vuelo: z.number().int().min(1), // Required
   fecha_vuelo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.null()), // DATEONLY
   hora_salida_vuelo: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).or(z.null()), // TIMESTAMP
   hora_llegada_vuelo: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).or(z.null()), // TIMESTAMP
-  ciudad_origen: z.number().int().positive(), // Required
-  ciudad_destino: z.number().int().positive(), // Required
-  costo_unitario: z.number().min(0) // Required FLOAT
+  ruta_relacionada: z.number().int().positive(), // Required
+  porcentaje_promocion: z.number().min(0).optional() // Optional
 })
 
 // Schema para validar vuelos parciales (updates)
