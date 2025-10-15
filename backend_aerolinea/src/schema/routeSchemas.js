@@ -7,7 +7,7 @@ function transformEmptyToUndefined (val) {
 
 const routeSchema = z.object({
   // codigo_ruta: z.string().min(1).max(6), // Required
-  esNacional: z.number().int().min(0).max(1), // Required BIT
+  es_nacional: z.number().int().min(0).max(1), // Required BIT
   precio_primer_clase: z.number().min(0), // Required BIGINT
   precio_segunda_clase: z.number().min(0), // Required BIGINT
   ciudad_origen: z.number().int().positive(), // Required

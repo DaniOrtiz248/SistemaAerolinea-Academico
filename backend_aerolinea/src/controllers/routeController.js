@@ -1,25 +1,25 @@
 import { validateRoute } from '../schema/routeSchemas.js'
-
+import { generateRouteCode } from '../utils/generateRouteCode.js'
+import { RouteService } from '../services/routeService.js'
+// import { ValidationError, formatErrors } from '../utils/errorFormatter.js'
 export class RouteController {
   static async create (req, res) {
     const validation = validateRoute(req.body)
     if (!validation.success) {
+      console.log(validation.error)
       return res.status(400).json({ error: validation.error.issues })
     }
     try {
-      if (req.body.esNacional === 1) {
-         
-      }
-      req.body = 3 // Forzar rol de cliente
-      const created = await UserService.create(req.body)
+      req.body.codigo_ruta = await generateRouteCode(req.body.es_nacional)
+      const created = await RouteService.create(req.body)
       res.status(201).json(created)
     } catch (err) {
       console.error(err)
-      if (err instanceof ValidationError) {
-        const formatted = formatErrors(err)
-        return res.status(formatted.status).json(formatted.error)
-      }
-      res.status(500).json({ error: 'Error al crear usuario' })
+      // if (err instanceof ValidationError) {
+      //   const formatted = formatErrors(err)
+      //   return res.status(formatted.status).json(formatted.error)
+      // }
+      res.status(500).json({ error: 'Error al crear ruta' })
     }
   }
 }

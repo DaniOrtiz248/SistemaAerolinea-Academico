@@ -14,8 +14,8 @@ const Ruta = sequelize.define('ruta', {
         allowNull: false,
         unique: true
     },
-    esNacional: {
-        type: DataTypes.BIT,
+    es_nacional: {
+        type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: 1
     },
@@ -35,6 +35,11 @@ const Ruta = sequelize.define('ruta', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW
+    }
 }, {
     tableName: 'ruta',
     timestamps: false
