@@ -23,7 +23,7 @@ const Ruta = sequelize.define('ruta', {
         type: DataTypes.BIGINT,
         allowNull: false
     },
-    precio_primer_clase: {
+    precio_segunda_clase: {
         type: DataTypes.BIGINT,
         allowNull: false
     },
