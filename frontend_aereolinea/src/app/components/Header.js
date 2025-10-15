@@ -83,6 +83,24 @@ export default function Header() {
               {isMounted ? (
                 user ? (
                   <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border-2 border-blue-500">
+                      <img 
+                        src={`http://localhost:3001/api/v1/uploads/images/profile/${user.id_usuario}.jpeg`}
+                        alt="Imagen de perfil" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Si la imagen no existe, mostrar la inicial
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <span 
+                        className="w-full h-full flex items-center justify-center text-sm font-bold text-blue-600"
+                        style={{ display: 'none' }}
+                      >
+                        {user.descripcion_usuario?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                     <span className="text-gray-700 text-sm">
                       Hola, {user.descripcion_usuario}
                     </span>
@@ -153,8 +171,28 @@ export default function Header() {
               <div className="border-t border-gray-200 pt-4">
                 {user ? (
                   <div className="px-3 py-2">
-                    <div className="text-gray-700 text-sm mb-2">
-                      Hola, {user.descripcion_usuario}
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border-2 border-blue-500">
+                        <img 
+                          src={`http://localhost:3001/api/v1/uploads/images/profile/${user.id_usuario}.jpeg`}
+                          alt="Imagen de perfil" 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Si la imagen no existe, mostrar la inicial
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <span 
+                          className="w-full h-full flex items-center justify-center text-sm font-bold text-blue-600"
+                          style={{ display: 'none' }}
+                        >
+                          {user.descripcion_usuario?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="text-gray-700 text-sm">
+                        Hola, {user.descripcion_usuario}
+                      </div>
                     </div>
                     <button
                       onClick={handleLogout}

@@ -75,15 +75,47 @@ export default function EditAccount() {
         }),
       });
 
-      const result = await response.json();
-
       if (response.ok) {
+        const result = await response.json();
         // Redirigir a la página de cuenta después de guardar exitosamente
         setTimeout(() => {
           router.push('/account');
         }, 1500);
       } else {
-        throw new Error(result.message || 'Error al actualizar');
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+        console.log('Error response:', errorData);
+        
+        // Manejar errores de validación específicos del backend
+        if (errorData.error && typeof errorData.error === 'object' && errorData.error.fields && Array.isArray(errorData.error.fields)) {
+          const validationErrors = {};
+          
+          errorData.error.fields.forEach(err => {
+            if (err.code === 'DNI_EXISTS') {
+              validationErrors.dni_usuario = err.message || 'El DNI ya está registrado por otro usuario';
+            }
+          });
+          
+          if (Object.keys(validationErrors).length > 0) {
+            const error = new Error('Errores de validación');
+            error.validationErrors = validationErrors;
+            throw error;
+          }
+        }
+        
+        // Manejar diferentes formatos de error
+        let errorMessage = 'Error al actualizar el perfil';
+        
+        if (typeof errorData.error === 'string') {
+          errorMessage = errorData.error;
+        } else if (errorData.error && errorData.error.message) {
+          errorMessage = errorData.error.message;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.details) {
+          errorMessage = errorData.details;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
       throw error; // Re-lanzar para que EditProfile maneje el error
