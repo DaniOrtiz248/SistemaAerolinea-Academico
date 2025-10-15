@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize'
 import { sequelize } from '../db/sequelize/sequelize.js'
-import Ciudad from './ciudad.js'
+import Ruta from './ruta.js'
 
 const Vuelo = sequelize.define('vuelo', {
     ccv: {
@@ -10,10 +10,6 @@ const Vuelo = sequelize.define('vuelo', {
         allowNull: false
     },
     estado: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    tipo_vuelo: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
@@ -29,16 +25,8 @@ const Vuelo = sequelize.define('vuelo', {
         type: DataTypes.DATE, // TIMESTAMP
         allowNull: false
     },
-    ciudad_origen: {
+    ruta_relacionada:{
         type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    ciudad_destino: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    costo_unitario: {
-        type: DataTypes.FLOAT,
         allowNull: false
     }
 }, {
@@ -47,14 +35,10 @@ const Vuelo = sequelize.define('vuelo', {
 })
 
 // Establecer relaciones
-Vuelo.belongsTo(Ciudad, {
-    foreignKey: 'ciudad_origen',
-    as: 'ciudadOrigen'
-})
 
-Vuelo.belongsTo(Ciudad, {
-    foreignKey: 'ciudad_destino',
-    as: 'ciudadDestino'
+Vuelo.belongsTo(Ruta, {
+    foreignKey: 'ruta_relacionada',
+    as: 'id_ruta'
 })
 
 export default Vuelo
