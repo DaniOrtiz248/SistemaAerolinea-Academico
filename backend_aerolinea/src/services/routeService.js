@@ -4,4 +4,8 @@ export class RouteService {
   static async create (route) {
     return await RouteRepository.create({ route })
   }
+
+  static async getAll () {
+    return await RouteRepository.getAll()
+  }
 }

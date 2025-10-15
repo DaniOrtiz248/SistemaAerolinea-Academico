@@ -3,6 +3,16 @@ import { generateRouteCode } from '../utils/generateRouteCode.js'
 import { RouteService } from '../services/routeService.js'
 // import { ValidationError, formatErrors } from '../utils/errorFormatter.js'
 export class RouteController {
+  static async getAll (req, res) {
+    try {
+      const routes = await RouteService.getAll()
+      return res.json(routes)
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ error: 'Error al obtener rutas' })
+    }
+  }
+
   static async create (req, res) {
     const validation = validateRoute(req.body)
     if (!validation.success) {

@@ -8,7 +8,7 @@ export const routeRoutes = Router()
 // routeRoutes.use(adminMiddleware)
 
 routeRoutes.post('/create', RouteController.create)
-// routeRoutes.get('/', RouteController.getAll)
+routeRoutes.get('/', RouteController.getAll)
 // routeRoutes.put('/:id', RouteController.update)
 // routeRoutes.delete('/:id', RouteController.delete)
 // routeRoutes.get('/:id', RouteController.getById)
