@@ -1,4 +1,4 @@
-import { validateRoute } from '../schema/routeSchemas.js'
+import { validateRoute, validatePartialRoute } from '../schema/routeSchemas.js'
 import { generateRouteCode } from '../utils/generateRouteCode.js'
 import { RouteService } from '../services/routeService.js'
 // import { ValidationError, formatErrors } from '../utils/errorFormatter.js'
@@ -30,6 +30,24 @@ export class RouteController {
       //   return res.status(formatted.status).json(formatted.error)
       // }
       res.status(500).json({ error: 'Error al crear ruta' })
+    }
+  }
+
+  static async update (req, res) {
+    const validation = validatePartialRoute(req.body)
+    if (!validation.success) {
+      console.log(validation.error)
+      return res.status(400).json({ error: validation.error.issues })
+    }
+    try {
+      const updated = await RouteService.update(req.params.id, req.body)
+      if (!updated) {
+        return res.status(404).json({ error: 'Ruta no encontrada' })
+      }
+      res.json(updated)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error al actualizar ruta' })
     }
   }
 }
