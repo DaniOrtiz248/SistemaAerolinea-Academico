@@ -1,4 +1,5 @@
 import Vuelo from '../models/vuelo.js'
+import Ruta from '../models/ruta.js'
 import Ciudad from '../models/ciudad.js'
 
 export class FlightRepository {
@@ -6,14 +7,20 @@ export class FlightRepository {
     return await Vuelo.findAll({
       include: [
         {
-          model: Ciudad,
-          as: 'ciudadOrigen',
-          attributes: ['id_ciudad', 'nombre_ciudad']
-        },
-        {
-          model: Ciudad,
-          as: 'ciudadDestino',
-          attributes: ['id_ciudad', 'nombre_ciudad']
+          model: Ruta,
+          as: 'ruta',
+          include: [
+            {
+              model: Ciudad,
+              as: 'origen',
+              attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+            },
+            {
+              model: Ciudad,
+              as: 'destino',
+              attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+            }
+          ]
         }
       ],
       order: [['fecha_vuelo', 'ASC'], ['hora_salida_vuelo', 'ASC']]
@@ -24,24 +31,27 @@ export class FlightRepository {
     return await Vuelo.findByPk(ccv, {
       include: [
         {
-          model: Ciudad,
-          as: 'ciudadOrigen',
-          attributes: ['id_ciudad', 'nombre_ciudad']
-        },
-        {
-          model: Ciudad,
-          as: 'ciudadDestino',
-          attributes: ['id_ciudad', 'nombre_ciudad']
+          model: Ruta,
+          as: 'ruta',
+          include: [
+            {
+              model: Ciudad,
+              as: 'origen',
+              attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+            },
+            {
+              model: Ciudad,
+              as: 'destino',
+              attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+            }
+          ]
         }
       ]
     })
   }
 
   static async findByOriginDestination ({ ciudad_origen, ciudad_destino, fecha_vuelo }) {
-    const whereClause = {
-      ciudad_origen,
-      ciudad_destino
-    }
+    const whereClause = {}
 
     if (fecha_vuelo) {
       whereClause.fecha_vuelo = fecha_vuelo
@@ -51,14 +61,24 @@ export class FlightRepository {
       where: whereClause,
       include: [
         {
-          model: Ciudad,
-          as: 'ciudadOrigen',
-          attributes: ['id_ciudad', 'nombre_ciudad']
-        },
-        {
-          model: Ciudad,
-          as: 'ciudadDestino',
-          attributes: ['id_ciudad', 'nombre_ciudad']
+          model: Ruta,
+          as: 'ruta',
+          where: {
+            ciudad_origen,
+            ciudad_destino
+          },
+          include: [
+            {
+              model: Ciudad,
+              as: 'origen',
+              attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+            },
+            {
+              model: Ciudad,
+              as: 'destino',
+              attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+            }
+          ]
         }
       ],
       order: [['fecha_vuelo', 'ASC'], ['hora_salida_vuelo', 'ASC']]

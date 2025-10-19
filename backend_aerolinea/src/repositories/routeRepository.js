@@ -1,4 +1,5 @@
 import Ruta from '../models/ruta.js'
+import Ciudad from '../models/ciudad.js'
 
 export class RouteRepository {
   static async create ({ route }) {
@@ -6,6 +7,20 @@ export class RouteRepository {
   }
 
   static async getAll () {
-    return await Ruta.findAll()
+    return await Ruta.findAll({
+      include: [
+        {
+          model: Ciudad,
+          as: 'origen',
+          attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+        },
+        {
+          model: Ciudad,
+          as: 'destino',
+          attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+        }
+      ],
+      order: [['created_at', 'DESC']]
+    })
   }
 }

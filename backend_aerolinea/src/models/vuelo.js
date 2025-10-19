@@ -42,7 +42,7 @@ const Vuelo = sequelize.define('vuelo', {
 
 Vuelo.belongsTo(Ruta, {
     foreignKey: 'ruta_relacionada',
-    as: 'id_ruta'
+    as: 'ruta'
 })
 
 export default Vuelo
