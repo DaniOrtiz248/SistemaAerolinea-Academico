@@ -23,4 +23,25 @@ export class RouteRepository {
       order: [['created_at', 'DESC']]
     })
   }
+
+  static async findByOriginAndDestination ({ ciudad_origen, ciudad_destino }) {
+    return await Ruta.findOne({
+      where: {
+        ciudad_origen,
+        ciudad_destino
+      },
+      include: [
+        {
+          model: Ciudad,
+          as: 'origen',
+          attributes: ['nombre_ciudad']
+        },
+        {
+          model: Ciudad,
+          as: 'destino',
+          attributes: ['nombre_ciudad']
+        }
+      ]
+    })
+  }
 }
