@@ -3,8 +3,8 @@ POST http://localhost:3001/api/v1/routes/create
 Content-Type: application/json
 
 {
-    "ciudad_origen": 4,
-    "ciudad_destino": 6,
+    "ciudad_origen": 1,
+    "ciudad_destino": 2,
     "precio_primer_clase": 300000,
     "precio_segunda_clase": 150000,
     "es_nacional": 1

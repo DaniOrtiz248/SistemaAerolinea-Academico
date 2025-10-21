@@ -1,96 +1,83 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 
 export default function AdminFlights() {
   const [flights, setFlights] = useState([]);
+  const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingFlight, setEditingFlight] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Datos de ejemplo - en un caso real, estos vendrían del backend
-  const exampleFlights = useMemo(() => [
-    {
-      id: 1,
-      flight_number: 'AP001',
-      origin: 'Madrid',
-      destination: 'Barcelona',
-      departure_time: '2025-01-15T10:30:00',
-      arrival_time: '2025-01-15T11:45:00',
-      price: 150.00,
-      available_seats: 45,
-      total_seats: 180,
-      status: 'active',
-      aircraft: 'Boeing 737'
-    },
-    {
-      id: 2,
-      flight_number: 'AP002',
-      origin: 'Barcelona',
-      destination: 'Sevilla',
-      departure_time: '2025-01-15T14:20:00',
-      arrival_time: '2025-01-15T15:30:00',
-      price: 89.99,
-      available_seats: 0,
-      total_seats: 150,
-      status: 'sold_out',
-      aircraft: 'Airbus A320'
-    },
-    {
-      id: 3,
-      flight_number: 'AP003',
-      origin: 'Sevilla',
-      destination: 'Valencia',
-      departure_time: '2025-01-16T09:15:00',
-      arrival_time: '2025-01-16T10:45:00',
-      price: 120.50,
-      available_seats: 78,
-      total_seats: 180,
-      status: 'active',
-      aircraft: 'Boeing 737'
-    },
-    {
-      id: 4,
-      flight_number: 'AP004',
-      origin: 'Valencia',
-      destination: 'Madrid',
-      departure_time: '2025-01-16T16:00:00',
-      arrival_time: '2025-01-16T17:15:00',
-      price: 110.00,
-      available_seats: 25,
-      total_seats: 150,
-      status: 'cancelled',
-      aircraft: 'Airbus A320'
-    }
-  ], []);
-
   useEffect(() => {
-    // Simular carga de datos
-    setTimeout(() => {
-      setFlights(exampleFlights);
-      setLoading(false);
-    }, 1000);
-  }, [exampleFlights]);
+    // Cargar vuelos y rutas del backend
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Obtener vuelos
+        const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
+        if (flightsResponse.ok) {
+          const flightsResult = await flightsResponse.json();
+          if (flightsResult.success && flightsResult.data) {
+            // Agregar campos estáticos para uso futuro
+            const flightsWithSeats = flightsResult.data.map(flight => ({
+              ...flight,
+              available_seats: 100, // Valor estático temporal
+              total_seats: 180      // Valor estático temporal
+            }));
+            setFlights(flightsWithSeats);
+          }
+        }
+        
+        // Obtener rutas
+        const routesResponse = await fetch('http://localhost:3001/api/v1/routes');
+        if (routesResponse.ok) {
+          const routesResult = await routesResponse.json();
+          setRoutes(routesResult || []);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        alert('Error al cargar los datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const filteredFlights = flights.filter(flight => {
-    const matchesSearch = flight.flight_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         flight.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         flight.destination.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+      flight.ccv?.toString().includes(searchTerm.toLowerCase()) ||
+      flight.ruta?.codigo_ruta?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      flight.ruta?.origen?.nombre_ciudad?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      flight.ruta?.destino?.nombre_ciudad?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = filterStatus === 'all' || flight.status === filterStatus;
+    // Mapear estado numérico a string para el filtro
+    let flightStatus = 'active';
+    if (flight.estado === 0) flightStatus = 'cancelled';
+    else if (flight.available_seats === 0) flightStatus = 'sold_out';
+    
+    const matchesFilter = filterStatus === 'all' || flightStatus === filterStatus;
     
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (flight) => {
     const statusConfig = {
       active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Activo' },
       sold_out: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Agotado' },
       cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelado' },
       delayed: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Retrasado' }
     };
+    
+    // Determinar el estado basado en los datos del vuelo
+    let status = 'active';
+    if (flight.estado === 0) status = 'cancelled';
+    //else if (flight.available_seats === 0) status = 'sold_out';
     
     const config = statusConfig[status] || statusConfig.active;
     
@@ -122,33 +109,69 @@ export default function AdminFlights() {
 
   const FlightModal = () => {
     const [formData, setFormData] = useState(editingFlight || {
-      flight_number: '',
-      origin: '',
-      destination: '',
-      departure_time: '',
-      arrival_time: '',
-      price: '',
-      total_seats: '',
-      aircraft: '',
-      status: 'active'
+      ruta_relacionada: '',
+      fecha_vuelo: '',
+      hora_salida_vuelo: '',
+      hora_llegada_vuelo: '',
+      porcentaje_promocion: 0,
+      estado: 1
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      if (editingFlight) {
-        // Actualizar vuelo existente
-        setFlights(flights.map(f => f.id === editingFlight.id ? { ...formData, id: editingFlight.id } : f));
-      } else {
-        // Crear nuevo vuelo
-        const newFlight = {
-          ...formData,
-          id: Date.now(),
-          available_seats: parseInt(formData.total_seats)
-        };
-        setFlights([...flights, newFlight]);
+      
+      try {
+        if (editingFlight) {
+          // Actualizar vuelo existente (implementar después)
+          alert('Funcionalidad de actualización en desarrollo');
+        } else {
+          // Crear nuevo vuelo
+          const flightData = {
+            ...formData,
+            ruta_relacionada: parseInt(formData.ruta_relacionada),
+            estado: parseInt(formData.estado),
+            porcentaje_promocion: parseFloat(formData.porcentaje_promocion) || 0
+          };
+
+          const response = await fetch('http://localhost:3001/api/v1/flights', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Para enviar cookies de autenticación
+            body: JSON.stringify(flightData)
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            alert('Vuelo creado exitosamente');
+            
+            // Recargar vuelos
+            const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
+            if (flightsResponse.ok) {
+              const flightsResult = await flightsResponse.json();
+              if (flightsResult.success && flightsResult.data) {
+                const flightsWithSeats = flightsResult.data.map(flight => ({
+                  ...flight,
+                  available_seats: 100,
+                  total_seats: 180
+                }));
+                setFlights(flightsWithSeats);
+              }
+            }
+            
+            setShowModal(false);
+            setEditingFlight(null);
+          } else {
+            const error = await response.json();
+            console.error('Error creating flight:', error);
+            alert(`Error al crear el vuelo: ${error.error || 'Error desconocido'}`);
+          }
+        }
+      } catch (error) {
+        console.error('Network error:', error);
+        alert('Error de conexión al crear el vuelo');
       }
-      setShowModal(false);
-      setEditingFlight(null);
     };
 
     return (
@@ -161,14 +184,34 @@ export default function AdminFlights() {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
+                    Ruta *
+                  </label>
+                  <select
+                    value={formData.ruta_relacionada}
+                    onChange={(e) => setFormData({...formData, ruta_relacionada: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    required
+                  >
+                    <option value="">Selecciona una ruta</option>
+                    {routes.map((route) => (
+                      <option key={route.id_ruta} value={route.id_ruta}>
+                        {route.codigo_ruta} - {route.origen?.nombre_ciudad || 'N/A'} → {route.destino?.nombre_ciudad || 'N/A'} 
+                        ({route.es_nacional ? 'Nacional' : 'Internacional'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Número de Vuelo
+                    Fecha de Vuelo *
                   </label>
                   <input
-                    type="text"
-                    value={formData.flight_number}
-                    onChange={(e) => setFormData({...formData, flight_number: e.target.value})}
+                    type="date"
+                    value={formData.fecha_vuelo}
+                    onChange={(e) => setFormData({...formData, fecha_vuelo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                   />
@@ -176,51 +219,27 @@ export default function AdminFlights() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Aeronave
+                    Estado *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.aircraft}
-                    onChange={(e) => setFormData({...formData, aircraft: e.target.value})}
+                  <select
+                    value={formData.estado}
+                    onChange={(e) => setFormData({...formData, estado: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
-                  />
+                  >
+                    <option value="1">Activo</option>
+                    <option value="0">Inactivo</option>
+                  </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Origen
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.origin}
-                    onChange={(e) => setFormData({...formData, origin: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Destino
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.destination}
-                    onChange={(e) => setFormData({...formData, destination: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Fecha/Hora Salida
+                    Hora de Salida *
                   </label>
                   <input
                     type="datetime-local"
-                    value={formData.departure_time}
-                    onChange={(e) => setFormData({...formData, departure_time: e.target.value})}
+                    value={formData.hora_salida_vuelo}
+                    onChange={(e) => setFormData({...formData, hora_salida_vuelo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                   />
@@ -228,12 +247,12 @@ export default function AdminFlights() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Fecha/Hora Llegada
+                    Hora de Llegada *
                   </label>
                   <input
                     type="datetime-local"
-                    value={formData.arrival_time}
-                    onChange={(e) => setFormData({...formData, arrival_time: e.target.value})}
+                    value={formData.hora_llegada_vuelo}
+                    onChange={(e) => setFormData({...formData, hora_llegada_vuelo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                   />
@@ -241,15 +260,17 @@ export default function AdminFlights() {
                 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Precio (€)
+                    Porcentaje de Promoción (%)
                   </label>
                   <input
                     type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={formData.porcentaje_promocion}
+                    onChange={(e) => setFormData({...formData, porcentaje_promocion: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    required
+                    placeholder="0 = Sin promoción"
                   />
                 </div>
               </div>
@@ -307,7 +328,7 @@ export default function AdminFlights() {
               <div className="flex-1">
                 <input
                   type="text"
-                  placeholder="Buscar por número de vuelo, origen o destino..."
+                  placeholder="Buscar por código de vuelo, ruta, origen o destino..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -370,17 +391,38 @@ export default function AdminFlights() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredFlights.map((flight) => {
-                  const departure = formatDateTime(flight.departure_time);
-                  const arrival = formatDateTime(flight.arrival_time);
+                  const departure = formatDateTime(flight.hora_salida_vuelo);
+                  const arrival = formatDateTime(flight.hora_llegada_vuelo);
+                  
+                  // Calcular precios con descuento si hay promoción
+                  const precioClase1 = flight.porcentaje_promocion 
+                    ? (flight.ruta?.precio_primer_clase * (1 - flight.porcentaje_promocion / 100)).toFixed(2)
+                    : flight.ruta?.precio_primer_clase;
+                  
+                  const precioClase2 = flight.porcentaje_promocion 
+                    ? (flight.ruta?.precio_segunda_clase * (1 - flight.porcentaje_promocion / 100)).toFixed(2)
+                    : flight.ruta?.precio_segunda_clase;
                   
                   return (
-                    <tr key={flight.id} className="hover:bg-gray-50">
+                    <tr key={flight.ccv} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{flight.flight_number}</div>
-                        <div className="text-sm text-gray-500">{flight.aircraft}</div>
+                        <div className="text-sm font-medium text-gray-900">#{flight.ccv}</div>
+                        {flight.porcentaje_promocion > 0 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            -{flight.porcentaje_promocion}%
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{flight.origin} → {flight.destination}</div>
+                        <div className="text-sm font-medium text-gray-900">{flight.ruta?.codigo_ruta || 'N/A'}</div>
+                        <div className="text-sm text-gray-900">
+                          {flight.ruta?.origen?.nombre_ciudad || 'N/A'} → {flight.ruta?.destino?.nombre_ciudad || 'N/A'}
+                        </div>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          flight.ruta?.es_nacional ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          {flight.ruta?.es_nacional ? 'Nacional' : 'Internacional'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{departure.date}</div>
@@ -391,7 +433,8 @@ export default function AdminFlights() {
                         <div className="text-sm text-gray-500">{arrival.time}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">€{flight.price}</div>
+                        <div className="text-sm font-medium text-blue-600">1ª: ${precioClase1}</div>
+                        <div className="text-sm font-medium text-green-600">2ª: ${precioClase2}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
@@ -405,7 +448,7 @@ export default function AdminFlights() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(flight.status)}
+                        {getStatusBadge(flight)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
@@ -415,7 +458,7 @@ export default function AdminFlights() {
                           ✏️ Editar
                         </button>
                         <button
-                          onClick={() => handleDelete(flight.id)}
+                          onClick={() => handleDelete(flight.ccv)}
                           className="text-red-600 hover:text-red-900"
                         >
                           🗑️ Eliminar

@@ -10,6 +10,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [flights, setFlights] = useState([]);
   const [loadingFlights, setLoadingFlights] = useState(false);
+  const [ciudades, setCiudades] = useState([]);
   const [searchData, setSearchData] = useState({
     origin: '',
     destination: '',
@@ -22,6 +23,22 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Cargar ciudades disponibles
+    const fetchCiudades = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/v1/ciudades');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setCiudades(result.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching ciudades:', error);
+      }
+    };
+    fetchCiudades();
     
     // Verificar si el usuario es administrador y redirigirlo a su dashboard
     const userData = localStorage.getItem('user');
@@ -55,10 +72,68 @@ export default function Home() {
     }));
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    console.log('Searching flights with:', searchData);
-    // Here you would implement the actual search functionality
+    
+    // Validar campos requeridos
+    if (!searchData.origin || !searchData.destination) {
+      alert('Por favor selecciona ciudad de origen y destino');
+      return;
+    }
+    
+    if (!searchData.departureDate) {
+      alert('Por favor selecciona la fecha de salida');
+      return;
+    }
+    
+    setLoadingFlights(true);
+    try {
+      // Construir URL con parámetros de búsqueda
+      const params = new URLSearchParams({
+        ciudad_origen: searchData.origin,
+        ciudad_destino: searchData.destination,
+        fecha_vuelo: searchData.departureDate
+      });
+      
+      const response = await fetch(`http://localhost:3001/api/v1/flights/search?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Search results:', result);
+        
+        if (result.success && result.data) {
+          setFlights(result.data);
+          
+          if (result.data.length > 0) {
+            alert(`Se encontraron ${result.data.length} vuelo(s) disponible(s) para tu búsqueda.`);
+            
+            // Scroll suave a la sección de vuelos
+            setTimeout(() => {
+              const flightsSection = document.getElementById('flights-section');
+              if (flightsSection) {
+                flightsSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 500);
+          } else {
+            alert('No se encontraron vuelos para los criterios de búsqueda.');
+            setFlights([]);
+          }
+        }
+      } else {
+        console.error('Error searching flights:', response.status);
+        alert('Error al buscar vuelos');
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('Error de conexión al buscar vuelos');
+    } finally {
+      setLoadingFlights(false);
+    }
   };
 
   const handleViewFlights = async (destination = null) => {
@@ -180,14 +255,20 @@ export default function Home() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Origen
                 </label>
-                <input
-                  type="text"
+                <select
                   name="origin"
                   value={searchData.origin}
                   onChange={handleInputChange}
-                  placeholder="Ciudad de origen"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                  required
+                >
+                  <option value="">Selecciona origen</option>
+                  {ciudades.map((ciudad) => (
+                    <option key={ciudad.id_ciudad} value={ciudad.id_ciudad}>
+                      {ciudad.nombre_ciudad}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Destination */}
@@ -195,14 +276,20 @@ export default function Home() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Destino
                 </label>
-                <input
-                  type="text"
+                <select
                   name="destination"
                   value={searchData.destination}
                   onChange={handleInputChange}
-                  placeholder="Ciudad de destino"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                  required
+                >
+                  <option value="">Selecciona destino</option>
+                  {ciudades.map((ciudad) => (
+                    <option key={ciudad.id_ciudad} value={ciudad.id_ciudad}>
+                      {ciudad.nombre_ciudad}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Departure Date */}
@@ -354,14 +441,23 @@ export default function Home() {
                   
                   <div className="p-6">
                     <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          flight.ruta?.es_nacional ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          {flight.ruta?.es_nacional ? '🇵🇪 Nacional' : '🌎 Internacional'}
+                        </span>
+                        <span className="text-sm text-gray-500">Ruta: {flight.ruta?.codigo_ruta}</span>
+                      </div>
+
                       <div className="flex items-center text-gray-700">
                         <span className="font-semibold mr-2">🛫 Origen:</span>
-                        <span>{flight.ciudadOrigen?.nombre_ciudad || `Ciudad ${flight.ciudad_origen}`}</span>
+                        <span>{flight.ruta?.origen?.nombre_ciudad || 'N/A'}</span>
                       </div>
                       
                       <div className="flex items-center text-gray-700">
                         <span className="font-semibold mr-2">🛬 Destino:</span>
-                        <span>{flight.ciudadDestino?.nombre_ciudad || `Ciudad ${flight.ciudad_destino}`}</span>
+                        <span>{flight.ruta?.destino?.nombre_ciudad || 'N/A'}</span>
                       </div>
                       
                       {flight.fecha_vuelo && (
@@ -384,10 +480,30 @@ export default function Home() {
                           <span>{new Date(flight.hora_llegada_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       )}
+
+                      {flight.porcentaje_promocion && flight.porcentaje_promocion > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-2">
+                          <span className="text-yellow-700 font-semibold">🎉 {flight.porcentaje_promocion}% de descuento</span>
+                        </div>
+                      )}
                       
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                        <span className="text-gray-600 font-medium">Precio:</span>
-                        <span className="text-2xl font-bold text-blue-600">${flight.costo_unitario}</span>
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-gray-600">Primera Clase:</span>
+                          <span className="text-lg font-bold text-blue-600">
+                            ${flight.porcentaje_promocion 
+                              ? (flight.ruta?.precio_primer_clase * (1 - flight.porcentaje_promocion / 100)).toFixed(2)
+                              : flight.ruta?.precio_primer_clase}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Segunda Clase:</span>
+                          <span className="text-lg font-bold text-green-600">
+                            ${flight.porcentaje_promocion 
+                              ? (flight.ruta?.precio_segunda_clase * (1 - flight.porcentaje_promocion / 100)).toFixed(2)
+                              : flight.ruta?.precio_segunda_clase}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     

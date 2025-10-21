@@ -1,7 +1,9 @@
 import { validateRoute, validatePartialRoute } from '../schema/routeSchemas.js'
 import { generateRouteCode } from '../utils/generateRouteCode.js'
 import { RouteService } from '../services/routeService.js'
-// import { ValidationError, formatErrors } from '../utils/errorFormatter.js'
+import { ValidationError } from '../utils/validateError.js'
+import { formatErrors } from '../utils/formatErrors.js'
+
 export class RouteController {
   static async getAll (req, res) {
     try {
@@ -25,10 +27,10 @@ export class RouteController {
       res.status(201).json(created)
     } catch (err) {
       console.error(err)
-      // if (err instanceof ValidationError) {
-      //   const formatted = formatErrors(err)
-      //   return res.status(formatted.status).json(formatted.error)
-      // }
+      if (err instanceof ValidationError) {
+        const formatted = formatErrors(err)
+        return res.status(formatted.status).json(formatted.error)
+      }
       res.status(500).json({ error: 'Error al crear ruta' })
     }
   }
