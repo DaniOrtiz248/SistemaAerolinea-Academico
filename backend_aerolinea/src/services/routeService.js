@@ -3,6 +3,10 @@ import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
 
 export class RouteService {
+  static async getAll () {
+    return await RouteRepository.getAll()
+  }
+
   static async create (route) {
     // Validar que no exista una ruta con el mismo origen y destino
     const existingRoute = await RouteRepository.findByOriginAndDestination({
@@ -25,7 +29,7 @@ export class RouteService {
     return await RouteRepository.create({ route })
   }
 
-  static async getAll () {
-    return await RouteRepository.getAll()
+  static async update (id, routeData) {
+    return await RouteRepository.update(id, routeData)
   }
 }

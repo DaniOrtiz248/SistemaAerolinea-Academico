@@ -1,6 +1,8 @@
 import { FlightRepository } from '../repositories/flightRepository.js'
+import { UserPerfilRepository } from '../repositories/userPerfilRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
+import { sendNewsPromotion } from '../utils/mailer.js'
 
 export class FlightService {
   static errors = []
@@ -55,6 +57,28 @@ export class FlightService {
     } catch (error) {
       console.log('Error programando el vuelo:', error)
       throw error
+    }
+  }
+
+  static async publishNewsPromotion ({ ccv }) {
+    try {
+      const vuelo = await FlightRepository.findById({ ccv })
+      if (!vuelo) {
+        throw new AppError(404, 'FLIGHT_NOT_FOUND', 'Vuelo no encontrado para publicar noticias de promoción')
+      }
+
+      const emailSent = await UserPerfilRepository.findByEnNoticias()
+
+      // Enviar emails en paralelo con manejo de errores
+      // Para evitar saturar el servidor de email
+      for (const userPerfil of emailSent) {
+        const usuario = await userPerfil.getUsuario()
+        const emailResult = await sendNewsPromotion(usuario.correo_electronico, vuelo)
+        console.log(`Email sent to ${usuario.correo_electronico}: ${emailResult}`)
+      }
+    } catch (error) {
+      console.error('Error publishing news promotion:', error)
+      throw new AppError(500, 'INTERNAL_ERROR', 'Error al publicar noticias de promoción')
     }
   }
 }

@@ -17,14 +17,14 @@ const flightSchema = z.object({
 // Schema para validar vuelos parciales (updates)
 const partialFlightSchema = flightSchema.partial()
 
-export function validateFlight (object) { 
-    return flightSchema.safeParse(object)
+export function validateFlight (object) {
+  return flightSchema.safeParse(object)
 }
 
-export function validatePartialFlight (object) { 
-    return partialFlightSchema.safeParse(object)
-} 
-
-export function validateCreateFlight (object) { 
-    return createFlightSchema.safeParse(object)
+export function validatePartialFlight (object) {
+  return partialFlightSchema.safeParse(object)
 }
+
+// export function validateCreateFlight (object) {
+//   return createFlightSchema.safeParse(object)
+// }

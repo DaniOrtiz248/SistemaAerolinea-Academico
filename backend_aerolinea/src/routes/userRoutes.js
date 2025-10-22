@@ -20,5 +20,3 @@ userRoutes.delete('/:id', UserController.delete)
 
 userRoutes.get('/profile/:id_usuario', UserController.getUserProfile)
 userRoutes.put('/profile/:id_usuario', UserController.updateProfile)
-
-

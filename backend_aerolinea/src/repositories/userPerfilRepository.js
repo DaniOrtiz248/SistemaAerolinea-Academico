@@ -38,4 +38,8 @@ export class UserPerfilRepository {
   static async findByDNI ({ dni_usuario }) {
     return await UsuarioPerfil.findOne({ where: { dni_usuario } })
   }
+
+  static async findByEnNoticias () {
+    return await UsuarioPerfil.findAll({ where: { en_noticias: true } })
+  }
 }

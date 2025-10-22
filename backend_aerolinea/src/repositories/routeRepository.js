@@ -44,4 +44,10 @@ export class RouteRepository {
       ]
     })
   }
+
+  static async update (id, routeData) {
+    const route = await Ruta.findByPk(id)
+    if (!route) throw new Error('Ruta no encontrada')
+    return await route.update(routeData)
+  }
 }

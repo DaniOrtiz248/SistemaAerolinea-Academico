@@ -1,10 +1,5 @@
 import z from 'zod'
 
-function transformEmptyToUndefined (val) {
-  if (typeof val === 'string' && val.trim() === '') return undefined
-  return val
-}
-
 const routeSchema = z.object({
   // codigo_ruta: z.string().min(1).max(6), // Required
   es_nacional: z.number().int().min(0).max(1), // Required BIT

@@ -1,0 +1,2 @@
+POST http://localhost:3001/api/v1/flights/publish-promotion/2
+Content-Type: application/json

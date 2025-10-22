@@ -31,13 +31,13 @@ Content-Type: application/json
 
 {
   "usuario":{
-    "descripcion_usuario": "Usuario23",
-    "correo_electronico": "nuevo24@usuario.com",
+    "descripcion_usuario": "Usuario2345",
+    "correo_electronico": "valenciabra85@gmail.com",
     "contrasena": "1234567",
     "id_rol": 3
   },
     "usuarioPerfil": {
-    "dni_usuario": "87654321",
+    "dni_usuario": "8765432134",
     "primer_nombre": "Maria",
     "segundo_nombre": "Elena",
     "primer_apellido": "Rodriguez",

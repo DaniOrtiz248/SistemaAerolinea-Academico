@@ -10,5 +10,6 @@ flightRoutes.get('/search', FlightController.searchFlights)
 flightRoutes.get('/:ccv', FlightController.getFlightById)
 
 // Rutas protegidas - para administración de vuelos
+flightRoutes.post('/publish-promotion/:ccv', FlightController.publishNewsPromotion)
 flightRoutes.use(authMiddleware) // Middleware para proteger las rutas siguientes
 flightRoutes.post('/', FlightController.createFlight)
