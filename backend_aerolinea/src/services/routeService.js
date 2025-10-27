@@ -32,4 +32,30 @@ export class RouteService {
   static async update (id, routeData) {
     return await RouteRepository.update(id, routeData)
   }
+
+  static async delete (id) {
+    const route = await RouteRepository.findById(id)
+    
+    if (!route) {
+      const errors = [
+        new AppError(
+          404,
+          'ROUTE_NOT_FOUND',
+          'La ruta que intentas eliminar no existe',
+          'id_ruta'
+        )
+      ]
+      throw new ValidationError(errors)
+    }
+
+    await RouteRepository.delete(id)
+    return { 
+      message: 'Ruta eliminada exitosamente',
+      deletedRoute: {
+        codigo_ruta: route.codigo_ruta,
+        origen: route.origen.nombre_ciudad,
+        destino: route.destino.nombre_ciudad
+      }
+    }
+  }
 }

@@ -50,4 +50,30 @@ export class RouteRepository {
     if (!route) throw new Error('Ruta no encontrada')
     return await route.update(routeData)
   }
+
+  static async delete (id) {
+    const route = await Ruta.findByPk(id)
+    if (!route) {
+      return null
+    }
+    await route.destroy()
+    return route
+  }
+
+  static async findById (id) {
+    return await Ruta.findByPk(id, {
+      include: [
+        {
+          model: Ciudad,
+          as: 'origen',
+          attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+        },
+        {
+          model: Ciudad,
+          as: 'destino',
+          attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+        }
+      ]
+    })
+  }
 }

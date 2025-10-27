@@ -52,4 +52,18 @@ export class RouteController {
       res.status(500).json({ error: 'Error al actualizar ruta' })
     }
   }
+
+  static async delete (req, res) {
+    try {
+      const result = await RouteService.delete(req.params.id)
+      res.json(result)
+    } catch (err) {
+      console.error(err)
+      if (err instanceof ValidationError) {
+        const formatted = formatErrors(err)
+        return res.status(formatted.status).json(formatted.error)
+      }
+      res.status(500).json({ error: 'Error al eliminar ruta' })
+    }
+  }
 }

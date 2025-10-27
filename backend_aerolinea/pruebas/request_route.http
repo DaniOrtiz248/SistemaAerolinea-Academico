@@ -1,4 +1,14 @@
 
+### LOGIN ADMIN (Primero debes hacer login para obtener la cookie)
+POST http://localhost:3001/api/v1/users/login
+Content-Type: application/json
+
+{
+    "identifier": "vaquitaLoca",
+    "contrasena": "pac45"
+}
+
+### Crear ruta
 POST http://localhost:3001/api/v1/routes/create
 Content-Type: application/json
 
@@ -10,7 +20,18 @@ Content-Type: application/json
     "es_nacional": 1
 }
 
-### Obtener todos las rutas
-
+### Obtener todas las rutas
 GET http://localhost:3001/api/v1/routes/
 Content-Type: application/json
+
+### Actualizar una ruta
+PUT http://localhost:3001/api/v1/routes/1
+Content-Type: application/json
+
+{
+    "precio_primer_clase": 350000,
+    "precio_segunda_clase": 175000
+}
+
+### Eliminar una ruta
+DELETE http://localhost:3001/api/v1/routes/14
