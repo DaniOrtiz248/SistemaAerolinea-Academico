@@ -74,6 +74,12 @@ export default function AdminHeader() {
               Vuelos
             </Link>
             <Link 
+              href="/admin/routes" 
+              className="hover:text-blue-200 transition-colors font-medium"
+            >
+              Rutas
+            </Link>
+            <Link 
               href="/admin/profile" 
               className="hover:text-blue-200 transition-colors font-medium"
             >
@@ -183,6 +189,13 @@ export default function AdminHeader() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Vuelos
+              </Link>
+              <Link
+                href="/admin/routes"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-white/20 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Rutas
               </Link>
               <Link
                 href="/admin/profile"

@@ -107,27 +107,30 @@ export default function AdminDashboard() {
             </Link>
 
             <Link
+              href="/admin/routes"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">�️</span>
+                <div>
+                  <h3 className="font-semibold">Gestionar Rutas</h3>
+                  <p className="text-sm opacity-90">Ver y editar rutas</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
               href="/admin/profile"
               className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
             >
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">👤</span>
+                <span className="text-2xl">�</span>
                 <div>
                   <h3 className="font-semibold">Mi Perfil</h3>
                   <p className="text-sm opacity-90">Editar información personal</p>
                 </div>
               </div>
             </Link>
-
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow-md">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">📊</span>
-                <div>
-                  <h3 className="font-semibold">Reportes</h3>
-                  <p className="text-sm opacity-90">Próximamente...</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -179,6 +182,13 @@ export default function AdminDashboard() {
               >
                 <span>✈️</span>
                 <span>Administrar Vuelos</span>
+              </Link>
+              <Link
+                href="/admin/routes"
+                className="flex items-center space-x-3 p-3 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+              >
+                <span>🛣️</span>
+                <span>Administrar Rutas</span>
               </Link>
               <Link
                 href="/admin/profile"

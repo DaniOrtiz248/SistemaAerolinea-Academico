@@ -16,27 +16,28 @@ export default function AdminFlights() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
         // Obtener vuelos
         const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
         if (flightsResponse.ok) {
           const flightsResult = await flightsResponse.json();
           if (flightsResult.success && flightsResult.data) {
-            // Agregar campos estáticos para uso futuro
             const flightsWithSeats = flightsResult.data.map(flight => ({
               ...flight,
-              available_seats: 100, // Valor estático temporal
-              total_seats: 180      // Valor estático temporal
+              available_seats: 100,
+              total_seats: 180
             }));
             setFlights(flightsWithSeats);
           }
         }
-        
-        // Obtener rutas
-        const routesResponse = await fetch('http://localhost:3001/api/v1/routes');
-        if (routesResponse.ok) {
-          const routesResult = await routesResponse.json();
-          setRoutes(routesResult || []);
+        // Obtener rutas igual que en el módulo de rutas
+        const resRoutes = await fetch('http://localhost:3001/api/v1/routes', { credentials: 'include' });
+        const dataRoutes = await resRoutes.json();
+        if (Array.isArray(dataRoutes)) {
+          setRoutes(dataRoutes);
+        } else if (dataRoutes.data) {
+          setRoutes(dataRoutes.data);
+        } else {
+          setRoutes([]);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -45,7 +46,6 @@ export default function AdminFlights() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -181,7 +181,6 @@ export default function AdminFlights() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               {editingFlight ? 'Editar Vuelo' : 'Nuevo Vuelo'}
             </h3>
-            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -197,7 +196,7 @@ export default function AdminFlights() {
                     <option value="">Selecciona una ruta</option>
                     {routes.map((route) => (
                       <option key={route.id_ruta} value={route.id_ruta}>
-                        {route.codigo_ruta} - {route.origen?.nombre_ciudad || 'N/A'} → {route.destino?.nombre_ciudad || 'N/A'} 
+                        {route.codigo_ruta} - {route.origen?.nombre_ciudad || route.origen?.id_ciudad || 'N/A'} → {route.destino?.nombre_ciudad || route.destino?.id_ciudad || 'N/A'}
                         ({route.es_nacional ? 'Nacional' : 'Internacional'})
                       </option>
                     ))}
