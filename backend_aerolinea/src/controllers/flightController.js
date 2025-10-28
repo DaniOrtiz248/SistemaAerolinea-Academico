@@ -134,4 +134,26 @@ export class FlightController {
       })
     }
   }
+
+  static async deleteFlight (req, res) {
+    try {
+      const { ccv } = req.params
+      const result = await FlightService.delete({ ccv: parseInt(ccv) })
+      res.status(200).json(result)
+    } catch (error) {
+      console.error('Error in deleteFlight:', error)
+      if (error instanceof ValidationError) {
+        const formatted = formatErrors(error)
+        return res.status(formatted.status).json({
+          success: false,
+          ...formatted.error
+        })
+      }
+      res.status(500).json({
+        success: false,
+        error: 'Error al eliminar el vuelo',
+        details: error.message
+      })
+    }
+  }
 }

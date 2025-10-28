@@ -16,10 +16,12 @@ export default function AdminFlights() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        
         // Obtener vuelos
         const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
         if (flightsResponse.ok) {
           const flightsResult = await flightsResponse.json();
+          console.log('Vuelos obtenidos:', flightsResult);
           if (flightsResult.success && flightsResult.data) {
             const flightsWithSeats = flightsResult.data.map(flight => ({
               ...flight,
@@ -29,19 +31,34 @@ export default function AdminFlights() {
             setFlights(flightsWithSeats);
           }
         }
-        // Obtener rutas igual que en el módulo de rutas
-        const resRoutes = await fetch('http://localhost:3001/api/v1/routes', { credentials: 'include' });
+        
+        // Obtener rutas
+        const resRoutes = await fetch('http://localhost:3001/api/v1/routes', { 
+          credentials: 'include' 
+        });
+        
+        if (!resRoutes.ok) {
+          console.error('Error al obtener rutas:', resRoutes.status, resRoutes.statusText);
+          setRoutes([]);
+          return;
+        }
+        
         const dataRoutes = await resRoutes.json();
+        console.log('Rutas obtenidas:', dataRoutes);
+        
         if (Array.isArray(dataRoutes)) {
           setRoutes(dataRoutes);
-        } else if (dataRoutes.data) {
+          console.log('Rutas cargadas:', dataRoutes.length);
+        } else if (dataRoutes.data && Array.isArray(dataRoutes.data)) {
           setRoutes(dataRoutes.data);
+          console.log('Rutas cargadas:', dataRoutes.data.length);
         } else {
+          console.warn('Formato de respuesta inesperado:', dataRoutes);
           setRoutes([]);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Error al cargar los datos');
+        alert('Error al cargar los datos: ' + error.message);
       } finally {
         setLoading(false);
       }
@@ -101,13 +118,52 @@ export default function AdminFlights() {
     setShowModal(true);
   };
 
-  const handleDelete = (flightId) => {
-    if (confirm('¿Estás seguro de que quieres eliminar este vuelo?')) {
-      setFlights(flights.filter(f => f.id !== flightId));
+  const handleDelete = async (flightId) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este vuelo? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/v1/flights/${flightId}`, {
+        method: 'DELETE',
+        credentials: 'include' // Para enviar cookies de autenticación
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(result.message || 'Vuelo eliminado exitosamente');
+        
+        // Actualizar la lista de vuelos
+        setFlights(flights.filter(f => f.ccv !== flightId));
+      } else {
+        const error = await response.json();
+        console.error('Error deleting flight:', error);
+        
+        let errorMessage = 'Error al eliminar el vuelo';
+        if (error.details) {
+          errorMessage = error.details;
+        } else if (error.error) {
+          errorMessage = error.error;
+        }
+        
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('Error de conexión al intentar eliminar el vuelo: ' + error.message);
     }
   };
 
   const FlightModal = () => {
+    // Obtener fecha actual en formato YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Obtener fecha y hora actual en formato para datetime-local
+    const now = new Date();
+    const currentDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    
     const [formData, setFormData] = useState(editingFlight || {
       ruta_relacionada: '',
       fecha_vuelo: '',
@@ -126,12 +182,29 @@ export default function AdminFlights() {
           alert('Funcionalidad de actualización en desarrollo');
         } else {
           // Crear nuevo vuelo
+          // Convertir formatos de fecha/hora al formato esperado por el backend
+          const formatDateTime = (dateTimeStr) => {
+            // Convierte "2024-10-28T14:30" a "2024-10-28 14:30:00"
+            const date = new Date(dateTimeStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = '00';
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          };
+
           const flightData = {
-            ...formData,
             ruta_relacionada: parseInt(formData.ruta_relacionada),
+            fecha_vuelo: formData.fecha_vuelo, // Ya está en formato YYYY-MM-DD
+            hora_salida_vuelo: formatDateTime(formData.hora_salida_vuelo),
+            hora_llegada_vuelo: formatDateTime(formData.hora_llegada_vuelo),
             estado: parseInt(formData.estado),
             porcentaje_promocion: parseFloat(formData.porcentaje_promocion) || 0
           };
+
+          console.log('Datos a enviar:', flightData);
 
           const response = await fetch('http://localhost:3001/api/v1/flights', {
             method: 'POST',
@@ -157,6 +230,13 @@ export default function AdminFlights() {
                   total_seats: 180
                 }));
                 setFlights(flightsWithSeats);
+              } else if (Array.isArray(flightsResult)) {
+                const flightsWithSeats = flightsResult.map(flight => ({
+                  ...flight,
+                  available_seats: 100,
+                  total_seats: 180
+                }));
+                setFlights(flightsWithSeats);
               }
             }
             
@@ -165,12 +245,22 @@ export default function AdminFlights() {
           } else {
             const error = await response.json();
             console.error('Error creating flight:', error);
-            alert(`Error al crear el vuelo: ${error.error || 'Error desconocido'}`);
+            
+            // Mostrar detalles del error si están disponibles
+            let errorMessage = 'Error al crear el vuelo';
+            if (error.details && Array.isArray(error.details)) {
+              const detailedErrors = error.details.map(d => `- ${d.path?.join('.')}: ${d.message}`).join('\n');
+              errorMessage = `Error de validación:\n${detailedErrors}`;
+            } else if (error.error) {
+              errorMessage = error.error;
+            }
+            
+            alert(errorMessage);
           }
         }
       } catch (error) {
         console.error('Network error:', error);
-        alert('Error de conexión al crear el vuelo');
+        alert('Error de conexión al crear el vuelo: ' + error.message);
       }
     };
 
@@ -181,6 +271,25 @@ export default function AdminFlights() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               {editingFlight ? 'Editar Vuelo' : 'Nuevo Vuelo'}
             </h3>
+            
+            {routes.length === 0 && (
+              <div className="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      <strong>No hay rutas disponibles.</strong> Debes crear al menos una ruta antes de crear un vuelo.
+                      Ve a la sección de <strong>Rutas</strong> primero.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -192,15 +301,23 @@ export default function AdminFlights() {
                     onChange={(e) => setFormData({...formData, ruta_relacionada: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
+                    disabled={routes.length === 0}
                   >
-                    <option value="">Selecciona una ruta</option>
+                    <option value="">
+                      {routes.length === 0 ? 'No hay rutas disponibles' : 'Selecciona una ruta'}
+                    </option>
                     {routes.map((route) => (
                       <option key={route.id_ruta} value={route.id_ruta}>
                         {route.codigo_ruta} - {route.origen?.nombre_ciudad || route.origen?.id_ciudad || 'N/A'} → {route.destino?.nombre_ciudad || route.destino?.id_ciudad || 'N/A'}
-                        ({route.es_nacional ? 'Nacional' : 'Internacional'})
+                        {' '}({route.es_nacional ? 'Nacional' : 'Internacional'})
                       </option>
                     ))}
                   </select>
+                  {routes.length === 0 && (
+                    <p className="mt-2 text-sm text-red-600">
+                      ⚠️ Debes crear al menos una ruta antes de crear un vuelo
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -210,10 +327,12 @@ export default function AdminFlights() {
                   <input
                     type="date"
                     value={formData.fecha_vuelo}
+                    min={today}
                     onChange={(e) => setFormData({...formData, fecha_vuelo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                   />
+                  <p className="mt-1 text-xs text-gray-500">No se pueden programar vuelos en fechas pasadas</p>
                 </div>
                 
                 <div>
@@ -238,10 +357,18 @@ export default function AdminFlights() {
                   <input
                     type="datetime-local"
                     value={formData.hora_salida_vuelo}
-                    onChange={(e) => setFormData({...formData, hora_salida_vuelo: e.target.value})}
+                    min={currentDateTime}
+                    onChange={(e) => {
+                      setFormData({...formData, hora_salida_vuelo: e.target.value});
+                      // Si hay hora de llegada y es menor que la de salida, limpiarla
+                      if (formData.hora_llegada_vuelo && e.target.value >= formData.hora_llegada_vuelo) {
+                        setFormData({...formData, hora_salida_vuelo: e.target.value, hora_llegada_vuelo: ''});
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                   />
+                  <p className="mt-1 text-xs text-gray-500">Debe ser posterior a la hora actual</p>
                 </div>
                 
                 <div>
@@ -251,10 +378,17 @@ export default function AdminFlights() {
                   <input
                     type="datetime-local"
                     value={formData.hora_llegada_vuelo}
+                    min={formData.hora_salida_vuelo || currentDateTime}
                     onChange={(e) => setFormData({...formData, hora_llegada_vuelo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
+                    disabled={!formData.hora_salida_vuelo}
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    {!formData.hora_salida_vuelo 
+                      ? 'Primero selecciona la hora de salida' 
+                      : 'Debe ser posterior a la hora de salida'}
+                  </p>
                 </div>
                 
                 <div className="md:col-span-2">
@@ -287,7 +421,12 @@ export default function AdminFlights() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  disabled={routes.length === 0}
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+                    routes.length === 0 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 >
                   {editingFlight ? 'Actualizar' : 'Crear'}
                 </button>

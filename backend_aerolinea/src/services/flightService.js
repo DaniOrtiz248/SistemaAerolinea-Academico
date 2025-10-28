@@ -81,4 +81,41 @@ export class FlightService {
       throw new AppError(500, 'INTERNAL_ERROR', 'Error al publicar noticias de promoción')
     }
   }
+
+  static async delete ({ ccv }) {
+    try {
+      const flight = await FlightRepository.findById({ ccv })
+      
+      if (!flight) {
+        const errors = [
+          new AppError(
+            404,
+            'FLIGHT_NOT_FOUND',
+            'El vuelo que intentas eliminar no existe',
+            'ccv'
+          )
+        ]
+        throw new ValidationError(errors)
+      }
+
+      await FlightRepository.delete({ ccv })
+      
+      return {
+        message: 'Vuelo eliminado exitosamente',
+        deletedFlight: {
+          ccv: flight.ccv,
+          ruta: flight.ruta?.codigo_ruta,
+          fecha: flight.fecha_vuelo,
+          origen: flight.ruta?.origen?.nombre_ciudad,
+          destino: flight.ruta?.destino?.nombre_ciudad
+        }
+      }
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof AppError) {
+        throw error
+      }
+      console.error('Error deleting flight:', error)
+      throw new AppError(500, 'INTERNAL_ERROR', 'Error al eliminar el vuelo')
+    }
+  }
 }

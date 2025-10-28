@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { FlightController } from '../controllers/flightController.js'
-import { authMiddleware } from '../middleware/authMiddleware.js'
+import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware.js'
 
 export const flightRoutes = Router()
 
@@ -12,4 +12,6 @@ flightRoutes.get('/:ccv', FlightController.getFlightById)
 // Rutas protegidas - para administración de vuelos
 flightRoutes.post('/publish-promotion/:ccv', FlightController.publishNewsPromotion)
 flightRoutes.use(authMiddleware) // Middleware para proteger las rutas siguientes
+flightRoutes.use(adminMiddleware) // Solo administradores
 flightRoutes.post('/', FlightController.createFlight)
+flightRoutes.delete('/:ccv', FlightController.deleteFlight)
