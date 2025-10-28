@@ -14,4 +14,5 @@ flightRoutes.post('/publish-promotion/:ccv', FlightController.publishNewsPromoti
 flightRoutes.use(authMiddleware) // Middleware para proteger las rutas siguientes
 flightRoutes.use(adminMiddleware) // Solo administradores
 flightRoutes.post('/', FlightController.createFlight)
+flightRoutes.put('/:ccv', FlightController.updateFlight)
 flightRoutes.delete('/:ccv', FlightController.deleteFlight)

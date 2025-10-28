@@ -22,14 +22,23 @@ export default function AdminFlights() {
         if (flightsResponse.ok) {
           const flightsResult = await flightsResponse.json();
           console.log('Vuelos obtenidos:', flightsResult);
+          
+          let flightsData = [];
           if (flightsResult.success && flightsResult.data) {
-            const flightsWithSeats = flightsResult.data.map(flight => ({
-              ...flight,
-              available_seats: 100,
-              total_seats: 180
-            }));
-            setFlights(flightsWithSeats);
+            flightsData = flightsResult.data;
+          } else if (Array.isArray(flightsResult)) {
+            flightsData = flightsResult;
           }
+          
+          const flightsWithSeats = flightsData.map(flight => ({
+            ...flight,
+            available_seats: 100,
+            total_seats: 180
+          }));
+          setFlights(flightsWithSeats);
+          console.log('Vuelos cargados:', flightsWithSeats.length);
+        } else {
+          console.error('Error al obtener vuelos:', flightsResponse.status);
         }
         
         // Obtener rutas
@@ -178,8 +187,63 @@ export default function AdminFlights() {
       
       try {
         if (editingFlight) {
-          // Actualizar vuelo existente (implementar después)
-          alert('Funcionalidad de actualización en desarrollo');
+          // Actualizar solo el porcentaje de promoción
+          const updateData = {
+            porcentaje_promocion: parseFloat(formData.porcentaje_promocion) || 0
+          };
+
+          console.log('Actualizando vuelo:', editingFlight.ccv, updateData);
+
+          const response = await fetch(`http://localhost:3001/api/v1/flights/${editingFlight.ccv}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(updateData)
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            alert('Descuento aplicado exitosamente');
+            
+            // Recargar vuelos
+            const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
+            if (flightsResponse.ok) {
+              const flightsResult = await flightsResponse.json();
+              if (flightsResult.success && flightsResult.data) {
+                const flightsWithSeats = flightsResult.data.map(flight => ({
+                  ...flight,
+                  available_seats: 100,
+                  total_seats: 180
+                }));
+                setFlights(flightsWithSeats);
+              } else if (Array.isArray(flightsResult)) {
+                const flightsWithSeats = flightsResult.map(flight => ({
+                  ...flight,
+                  available_seats: 100,
+                  total_seats: 180
+                }));
+                setFlights(flightsWithSeats);
+              }
+            }
+            
+            setShowModal(false);
+            setEditingFlight(null);
+          } else {
+            const error = await response.json();
+            console.error('Error updating flight:', error);
+            
+            let errorMessage = 'Error al actualizar el vuelo';
+            if (error.details && Array.isArray(error.details)) {
+              const detailedErrors = error.details.map(d => `- ${d.path?.join('.')}: ${d.message}`).join('\n');
+              errorMessage = `Error de validación:\n${detailedErrors}`;
+            } else if (error.error) {
+              errorMessage = error.error;
+            }
+            
+            alert(errorMessage);
+          }
         } else {
           // Crear nuevo vuelo
           // Convertir formatos de fecha/hora al formato esperado por el backend
@@ -269,10 +333,29 @@ export default function AdminFlights() {
         <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
           <div className="mt-3">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingFlight ? 'Editar Vuelo' : 'Nuevo Vuelo'}
+              {editingFlight ? 'Aplicar Descuento al Vuelo' : 'Nuevo Vuelo'}
             </h3>
             
-            {routes.length === 0 && (
+            {editingFlight && (
+              <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700">
+                      <strong>Vuelo #{editingFlight.ccv}</strong><br/>
+                      Ruta: {editingFlight.ruta?.codigo_ruta} - {editingFlight.ruta?.origen?.nombre_ciudad} → {editingFlight.ruta?.destino?.nombre_ciudad}<br/>
+                      Descuento actual: <strong>{editingFlight.porcentaje_promocion}%</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!editingFlight && routes.length === 0 && (
               <div className="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
@@ -291,6 +374,54 @@ export default function AdminFlights() {
             )}
             
             <form onSubmit={handleSubmit} className="space-y-4">
+              {editingFlight ? (
+                // Modo edición: solo mostrar campo de descuento
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
+                    Porcentaje de Descuento (%) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={formData.porcentaje_promocion}
+                    onChange={(e) => setFormData({...formData, porcentaje_promocion: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    placeholder="Ejemplo: 15 (para 15% de descuento)"
+                    required
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    💡 Ingresa 0 para eliminar el descuento. Máximo 100%.
+                  </p>
+                  <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                    <p className="text-sm text-gray-700">
+                      <strong>Vista previa de precios con descuento:</strong>
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm">
+                        Primera clase: 
+                        <span className="line-through text-gray-400 ml-2">
+                          ${editingFlight.ruta?.precio_primer_clase}
+                        </span>
+                        <span className="text-blue-600 font-medium ml-2">
+                          ${((editingFlight.ruta?.precio_primer_clase || 0) * (1 - (formData.porcentaje_promocion || 0) / 100)).toFixed(2)}
+                        </span>
+                      </p>
+                      <p className="text-sm">
+                        Segunda clase: 
+                        <span className="line-through text-gray-400 ml-2">
+                          ${editingFlight.ruta?.precio_segunda_clase}
+                        </span>
+                        <span className="text-green-600 font-medium ml-2">
+                          ${((editingFlight.ruta?.precio_segunda_clase || 0) * (1 - (formData.porcentaje_promocion || 0) / 100)).toFixed(2)}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Modo creación: mostrar todos los campos
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-900 mb-1">
@@ -407,6 +538,7 @@ export default function AdminFlights() {
                   />
                 </div>
               </div>
+              )}
               
               <div className="flex justify-end space-x-3 pt-4">
                 <button
@@ -421,14 +553,14 @@ export default function AdminFlights() {
                 </button>
                 <button
                   type="submit"
-                  disabled={routes.length === 0}
+                  disabled={!editingFlight && routes.length === 0}
                   className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
-                    routes.length === 0 
+                    (!editingFlight && routes.length === 0)
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {editingFlight ? 'Actualizar' : 'Crear'}
+                  {editingFlight ? 'Aplicar Descuento' : 'Crear'}
                 </button>
               </div>
             </form>

@@ -118,4 +118,31 @@ export class FlightService {
       throw new AppError(500, 'INTERNAL_ERROR', 'Error al eliminar el vuelo')
     }
   }
+
+  static async update ({ ccv, flightData }) {
+    try {
+      const flight = await FlightRepository.findById({ ccv })
+      
+      if (!flight) {
+        const errors = [
+          new AppError(
+            404,
+            'FLIGHT_NOT_FOUND',
+            'El vuelo que intentas actualizar no existe',
+            'ccv'
+          )
+        ]
+        throw new ValidationError(errors)
+      }
+
+      const updatedFlight = await FlightRepository.update({ ccv, flightData })
+      return updatedFlight
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof AppError) {
+        throw error
+      }
+      console.error('Error updating flight:', error)
+      throw new AppError(500, 'INTERNAL_ERROR', 'Error al actualizar el vuelo')
+    }
+  }
 }

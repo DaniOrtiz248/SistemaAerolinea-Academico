@@ -156,4 +156,44 @@ export class FlightController {
       })
     }
   }
+
+  static async updateFlight (req, res) {
+    const validation = validatePartialFlight(req.body)
+
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Datos de vuelo inválidos',
+        details: validation.error.issues
+      })
+    }
+
+    try {
+      const { ccv } = req.params
+      const updatedFlight = await FlightService.update({ 
+        ccv: parseInt(ccv), 
+        flightData: req.body 
+      })
+      
+      res.status(200).json({
+        success: true,
+        data: updatedFlight,
+        message: 'Vuelo actualizado exitosamente'
+      })
+    } catch (error) {
+      console.error('Error in updateFlight:', error)
+      if (error instanceof ValidationError) {
+        const formatted = formatErrors(error)
+        return res.status(formatted.status).json({
+          success: false,
+          ...formatted.error
+        })
+      }
+      res.status(500).json({
+        success: false,
+        error: 'Error al actualizar el vuelo',
+        details: error.message
+      })
+    }
+  }
 }
