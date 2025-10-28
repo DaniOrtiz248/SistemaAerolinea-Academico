@@ -182,6 +182,42 @@ export default function AdminFlights() {
       estado: 1
     });
 
+    // Función para manejar el cambio de fecha de vuelo
+    const handleFechaVueloChange = (newDate) => {
+      setFormData({
+        ...formData,
+        fecha_vuelo: newDate,
+        // Limpiar las horas si se cambia la fecha
+        hora_salida_vuelo: '',
+        hora_llegada_vuelo: ''
+      });
+    };
+
+    // Función para obtener el mínimo datetime para hora de salida basado en la fecha de vuelo
+    const getMinSalidaDateTime = () => {
+      if (!formData.fecha_vuelo) return currentDateTime;
+      
+      // Si la fecha de vuelo es hoy, usar la hora actual como mínimo
+      if (formData.fecha_vuelo === today) {
+        return currentDateTime;
+      }
+      
+      // Si es una fecha futura, permitir desde las 00:00 de ese día
+      return `${formData.fecha_vuelo}T00:00`;
+    };
+
+    // Función para obtener el máximo datetime para hora de salida (final del día de vuelo)
+    const getMaxSalidaDateTime = () => {
+      if (!formData.fecha_vuelo) return undefined;
+      return `${formData.fecha_vuelo}T23:59`;
+    };
+
+    // Función para obtener el mínimo datetime para hora de llegada
+    const getMinLlegadaDateTime = () => {
+      if (!formData.hora_salida_vuelo) return undefined;
+      return formData.hora_salida_vuelo;
+    };
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       
@@ -459,11 +495,13 @@ export default function AdminFlights() {
                     type="date"
                     value={formData.fecha_vuelo}
                     min={today}
-                    onChange={(e) => setFormData({...formData, fecha_vuelo: e.target.value})}
+                    onChange={(e) => handleFechaVueloChange(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                   />
-                  <p className="mt-1 text-xs text-gray-500">No se pueden programar vuelos en fechas pasadas</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Selecciona primero la fecha del vuelo para configurar las horas
+                  </p>
                 </div>
                 
                 <div>
@@ -488,18 +526,30 @@ export default function AdminFlights() {
                   <input
                     type="datetime-local"
                     value={formData.hora_salida_vuelo}
-                    min={currentDateTime}
+                    min={getMinSalidaDateTime()}
+                    max={getMaxSalidaDateTime()}
                     onChange={(e) => {
-                      setFormData({...formData, hora_salida_vuelo: e.target.value});
-                      // Si hay hora de llegada y es menor que la de salida, limpiarla
-                      if (formData.hora_llegada_vuelo && e.target.value >= formData.hora_llegada_vuelo) {
-                        setFormData({...formData, hora_salida_vuelo: e.target.value, hora_llegada_vuelo: ''});
+                      const newSalida = e.target.value;
+                      // Si hay hora de llegada y la nueva salida es mayor o igual, limpiar llegada
+                      if (formData.hora_llegada_vuelo && newSalida >= formData.hora_llegada_vuelo) {
+                        setFormData({
+                          ...formData, 
+                          hora_salida_vuelo: newSalida, 
+                          hora_llegada_vuelo: ''
+                        });
+                      } else {
+                        setFormData({...formData, hora_salida_vuelo: newSalida});
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
+                    disabled={!formData.fecha_vuelo}
                   />
-                  <p className="mt-1 text-xs text-gray-500">Debe ser posterior a la hora actual</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {!formData.fecha_vuelo 
+                      ? '⚠️ Primero selecciona la fecha de vuelo' 
+                      : 'Debe estar dentro del día seleccionado'}
+                  </p>
                 </div>
                 
                 <div>
@@ -509,7 +559,7 @@ export default function AdminFlights() {
                   <input
                     type="datetime-local"
                     value={formData.hora_llegada_vuelo}
-                    min={formData.hora_salida_vuelo || currentDateTime}
+                    min={getMinLlegadaDateTime()}
                     onChange={(e) => setFormData({...formData, hora_llegada_vuelo: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
@@ -517,7 +567,7 @@ export default function AdminFlights() {
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     {!formData.hora_salida_vuelo 
-                      ? 'Primero selecciona la hora de salida' 
+                      ? '⚠️ Primero selecciona la hora de salida' 
                       : 'Debe ser posterior a la hora de salida'}
                   </p>
                 </div>
