@@ -8,20 +8,20 @@ export class FlightController {
   static async listFlights (req, res) {
     try {
       const flights = await FlightService.listFlights()
-      // res.status(200).json({
-      //   success: true,
-      //   data: flights,
-      //   message: 'Vuelos obtenidos exitosamente'
-      // })
-      res.status(200).json(flights)
+      res.status(200).json({
+        success: true,
+        data: flights,
+        message: 'Vuelos obtenidos exitosamente'
+      })
+      // res.status(200).json(flights)
     } catch (error) {
       console.error('Error in listFlights:', error)
-      // res.status(500).json({
-      //   success: false,
-      //   error: 'Error al obtener los vuelos',
-      //   details: error.message
-      // })
-      res.status(500).json({ error: 'Error al obtener los vuelos', details: error.message })
+      res.status(500).json({
+        success: false,
+        error: 'Error al obtener los vuelos',
+        details: error.message
+      })
+      // res.status(500).json({ error: 'Error al obtener los vuelos', details: error.message })
     }
   }
 
@@ -29,17 +29,17 @@ export class FlightController {
     try {
       const { ccv } = req.params
       const flight = await FlightService.getFlightById({ ccv: parseInt(ccv) })
-      // res.status(200).json({
-      //   success: true,
-      //   data: flight,
-      //   message: 'Vuelo obtenido exitosamente'
-      // })
-      res.status(200).json(flight)
+      res.status(200).json({
+        success: true,
+        data: flight,
+        message: 'Vuelo obtenido exitosamente'
+      })
+      // res.status(200).json(flight)
     } catch (error) {
       console.error('Error in getFlightById:', error)
       if (error.code === 'FLIGHT_NOT_FOUND') {
         return res.status(404).json({
-          // success: false,
+          success: false,
           error: error.message
         })
       }
