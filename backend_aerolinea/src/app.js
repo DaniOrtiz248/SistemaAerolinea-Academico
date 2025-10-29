@@ -8,6 +8,7 @@ import { ciudadRoutes } from './routes/ciudadRoutes.js'
 import { corsMiddleware } from './middleware/cors.js'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
+import { imageRoutes } from './routes/imageRoutes.js'
 dotenv.config()
 
 const app = express()
@@ -20,6 +21,7 @@ app.use(cookieParser())
 app.use(corsMiddleware())
 
 // Rutas
+app.use('/api/v1/uploads', imageRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/flights', flightRoutes)
 app.use('/api/v1/routes', routeRoutes)
