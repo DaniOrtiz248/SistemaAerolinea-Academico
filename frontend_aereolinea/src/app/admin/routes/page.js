@@ -209,17 +209,17 @@ export default function AdminRoutes() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {routes.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-gray-500">
+                    <td colSpan={7} className="text-center py-8 text-gray-800">
                       No hay rutas registradas.
                     </td>
                   </tr>
                 ) : (
                   routes.map(route => (
                     <tr key={route.id_ruta} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-bold">{route.codigo_ruta}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{route.origen?.nombre_ciudad}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{route.destino?.nombre_ciudad}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{route.codigo_ruta}</td>
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{route.origen?.nombre_ciudad}</td>
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{route.destino?.nombre_ciudad}</td>
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${route.es_nacional ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
                           {route.es_nacional ? "Nacional" : "Internacional"}
                         </span>
@@ -262,7 +262,7 @@ export default function AdminRoutes() {
                     name="ciudad_origen"
                     value={formData.ciudad_origen}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border text-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                     disabled={!!editingRoute}
                     style={editingRoute ? { backgroundColor: '#f3f4f6', color: '#6b7280', cursor: 'not-allowed' } : {}}
@@ -279,7 +279,7 @@ export default function AdminRoutes() {
                     name="ciudad_destino"
                     value={formData.ciudad_destino}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border text-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                     disabled={!!editingRoute}
                     style={editingRoute ? { backgroundColor: '#f3f4f6', color: '#6b7280', cursor: 'not-allowed' } : {}}
@@ -300,7 +300,7 @@ export default function AdminRoutes() {
                       onChange={handleInputChange}
                       min="0"
                       step="0.01"
-                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border text-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -313,7 +313,7 @@ export default function AdminRoutes() {
                       onChange={handleInputChange}
                       min="0"
                       step="0.01"
-                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border text-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
