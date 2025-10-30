@@ -101,7 +101,14 @@ export default function AdminRoutes() {
         });
       } else {
         const errorData = await res.json();
-        setError(errorData.error || "Error al crear ruta");
+        // Si el backend envía error de validación con fields, muestra el mensaje específico
+        if (errorData?.fields && Array.isArray(errorData.fields) && errorData.fields.length > 0) {
+          setError(errorData.fields[0].message || "Error al crear ruta");
+        } else if (errorData?.error?.fields && Array.isArray(errorData.error.fields) && errorData.error.fields.length > 0) {
+          setError(errorData.error.fields[0].message || "Error al crear ruta");
+        } else {
+          setError(errorData.error || "Error al crear ruta");
+        }
       }
     } catch (err) {
       setError("Error de red al crear ruta");
@@ -302,6 +309,11 @@ export default function AdminRoutes() {
                       step="0.01"
                       className="w-full px-4 py-3 border text-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
+                      onKeyDown={e => {
+                        if (["e", "E", "+", "-", "."].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
                   <div>
@@ -315,6 +327,11 @@ export default function AdminRoutes() {
                       step="0.01"
                       className="w-full px-4 py-3 border text-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
+                      onKeyDown={e => {
+                        if (["e", "E", "+", "-", "."].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
                 </div>

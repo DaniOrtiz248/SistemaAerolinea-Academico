@@ -430,7 +430,20 @@ export default function AdminFlights() {
                     max="100"
                     step="1"
                     value={formData.porcentaje_promocion}
-                    onChange={(e) => setFormData({...formData, porcentaje_promocion: e.target.value})}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Limitar el valor entre 0 y 100
+                      if (value === "") value = "";
+                      else {
+                        value = Math.max(0, Math.min(100, Number(value)));
+                      }
+                      setFormData({...formData, porcentaje_promocion: value});
+                    }}
+                    onKeyDown={e => {
+                      if (["e", "E", "+", "-", "."].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="Ejemplo: 15 (para 15% de descuento)"
                     required
@@ -443,18 +456,18 @@ export default function AdminFlights() {
                       <strong>Vista previa de precios con descuento:</strong>
                     </p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-sm">
+                      <p className="text-sm text-gray-700">
                         Primera clase: 
-                        <span className="line-through text-gray-400 ml-2">
+                        <span className="line-through text-gray-500 ml-2">
                           ${editingFlight.ruta?.precio_primer_clase}
                         </span>
                         <span className="text-blue-600 font-medium ml-2">
                           ${((editingFlight.ruta?.precio_primer_clase || 0) * (1 - (formData.porcentaje_promocion || 0) / 100)).toFixed(2)}
                         </span>
                       </p>
-                      <p className="text-sm">
+                      <p className="text-sm text-gray-700">
                         Segunda clase: 
-                        <span className="line-through text-gray-400 ml-2">
+                        <span className="line-through text-gray-500 ml-2">
                           ${editingFlight.ruta?.precio_segunda_clase}
                         </span>
                         <span className="text-green-600 font-medium ml-2">
@@ -598,7 +611,20 @@ export default function AdminFlights() {
                     max="100"
                     step="1"
                     value={formData.porcentaje_promocion}
-                    onChange={(e) => setFormData({...formData, porcentaje_promocion: e.target.value})}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Limitar el valor entre 0 y 100
+                      if (value === "") value = "";
+                      else {
+                        value = Math.max(0, Math.min(100, Number(value)));
+                      }
+                      setFormData({...formData, porcentaje_promocion: value});
+                    }}
+                    onKeyDown={e => {
+                      if (["e", "E", "+", "-", "."].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="0 = Sin promoción"
                   />
@@ -667,14 +693,14 @@ export default function AdminFlights() {
                   placeholder="Buscar por código de vuelo, ruta, origen o destino..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 mr-4 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">Todos los estados</option>
                 <option value="active">Activos</option>
@@ -688,7 +714,7 @@ export default function AdminFlights() {
               onClick={() => setShowModal(true)}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              ➕ Nuevo Vuelo
+              Nuevo Vuelo
             </button>
           </div>
         </div>
