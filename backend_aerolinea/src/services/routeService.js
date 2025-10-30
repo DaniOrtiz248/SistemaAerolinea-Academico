@@ -44,12 +44,14 @@ export class RouteService {
       throw new ValidationError(errors)
     }
 
-    // Crear la ruta de ida (la que envió el usuario)
+    // Crear la ruta de ida (la que envió el usuario) con el código que ya viene
+    console.log('Creando ruta de ida con código:', route.codigo_ruta)
     const rutaIda = await RouteRepository.create({ route })
 
-    // Crear la ruta de vuelta (invertir origen y destino)
+    // Generar código para la ruta de vuelta DESPUÉS de crear la de ida
     const { generateRouteCode } = await import('../utils/generateRouteCode.js')
     const codigoVuelta = await generateRouteCode(route.es_nacional)
+    console.log('Código generado para vuelta:', codigoVuelta)
     
     const routeVuelta = {
       ciudad_origen: route.ciudad_destino,
