@@ -221,6 +221,14 @@ export default function AdminFlights() {
     const handleSubmit = async (e) => {
       e.preventDefault();
       
+      // Validación adicional para crear vuelo: hora de llegada > hora de salida
+      if (!editingFlight) {
+        if (formData.hora_llegada_vuelo <= formData.hora_salida_vuelo) {
+          alert('⚠️ Error: La hora de llegada debe ser estrictamente mayor a la hora de salida.');
+          return;
+        }
+      }
+      
       try {
         if (editingFlight) {
           // Actualizar solo el porcentaje de promoción
@@ -560,15 +568,23 @@ export default function AdminFlights() {
                     type="datetime-local"
                     value={formData.hora_llegada_vuelo}
                     min={getMinLlegadaDateTime()}
-                    onChange={(e) => setFormData({...formData, hora_llegada_vuelo: e.target.value})}
+                    onChange={(e) => {
+                      const newLlegada = e.target.value;
+                      // Validar que sea estrictamente mayor que la hora de salida
+                      if (newLlegada <= formData.hora_salida_vuelo) {
+                        alert('⚠️ La hora de llegada debe ser posterior (mayor) a la hora de salida.');
+                        return;
+                      }
+                      setFormData({...formData, hora_llegada_vuelo: newLlegada});
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                     disabled={!formData.hora_salida_vuelo}
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-red-600 font-medium">
                     {!formData.hora_salida_vuelo 
                       ? '⚠️ Primero selecciona la hora de salida' 
-                      : 'Debe ser posterior a la hora de salida'}
+                      : '⚠️ Debe ser MAYOR (no igual) a la hora de salida'}
                   </p>
                 </div>
                 

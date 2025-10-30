@@ -8,25 +8,65 @@ export class RouteService {
   }
 
   static async create (route) {
-    // Validar que no exista una ruta con el mismo origen y destino
-    const existingRoute = await RouteRepository.findByOriginAndDestination({
+    // Validar que no exista una ruta con el mismo origen y destino (ida)
+    const existingRouteIda = await RouteRepository.findByOriginAndDestination({
       ciudad_origen: route.ciudad_origen,
       ciudad_destino: route.ciudad_destino
     })
 
-    if (existingRoute) {
+    if (existingRouteIda) {
       const errors = [
         new AppError(
           409, 
           'ROUTE_EXISTS', 
-          `Ya existe una ruta entre ${existingRoute.origen.nombre_ciudad} y ${existingRoute.destino.nombre_ciudad} (Código: ${existingRoute.codigo_ruta})`,
+          `Ya existe una ruta de ida entre ${existingRouteIda.origen.nombre_ciudad} y ${existingRouteIda.destino.nombre_ciudad} (Código: ${existingRouteIda.codigo_ruta})`,
           'ciudad_origen'
         )
       ]
       throw new ValidationError(errors)
     }
 
-    return await RouteRepository.create({ route })
+    // Validar que no exista la ruta inversa (vuelta)
+    const existingRouteVuelta = await RouteRepository.findByOriginAndDestination({
+      ciudad_origen: route.ciudad_destino,
+      ciudad_destino: route.ciudad_origen
+    })
+
+    if (existingRouteVuelta) {
+      const errors = [
+        new AppError(
+          409, 
+          'ROUTE_EXISTS', 
+          `Ya existe una ruta de vuelta entre ${existingRouteVuelta.origen.nombre_ciudad} y ${existingRouteVuelta.destino.nombre_ciudad} (Código: ${existingRouteVuelta.codigo_ruta})`,
+          'ciudad_destino'
+        )
+      ]
+      throw new ValidationError(errors)
+    }
+
+    // Crear la ruta de ida (la que envió el usuario)
+    const rutaIda = await RouteRepository.create({ route })
+
+    // Crear la ruta de vuelta (invertir origen y destino)
+    const { generateRouteCode } = await import('../utils/generateRouteCode.js')
+    const codigoVuelta = await generateRouteCode(route.es_nacional)
+    
+    const routeVuelta = {
+      ciudad_origen: route.ciudad_destino,
+      ciudad_destino: route.ciudad_origen,
+      precio_primer_clase: route.precio_primer_clase,
+      precio_segunda_clase: route.precio_segunda_clase,
+      es_nacional: route.es_nacional,
+      codigo_ruta: codigoVuelta
+    }
+
+    const rutaVuelta = await RouteRepository.create({ route: routeVuelta })
+
+    return {
+      message: 'Rutas de ida y vuelta creadas exitosamente',
+      ruta_ida: rutaIda,
+      ruta_vuelta: rutaVuelta
+    }
   }
 
   static async update (id, routeData) {
