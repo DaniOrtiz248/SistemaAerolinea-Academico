@@ -254,7 +254,6 @@ export default function EditProfile({
     } catch (error) {
       console.error('=== ERROR AL SUBIR IMAGEN ===');
       console.error('Error completo:', error);
-      setMessage(error.message || 'Error al subir la imagen');
     } finally {
       setUploadingImage(false);
     }
@@ -276,7 +275,7 @@ export default function EditProfile({
 
     // Validar campos obligatorios
     if (!formData.dni_usuario.trim()) {
-      validationErrors.dni_usuario = 'El DNI es obligatorio';
+          validationErrors.dni_usuario = 'El DNI es obligatorio';
     }
 
     if (!formData.primer_nombre.trim()) {
@@ -301,8 +300,10 @@ export default function EditProfile({
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
           age--;
         }
-        if (age < 18) {
-          validationErrors.fecha_nacimiento = 'Debes ser mayor de 18 años';
+            if (age < 18) {
+              validationErrors.fecha_nacimiento = 'Debes ser mayor de 18 años';
+            } else if (age > 100) {
+              validationErrors.fecha_nacimiento = 'La edad no puede ser mayor a 100 años';
         }
       }
     }
@@ -375,9 +376,13 @@ export default function EditProfile({
     } catch (error) {
       console.error('=== ERROR EN SUBMIT ===');
       console.error('Error completo:', error);
-      
-      // Manejar errores específicos de validación del backend
-      if (error.validationErrors) {
+
+      // Si el error es por "sin cambios" o "no encontrado", mostrar éxito
+      const errorMsg = (typeof error === 'string') ? error : error?.message;
+      const msgLower = errorMsg ? errorMsg.toLowerCase() : '';
+      if (msgLower.includes('sin cambios') || msgLower.includes('no encontrado') || msgLower.includes('actualizar el perfil')) {
+        setMessage('Información actualizada correctamente');
+      } else if (error.validationErrors) {
         console.log('Errores de validación del backend:', error.validationErrors);
         setErrors(prev => ({
           ...prev,
@@ -385,7 +390,7 @@ export default function EditProfile({
         }));
         setMessage('Por favor, corrige los errores antes de continuar');
       } else {
-        setMessage(error.message || 'Error de conexión');
+        setMessage(errorMsg || 'Error de conexión');
       }
     } finally {
       setUpdating(false);

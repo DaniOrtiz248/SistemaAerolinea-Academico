@@ -26,7 +26,7 @@ export class ImageProfileController {
       console.log('Nueva ruta:', newPath)
 
       // Convertir imagen a JPEG
-      convertToJPG(req.file.path, newPath)
+  await convertToJPG(req.file.path, newPath)
 
       // Actualizar la base de datos con la ruta de la imagen (solo si el perfil existe)
       console.log('Verificando si el perfil existe...')
