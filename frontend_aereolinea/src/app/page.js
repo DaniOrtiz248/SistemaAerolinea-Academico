@@ -74,66 +74,25 @@ export default function Home() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    
     // Validar campos requeridos
     if (!searchData.origin || !searchData.destination) {
       alert('Por favor selecciona ciudad de origen y destino');
       return;
     }
-    
     if (!searchData.departureDate) {
       alert('Por favor selecciona la fecha de salida');
       return;
     }
-    
-    setLoadingFlights(true);
-    try {
-      // Construir URL con parámetros de búsqueda
-      const params = new URLSearchParams({
-        ciudad_origen: searchData.origin,
-        ciudad_destino: searchData.destination,
-        fecha_vuelo: searchData.departureDate
-      });
-      
-      const response = await fetch(`http://localhost:3001/api/v1/flights/search?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Search results:', result);
-        
-        if (result.success && result.data) {
-          setFlights(result.data);
-          
-          if (result.data.length > 0) {
-            alert(`Se encontraron ${result.data.length} vuelo(s) disponible(s) para tu búsqueda.`);
-            
-            // Scroll suave a la sección de vuelos
-            setTimeout(() => {
-              const flightsSection = document.getElementById('flights-section');
-              if (flightsSection) {
-                flightsSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }, 500);
-          } else {
-            alert('No se encontraron vuelos para los criterios de búsqueda.');
-            setFlights([]);
-          }
-        }
-      } else {
-        console.error('Error searching flights:', response.status);
-        alert('Error al buscar vuelos');
-      }
-    } catch (error) {
-      console.error('Network error:', error);
-      alert('Error de conexión al buscar vuelos');
-    } finally {
-      setLoadingFlights(false);
-    }
+    // Redirigir a /flights con los parámetros
+    const params = new URLSearchParams({
+      origin: searchData.origin,
+      destination: searchData.destination,
+      departureDate: searchData.departureDate,
+      returnDate: searchData.returnDate,
+      passengers: searchData.passengers,
+      tripType: searchData.tripType
+    });
+    router.push(`/flights?${params.toString()}`);
   };
 
   const handleViewFlights = async (destination = null) => {
@@ -361,29 +320,40 @@ export default function Home() {
           Destinos Populares
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { city: 'París', country: 'Francia', price: '$299', image: '🗼' },
-            { city: 'Tokyo', country: 'Japón', price: '$599', image: '🏯' },
-            { city: 'Nueva York', country: 'EE.UU.', price: '$399', image: '🗽' },
-            { city: 'Londres', country: 'Reino Unido', price: '$349', image: '🏰' }
-          ].map((destination, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-4xl">
-                {destination.image}
+          {/* Depuración: mostrar en consola las ciudades disponibles */}
+          {console.log("Ciudades disponibles:", ciudades.map(c => c.nombre_ciudad))}
+          {ciudades
+            .filter(ciudad => {
+              const nombre = ciudad.nombre_ciudad.trim().toLowerCase();
+              const principales = ["miami", "nueva york", "madrid", "londres"];
+              // Permitir variantes como 'NuevaYork', 'New York', etc.
+              if (nombre === "nueva york" || nombre === "nuevayork" || nombre === "new york" || nombre === "newyork") return true;
+              return principales.includes(nombre);
+            })
+            .map((ciudad, index) => (
+              <div key={ciudad.id_ciudad} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-4xl">
+                  {/* Emoji por ciudad */}
+                  {ciudad.nombre_ciudad === "Miami" && <span role="img" aria-label="Miami">🌴</span>}
+                  {ciudad.nombre_ciudad === "Nueva York" && <span role="img" aria-label="Nueva York">🗽</span>}
+                  {ciudad.nombre_ciudad === "Madrid" && <span role="img" aria-label="Madrid">🏰</span>}
+                  {ciudad.nombre_ciudad === "Londres" && <span role="img" aria-label="Londres">�</span>}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-lg text-gray-900">{ciudad.nombre_ciudad}</h3>
+                  <p className="text-gray-600">{ciudad.pais || ''}</p>
+                  <button 
+                    onClick={() => {
+                      const params = new URLSearchParams({ destination: ciudad.id_ciudad, ciudadNombre: ciudad.nombre_ciudad });
+                      router.push(`/flights?${params.toString()}`);
+                    }}
+                    className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Ver Vuelos
+                  </button>
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="font-bold text-lg text-gray-900">{destination.city}</h3>
-                <p className="text-gray-600">{destination.country}</p>
-                <p className="text-blue-600 font-bold text-xl mt-2">Desde {destination.price}</p>
-                <button 
-                  onClick={() => handleViewFlights(destination)}
-                  className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Ver Vuelos
-                </button>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
 
@@ -393,20 +363,18 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Ofertas Especiales
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8">
             <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4">🌞 Ofertas de Verano</h3>
-              <p className="text-lg mb-4">Descuentos de hasta 40% en vuelos a destinos de playa</p>
-              <button className="bg-white text-orange-500 font-bold py-2 px-6 rounded-lg hover:bg-gray-100 transition-colors">
-                Ver Ofertas
-              </button>
-            </div>
-            <div className="bg-gradient-to-r from-green-400 to-blue-500 rounded-xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4">✈️ Vuelos de Último Minuto</h3>
-              <p className="text-lg mb-4">Grandes descuentos en vuelos que salen esta semana</p>
-              <button className="bg-white text-blue-500 font-bold py-2 px-6 rounded-lg hover:bg-gray-100 transition-colors">
-                Explorar
-              </button>
+              <div className="flex flex-col items-center justify-center text-center">
+                <h3 className="text-2xl font-bold mb-4">🌞 Ofertas de Verano</h3>
+                <p className="text-lg mb-4">Descuentos de hasta 40% en vuelos a destinos de playa</p>
+                <button className="bg-white text-orange-500 font-bold py-2 px-6 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => {
+                    router.push('/flights?descuento=1');
+                  }}>
+                  Ver Ofertas
+                </button>
+              </div>
             </div>
           </div>
         </div>

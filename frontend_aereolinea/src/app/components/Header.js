@@ -60,15 +60,9 @@ export default function Header() {
           {/* Navigation Menu */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <Link href="/flights" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Vuelos
-              </a>
-              <a href="#" className="text-gray-900 hove r:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Destinos
-              </a>
-              <a href="#" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Check-in
-              </a>
+              </Link>
               {user && user.id_rol === 3 ? (
                 <Link href="/account" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Mi Cuenta

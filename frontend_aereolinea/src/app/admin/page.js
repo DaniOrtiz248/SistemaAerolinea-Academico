@@ -111,10 +111,23 @@ export default function AdminDashboard() {
               className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
             >
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">�️</span>
+                <span className="text-2xl">🗺️</span>
                 <div>
                   <h3 className="font-semibold">Gestionar Rutas</h3>
                   <p className="text-sm opacity-90">Ver y editar rutas</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/admin/ciudades"
+              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">🏙️</span>
+                <div>
+                  <h3 className="font-semibold">Ciudades</h3>
+                  <p className="text-sm opacity-90">Ver y editar imágenes de ciudades</p>
                 </div>
               </div>
             </Link>
@@ -124,7 +137,7 @@ export default function AdminDashboard() {
               className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
             >
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">�</span>
+                <span className="text-2xl">👤</span>
                 <div>
                   <h3 className="font-semibold">Mi Perfil</h3>
                   <p className="text-sm opacity-90">Editar información personal</p>
@@ -136,30 +149,37 @@ export default function AdminDashboard() {
 
         {/* Stats Cards */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Estadísticas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <StatCard
-              title="Total de Vuelos"
-              value={stats.totalFlights}
-              icon="✈️"
-              color="#3B82F6"
-              description="En la base de datos"
-            />
-            <StatCard
-              title="Vuelos Activos"
-              value={stats.activeFlights}
-              icon="🟢"
-              color="#10B981"
-              description="Disponibles para reserva"
-            />
-            <StatCard
-              title="Usuarios Registrados"
-              value={stats.totalUsers}
-              icon="👥"
-              color="#8B5CF6"
-              description="Clientes totales"
-            />
-          </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Enlaces Útiles</h2>
+            <div className="space-y-3">
+              <Link
+                href="/admin/flights"
+                className="flex items-center space-x-3 p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <span className="text-lg">✈️</span>
+                <span>Gestionar Vuelos</span>
+              </Link>
+              <Link
+                href="/admin/routes"
+                className="flex items-center space-x-3 p-3 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+              >
+                <span className="text-lg">🗺️</span>
+                <span>Gestionar Rutas</span>
+              </Link>
+              <Link
+                href="/admin/ciudades"
+                className="flex items-center space-x-3 p-3 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+              >
+                <span className="text-lg">🏙️</span>
+                <span>Ciudades</span>
+              </Link>
+              <Link
+                href="/admin/profile"
+                className="flex items-center space-x-3 p-3 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              >
+                <span className="text-lg">👤</span>
+                <span>Mi Perfil</span>
+              </Link>
+            </div>
         </div>
 
         {/* Recent Activity */}
