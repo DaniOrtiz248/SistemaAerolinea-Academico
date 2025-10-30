@@ -1,0 +1,23 @@
+### Subir imagen de ciudad (form-data)
+### Endpoint: POST http://localhost:3001/api/v1/images/create/ciudad
+
+POST http://localhost:3001/api/v1/images/create/ciudad/1
+Content-Type: multipart/form-data
+
+-- Use a REST client that supports multipart form-data --
+
+# Form fields:
+# - imagen: file (select una imagen PNG/JPG)
+# - id_ciudad: 1
+
+### Example (VSCode REST Client / Thunder Client / Hoppscotch):
+
+POST http://localhost:3001/api/v1/uploads/create/ciudad/1
+Content-Type: multipart/form-data;  boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="imagen"; filename="ciudad.jpg"
+Content-Type: image/jpeg
+
+< ../../../test_image.png
+--FormBoundary--
