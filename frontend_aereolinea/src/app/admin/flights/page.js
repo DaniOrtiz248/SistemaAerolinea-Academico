@@ -238,8 +238,8 @@ export default function AdminFlights() {
         const llegadaDate = new Date(formData.hora_llegada_vuelo);
         const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
         
-        if (diffMinutes < 60) {
-          alert('⚠️ Error: La hora de llegada debe ser al menos 1 hora mayor a la hora de salida.');
+        if (diffMinutes < 15) {
+          alert('⚠️ Error: La hora de llegada debe ser al menos 15 minutos mayor a la hora de salida.');
           return;
         }
       }
