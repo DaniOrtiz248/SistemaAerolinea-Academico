@@ -325,19 +325,55 @@ export default function Home() {
           {ciudades
             .filter(ciudad => {
               const nombre = ciudad.nombre_ciudad.trim().toLowerCase();
-              const principales = ["miami", "nueva york", "madrid", "londres"];
+              const principales = ["miami", "new york", "madrid", "londres"];
               // Permitir variantes como 'NuevaYork', 'New York', etc.
-              if (nombre === "nueva york" || nombre === "nuevayork" || nombre === "new york" || nombre === "newyork") return true;
+              if (nombre === "new york" || nombre === "newyork" || nombre === "nueva york" || nombre === "nuevayork") return true;
               return principales.includes(nombre);
             })
             .map((ciudad, index) => (
               <div key={ciudad.id_ciudad} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-4xl">
-                  {/* Emoji por ciudad */}
-                  {ciudad.nombre_ciudad === "Miami" && <span role="img" aria-label="Miami">🌴</span>}
-                  {ciudad.nombre_ciudad === "Nueva York" && <span role="img" aria-label="Nueva York">🗽</span>}
-                  {ciudad.nombre_ciudad === "Madrid" && <span role="img" aria-label="Madrid">🏰</span>}
-                  {ciudad.nombre_ciudad === "Londres" && <span role="img" aria-label="Londres">�</span>}
+                <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-4xl overflow-hidden relative">
+                  {/* Imagen desde el backend con fallback a emoji */}
+                  {ciudad.nombre_ciudad.toLowerCase() === "miami" && (
+                    <>
+                      <img 
+                        src="http://localhost:3001/uploads/images/city/miami.jpg" 
+                        alt="Miami" 
+                        className="h-full w-full object-cover absolute inset-0"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span role="img" aria-label="Miami" className="relative z-10"></span>
+                    </>
+                  )}
+                  {ciudad.nombre_ciudad.toLowerCase() === "new york" && (
+                    <img 
+                      src="http://localhost:3001/uploads/images/city/newyork.jpg" 
+                      alt="New York" 
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                  {ciudad.nombre_ciudad.toLowerCase() === "madrid" && (
+                    <>
+                      <img 
+                        src="http://localhost:3001/uploads/images/city/madrid.JPG" 
+                        alt="Madrid" 
+                        className="h-full w-full object-cover absolute inset-0"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span role="img" aria-label="Madrid" className="relative z-10"></span>
+                    </>
+                  )}
+                  {ciudad.nombre_ciudad.toLowerCase() === "londres" && (
+                    <>
+                      <img 
+                        src="http://localhost:3001/uploads/images/city/londres.jpg" 
+                        alt="Londres" 
+                        className="h-full w-full object-cover absolute inset-0"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span role="img" aria-label="Londres" className="relative z-10"></span>
+                    </>
+                  )}
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-lg text-gray-900">{ciudad.nombre_ciudad}</h3>

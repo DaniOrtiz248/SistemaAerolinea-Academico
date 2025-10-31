@@ -1,5 +1,7 @@
 // src/app.js
 import express, { json } from 'express'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { sequelize } from './db/sequelize/sequelize.js'
 import { userRoutes } from './routes/userRoutes.js'
 import { flightRoutes } from './routes/flightRoutes.js'
@@ -11,6 +13,9 @@ import dotenv from 'dotenv'
 import { imageRoutes } from './routes/imageRoutes.js'
 dotenv.config()
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const app = express()
 const PORT = process.env.PORT || 3001
 
@@ -19,6 +24,9 @@ app.use(json())
 app.use(cookieParser())
 
 app.use(corsMiddleware())
+
+// Servir archivos estáticos (imágenes)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 // Rutas
 app.use('/api/v1/uploads', imageRoutes)
