@@ -218,13 +218,28 @@ export default function AdminFlights() {
       return formData.hora_salida_vuelo;
     };
 
+    // Función para obtener el máximo datetime para hora de llegada (hasta el final del día siguiente al día de salida)
+    const getMaxLlegadaDateTime = () => {
+      if (!formData.hora_salida_vuelo) return undefined;
+      const salidaDate = new Date(formData.hora_salida_vuelo);
+      // Obtener solo la fecha (sin hora) y agregar 1 día
+      const fechaSalida = salidaDate.toISOString().split('T')[0];
+      const fechaMaxima = new Date(fechaSalida);
+      fechaMaxima.setDate(fechaMaxima.getDate() + 1);
+      return `${fechaMaxima.toISOString().split('T')[0]}T23:59`;
+    };
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       
-      // Validación adicional para crear vuelo: hora de llegada > hora de salida
+      // Validación adicional para crear vuelo: hora de llegada al menos 1 hora mayor
       if (!editingFlight) {
-        if (formData.hora_llegada_vuelo <= formData.hora_salida_vuelo) {
-          alert('⚠️ Error: La hora de llegada debe ser estrictamente mayor a la hora de salida.');
+        const salidaDate = new Date(formData.hora_salida_vuelo);
+        const llegadaDate = new Date(formData.hora_llegada_vuelo);
+        const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
+        
+        if (diffMinutes < 60) {
+          alert('⚠️ Error: La hora de llegada debe ser al menos 1 hora mayor a la hora de salida.');
           return;
         }
       }
@@ -581,11 +596,16 @@ export default function AdminFlights() {
                     type="datetime-local"
                     value={formData.hora_llegada_vuelo}
                     min={getMinLlegadaDateTime()}
+                    max={getMaxLlegadaDateTime()}
                     onChange={(e) => {
                       const newLlegada = e.target.value;
-                      // Validar que sea estrictamente mayor que la hora de salida
-                      if (newLlegada <= formData.hora_salida_vuelo) {
-                        alert('⚠️ La hora de llegada debe ser posterior (mayor) a la hora de salida.');
+                      const salidaDate = new Date(formData.hora_salida_vuelo);
+                      const llegadaDate = new Date(newLlegada);
+                      const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
+                      
+                      // Validar que sea al menos 1 hora mayor
+                      if (diffMinutes < 60) {
+                        alert('⚠️ La hora de llegada debe ser al menos 1 hora mayor a la hora de salida.');
                         return;
                       }
                       setFormData({...formData, hora_llegada_vuelo: newLlegada});
@@ -597,7 +617,7 @@ export default function AdminFlights() {
                   <p className="mt-1 text-xs text-red-600 font-medium">
                     {!formData.hora_salida_vuelo 
                       ? '⚠️ Primero selecciona la hora de salida' 
-                      : '⚠️ Debe ser MAYOR (no igual) a la hora de salida'}
+                      : '⚠️ Debe ser al menos 1 hora mayor a la hora de salida'}
                   </p>
                 </div>
                 
