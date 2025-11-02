@@ -557,7 +557,12 @@ export default function AdminFlights() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Hora de Salida *
+                    Hora de Salida
+                    {formData.ccv_ruta && routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.origen?.nombre_ciudad && (
+                      <span className="ml-2 text-xs text-blue-600">
+                        🌍 {routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.origen?.nombre_ciudad}
+                      </span>
+                    )}
                   </label>
                   <input
                     type="datetime-local"
@@ -590,7 +595,12 @@ export default function AdminFlights() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Hora de Llegada *
+                    Hora de Llegada
+                    {formData.ccv_ruta && routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.destino?.nombre_ciudad && (
+                      <span className="ml-2 text-xs text-purple-600">
+                        🌍 {routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.destino?.nombre_ciudad}
+                      </span>
+                    )}
                   </label>
                   <input
                     type="datetime-local"
@@ -808,11 +818,31 @@ export default function AdminFlights() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{departure.date}</div>
-                        <div className="text-sm text-gray-500">{departure.time}</div>
+                        <div className="text-sm font-medium text-gray-900">{departure.time}</div>
+                        {flight.timezone_info?.salida && (
+                          <div className="mt-1 pt-1 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-blue-700">
+                              {flight.ruta?.origen?.nombre_ciudad}
+                            </div>
+                            <div className="text-xs text-blue-600">
+                              {flight.timezone_info.salida.hora}
+                            </div>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{arrival.date}</div>
-                        <div className="text-sm text-gray-500">{arrival.time}</div>
+                        <div className="text-sm font-medium text-gray-900">{arrival.time}</div>
+                        {flight.timezone_info?.llegada && (
+                          <div className="mt-1 pt-1 border-t border-gray-200">
+                            <div className="text-xs font-semibold text-purple-700">
+                              {flight.ruta?.destino?.nombre_ciudad}
+                            </div>
+                            <div className="text-xs text-purple-600">
+                              {flight.timezone_info.llegada.hora}
+                            </div>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-blue-600">1ª: ${precioClase1}</div>

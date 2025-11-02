@@ -3,17 +3,33 @@ import { validateFlight, validatePartialFlight } from '../schema/flightSchema.js
 import { ValidationError } from '../utils/validateError.js'
 import { formatErrors } from '../utils/formatErrors.js'
 import { sendNewsPromotion } from '../utils/mailer.js'
+import { calculateFlightTimes } from '../utils/timezoneHelper.js'
 
 export class FlightController {
   static async listFlights (req, res) {
     try {
       const flights = await FlightService.listFlights()
+      
+      // Agregar información de zona horaria a cada vuelo
+      const flightsWithTimezone = flights.map(flight => {
+        try {
+          const timezoneInfo = calculateFlightTimes(flight)
+          return {
+            ...flight.toJSON(),
+            timezone_info: timezoneInfo
+          }
+        } catch (error) {
+          console.error('Error calculating timezone for flight:', flight.ccv, error)
+          // Si hay error, retornar el vuelo sin timezone_info
+          return flight.toJSON()
+        }
+      })
+      
       res.status(200).json({
         success: true,
-        data: flights,
+        data: flightsWithTimezone,
         message: 'Vuelos obtenidos exitosamente'
       })
-      // res.status(200).json(flights)
     } catch (error) {
       console.error('Error in listFlights:', error)
       res.status(500).json({
@@ -21,7 +37,6 @@ export class FlightController {
         error: 'Error al obtener los vuelos',
         details: error.message
       })
-      // res.status(500).json({ error: 'Error al obtener los vuelos', details: error.message })
     }
   }
 
@@ -29,12 +44,25 @@ export class FlightController {
     try {
       const { ccv } = req.params
       const flight = await FlightService.getFlightById({ ccv: parseInt(ccv) })
+      
+      // Agregar información de zona horaria
+      let flightWithTimezone
+      try {
+        const timezoneInfo = calculateFlightTimes(flight)
+        flightWithTimezone = {
+          ...flight.toJSON(),
+          timezone_info: timezoneInfo
+        }
+      } catch (error) {
+        console.error('Error calculating timezone for flight:', ccv, error)
+        flightWithTimezone = flight.toJSON()
+      }
+      
       res.status(200).json({
         success: true,
-        data: flight,
+        data: flightWithTimezone,
         message: 'Vuelo obtenido exitosamente'
       })
-      // res.status(200).json(flight)
     } catch (error) {
       console.error('Error in getFlightById:', error)
       if (error.code === 'FLIGHT_NOT_FOUND') {
