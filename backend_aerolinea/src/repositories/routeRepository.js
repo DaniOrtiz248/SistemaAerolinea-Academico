@@ -48,7 +48,22 @@ export class RouteRepository {
   static async update (id, routeData) {
     const route = await Ruta.findByPk(id)
     if (!route) throw new Error('Ruta no encontrada')
-    return await route.update(routeData)
+    await route.update(routeData)
+    // Recargar la ruta con las relaciones incluidas
+    return await Ruta.findByPk(id, {
+      include: [
+        {
+          model: Ciudad,
+          as: 'origen',
+          attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+        },
+        {
+          model: Ciudad,
+          as: 'destino',
+          attributes: ['id_ciudad', 'nombre_ciudad', 'es_nacional']
+        }
+      ]
+    })
   }
 
   static async delete (id) {

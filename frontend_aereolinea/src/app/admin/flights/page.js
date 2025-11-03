@@ -84,7 +84,7 @@ export default function AdminFlights() {
     
     // Mapear estado numérico a string para el filtro
     let flightStatus = 'active';
-    if (flight.estado === 0) flightStatus = 'inactive';
+    if (flight.estado === 0) flightStatus = 'ended';
     else if (flight.available_seats === 0) flightStatus = 'sold_out';
     
     const matchesFilter = filterStatus === 'all' || flightStatus === filterStatus;
@@ -97,13 +97,13 @@ export default function AdminFlights() {
       active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Activo' },
       sold_out: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Agotado' },
       cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelado' },
-      inactive: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Inactivo' },
+      ended: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Finalizado' },
       delayed: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Retrasado' }
     };
     
     // Determinar el estado basado en los datos del vuelo
     let status = 'active';
-    if (flight.estado === 0) status = 'inactive';
+    if (flight.estado === 0) status = 'ended';
     //else if (flight.available_seats === 0) status = 'sold_out';
     
     const config = statusConfig[status] || statusConfig.active;
@@ -129,7 +129,7 @@ export default function AdminFlights() {
   };
 
   const handleDelete = async (flightId) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este vuelo? Esta acción no se puede deshacer.')) {
+    if (!confirm('¿Estás seguro de que quieres cancelar este vuelo? Esta acción no se puede deshacer.')) {
       return;
     }
 
@@ -147,9 +147,9 @@ export default function AdminFlights() {
         setFlights(flights.filter(f => f.ccv !== flightId));
       } else {
         const error = await response.json();
-        console.error('Error deleting flight:', error);
-        
-        let errorMessage = 'Error al eliminar el vuelo';
+        console.error('Error canceling flight:', error);
+
+        let errorMessage = 'Error al cancelar el vuelo';
         if (error.details) {
           errorMessage = error.details;
         } else if (error.error) {
@@ -160,7 +160,7 @@ export default function AdminFlights() {
       }
     } catch (error) {
       console.error('Network error:', error);
-      alert('Error de conexión al intentar eliminar el vuelo: ' + error.message);
+      alert('Error de conexión al intentar cancelar el vuelo: ' + error.message);
     }
   };
 
@@ -344,7 +344,7 @@ export default function AdminFlights() {
             alert('Vuelo creado exitosamente');
             
             // Recargar vuelos
-            const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
+            const flightsResponse = await fetch('http://localhost:3001/api/v1/flights/admin');
             if (flightsResponse.ok) {
               const flightsResult = await flightsResponse.json();
               if (flightsResult.success && flightsResult.data) {
@@ -552,7 +552,7 @@ export default function AdminFlights() {
                     required
                   >
                     <option value="1">Activo</option>
-                    <option value="0">Inactivo</option>
+                    <option value="0">Finalizado</option>
                   </select>
                 </div>
                 
@@ -738,7 +738,7 @@ export default function AdminFlights() {
                 <option value="sold_out">Agotados</option>
                 <option value="cancelled">Cancelados</option>
                 <option value="delayed">Retrasados</option>
-                <option value="inactive">Inactivos</option>
+                <option value="ended">Finalizados</option>
               </select>
             </div>
             
@@ -875,7 +875,7 @@ export default function AdminFlights() {
                           onClick={() => handleDelete(flight.ccv)}
                           className="text-red-600 hover:text-red-900"
                         >
-                          🗑️ Eliminar
+                          🗑️ Cancelar
                         </button>
                       </td>
                     </tr>
