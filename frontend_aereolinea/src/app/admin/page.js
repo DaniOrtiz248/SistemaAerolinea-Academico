@@ -120,19 +120,6 @@ export default function AdminDashboard() {
             </Link>
 
             <Link
-              href="/admin/ciudades"
-              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">🏙️</span>
-                <div>
-                  <h3 className="font-semibold">Ciudades</h3>
-                  <p className="text-sm opacity-90">Ver y editar imágenes de ciudades</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
               href="/admin/profile"
               className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105"
             >

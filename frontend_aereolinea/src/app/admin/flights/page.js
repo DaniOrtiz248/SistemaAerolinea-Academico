@@ -84,7 +84,7 @@ export default function AdminFlights() {
     
     // Mapear estado numérico a string para el filtro
     let flightStatus = 'active';
-    if (flight.estado === 0) flightStatus = 'cancelled';
+    if (flight.estado === 0) flightStatus = 'inactive';
     else if (flight.available_seats === 0) flightStatus = 'sold_out';
     
     const matchesFilter = filterStatus === 'all' || flightStatus === filterStatus;
@@ -97,12 +97,13 @@ export default function AdminFlights() {
       active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Activo' },
       sold_out: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Agotado' },
       cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelado' },
+      inactive: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Inactivo' },
       delayed: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Retrasado' }
     };
     
     // Determinar el estado basado en los datos del vuelo
     let status = 'active';
-    if (flight.estado === 0) status = 'cancelled';
+    if (flight.estado === 0) status = 'inactive';
     //else if (flight.available_seats === 0) status = 'sold_out';
     
     const config = statusConfig[status] || statusConfig.active;
@@ -612,10 +613,10 @@ export default function AdminFlights() {
                       const salidaDate = new Date(formData.hora_salida_vuelo);
                       const llegadaDate = new Date(newLlegada);
                       const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
-                      
-                      // Validar que sea al menos 1 hora mayor
-                      if (diffMinutes < 60) {
-                        alert('⚠️ La hora de llegada debe ser al menos 1 hora mayor a la hora de salida.');
+
+                      // Validar que sea al menos 15 minutos mayor
+                      if (diffMinutes < 15) {
+                        alert('⚠️ La hora de llegada debe ser al menos 15 minutos mayor a la hora de salida.');
                         return;
                       }
                       setFormData({...formData, hora_llegada_vuelo: newLlegada});
@@ -626,8 +627,8 @@ export default function AdminFlights() {
                   />
                   <p className="mt-1 text-xs text-red-600 font-medium">
                     {!formData.hora_salida_vuelo 
-                      ? '⚠️ Primero selecciona la hora de salida' 
-                      : '⚠️ Debe ser al menos 1 hora mayor a la hora de salida'}
+                      ? ' Primero selecciona la hora de salida' 
+                      : ' Debe ser al menos 15 minutos mayor a la hora de salida'}
                   </p>
                 </div>
                 
@@ -737,6 +738,7 @@ export default function AdminFlights() {
                 <option value="sold_out">Agotados</option>
                 <option value="cancelled">Cancelados</option>
                 <option value="delayed">Retrasados</option>
+                <option value="inactive">Inactivos</option>
               </select>
             </div>
             

@@ -10,6 +10,21 @@ export class FlightController {
     try {
       const flights = await FlightService.listFlights()
       
+      // Obtener fecha actual en Colombia (UTC-5)
+      const nowColombia = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }))
+      
+      // Verificar y actualizar vuelos pasados
+      for (const flight of flights) {
+        const flightDate = new Date(flight.fecha_vuelo)
+        if (flightDate < nowColombia && flight.estado === 1) {
+          await FlightService.update({ 
+            ccv: flight.ccv, 
+            flightData: { estado: 0 } 
+          })
+          flight.estado = 0
+        }
+      }
+      
       // Agregar información de zona horaria a cada vuelo
       const flightsWithTimezone = flights.map(flight => {
         try {
