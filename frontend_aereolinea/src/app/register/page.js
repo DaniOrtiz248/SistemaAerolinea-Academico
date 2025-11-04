@@ -43,6 +43,10 @@ export default function Register() {
   // Agregar estados para mejor manejo de UI
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState('info'); // 'info' | 'success' | 'error'
 
   // Agregar useEffect para cargar países al montar el componente
   useEffect(() => {
@@ -339,9 +343,12 @@ export default function Register() {
         setErrors(validationErrors);
         setIsLoading(false);
         
-        // Mostrar el primer error encontrado
+        // Mostrar el primer error encontrado en modal
         const firstError = Object.values(validationErrors)[0];
-        alert(`Error de validación: ${firstError}`);
+        setModalTitle('Error de validación');
+        setModalMessage(firstError);
+        setModalType('error');
+        setModalOpen(true);
         return;
       }
 
@@ -407,29 +414,74 @@ export default function Register() {
         // Manejar errores específicos del backend
         if (data.error && Array.isArray(data.error)) {
           const backendErrors = {};
-          data.error.forEach(err => {
-            if (err.path && err.path.length > 0) {
-              const fieldPath = err.path.join('.');
-              backendErrors[fieldPath] = err.message;
+
+          // Mapeo de campos a etiquetas legibles
+          const fieldLabels = {
+            'usuario.descripcion_usuario': 'Descripción de usuario',
+            'usuario.correo_electronico': 'Correo electrónico',
+            'usuario.contrasena': 'Contraseña',
+            'usuarioPerfil.dni_usuario': 'DNI',
+            'usuarioPerfil.primer_nombre': 'Primer nombre',
+            'usuarioPerfil.segundo_nombre': 'Segundo nombre',
+            'usuarioPerfil.primer_apellido': 'Primer apellido',
+            'usuarioPerfil.segundo_apellido': 'Segundo apellido',
+            'usuarioPerfil.fecha_nacimiento': 'Fecha de nacimiento',
+            'usuarioPerfil.pais_nacimiento': 'País de nacimiento',
+            'usuarioPerfil.estado_nacimiento': 'Estado/Provincia',
+            'usuarioPerfil.ciudad_nacimiento': 'Ciudad',
+            'usuarioPerfil.direccion_facturacion': 'Dirección de facturación',
+            'usuarioPerfil.id_genero_usuario': 'Género'
+          };
+
+          const humanize = (err) => {
+            const raw = (err.message || '').toString();
+            // Detectar reglas de longitud mínima tipo ">=8"
+            const minMatch = raw.match(/>=\s*(\d+)/) || raw.match(/at least\s*(\d+)/i) || raw.match(/minimum length is\s*(\d+)/i);
+            if (minMatch) return `Debe tener al menos ${minMatch[1]} caracteres`;
+            if (/too small/i.test(raw) && /string/i.test(raw)) {
+              // fallback si coincide "Too small"
+              const num = raw.match(/(\d+)/);
+              return num ? `Debe tener al menos ${num[0]} caracteres` : 'Valor demasiado corto';
             }
+            if (/email/i.test(raw) && /valid/i.test(raw)) return 'Formato de correo electrónico inválido';
+            if (/required/i.test(raw) || /is required/i.test(raw)) return 'Campo obligatorio';
+            if (/must be a number/i.test(raw)) return 'Debe ser un número válido';
+            // Mensaje por defecto: limpiar prefijos técnicos
+            return raw.replace(/^Validation error: /i, '').trim();
+          };
+
+          const prettyMessages = data.error.map(err => {
+            const fieldPath = err.path && err.path.length ? err.path.join('.') : null;
+            const label = fieldPath ? (fieldLabels[fieldPath] || fieldPath) : null;
+            const pretty = humanize(err);
+            if (fieldPath) backendErrors[fieldPath] = pretty;
+            return label ? `${label}: ${pretty}` : pretty;
           });
-          
+
           setErrors(backendErrors);
-          
-          const errorMessages = data.error.map(err => 
-            `${err.path ? err.path.join('.') + ': ' : ''}${err.message}`
-          ).join('\n');
-          
-          alert(`Errores de validación:\n${errorMessages}`);
+
+          setModalTitle('Errores de validación');
+          setModalMessage(prettyMessages.join('\n'));
+          setModalType('error');
+          setModalOpen(true);
         } else if (data.message) {
           if (data.message.includes('correo') || data.message.includes('email')) {
             setFieldError('correo_electronico', data.message);
           } else if (data.message.includes('DNI')) {
             setFieldError('dni_usuario', data.message);
           }
-          alert(`Error: ${data.message}`);
+          setModalTitle('Error');
+          // Intentar humanizar un mensaje único del backend
+          const rawMsg = data.message.toString();
+          const simpleMsg = rawMsg.replace(/^Validation error: /i, '').trim();
+          setModalMessage(simpleMsg);
+          setModalType('error');
+          setModalOpen(true);
         } else {
-          alert('Error en el registro. Por favor, inténtalo de nuevo.');
+          setModalTitle('Error');
+          setModalMessage('Error en el registro. Por favor, inténtalo de nuevo.');
+          setModalType('error');
+          setModalOpen(true);
         }
         return;
       }
@@ -437,8 +489,11 @@ export default function Register() {
       // Registro exitoso
       console.log('Registro exitoso:', data);
       
-      // Mostrar mensaje de éxito
-      alert('¡Registro exitoso! Tu cuenta ha sido creada correctamente. Serás redirigido al inicio de sesión.');
+  // Mostrar mensaje de éxito
+  setModalTitle('Registro exitoso');
+  setModalMessage('¡Tu cuenta ha sido creada correctamente! Serás redirigido al inicio de sesión.');
+  setModalType('success');
+  setModalOpen(true);
       
       // Limpiar formulario
       resetForm();
@@ -450,7 +505,10 @@ export default function Register() {
 
     } catch (error) {
       console.error('Error en el registro:', error);
-      alert(`Error de conexión: ${error.message}. Por favor, verifica tu conexión e inténtalo de nuevo.`);
+      setModalTitle('Error de conexión');
+      setModalMessage(`${error.message}. Por favor, verifica tu conexión e inténtalo de nuevo.`);
+      setModalType('error');
+      setModalOpen(true);
     } finally {
       setIsLoading(false);
     }
@@ -459,6 +517,24 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
       <Header />
+
+      {/* Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-40" onClick={() => setModalOpen(false)}></div>
+          <div className="relative bg-white rounded-lg shadow-lg max-w-lg w-full mx-4">
+            <div className={`px-6 py-4 border-b ${modalType === 'error' ? 'border-red-100' : modalType === 'success' ? 'border-green-100' : 'border-gray-100'}`}>
+              <h3 className={`text-lg font-semibold ${modalType === 'error' ? 'text-red-600' : modalType === 'success' ? 'text-green-600' : 'text-gray-900'}`}>{modalTitle}</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-700 whitespace-pre-line">{modalMessage}</p>
+            </div>
+            <div className="px-6 py-4 border-t flex justify-end gap-2">
+              <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-gray-800 bg-gray-200 rounded hover:bg-gray-300">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Register Hero Section */}
       <section className="relative h-64 bg-gradient-to-r from-blue-600 to-purple-700 overflow-hidden">

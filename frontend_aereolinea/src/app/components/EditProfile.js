@@ -22,7 +22,8 @@ export default function EditProfile({
     estado_nacimiento: '',
     ciudad_nacimiento: '',
     direccion_facturacion: '',
-    id_genero_usuario: 1
+    id_genero_usuario: 1,
+    en_noticias: false
   });
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -55,7 +56,8 @@ export default function EditProfile({
         estado_nacimiento: perfil.estado_nacimiento || '',
         ciudad_nacimiento: perfil.ciudad_nacimiento || '',
         direccion_facturacion: perfil.direccion_facturacion || '',
-        id_genero_usuario: perfil.id_genero_usuario || 1
+        id_genero_usuario: perfil.id_genero_usuario || 1,
+        en_noticias: typeof perfil.en_noticias === 'boolean' ? perfil.en_noticias : false
       });
 
       // Cargar imagen de perfil si existe
@@ -84,10 +86,11 @@ export default function EditProfile({
   }, [userProfile]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: newValue
     }));
     
     // Limpiar error si existe
@@ -362,6 +365,11 @@ export default function EditProfile({
       }
       if (!normalizedFormData.segundo_apellido || normalizedFormData.segundo_apellido.trim() === '') {
         delete normalizedFormData.segundo_apellido;
+      }
+
+      // Asegurar que el campo de suscripción esté presente
+      if (typeof formData.en_noticias === 'boolean') {
+        normalizedFormData.en_noticias = formData.en_noticias;
       }
 
       console.log('Datos normalizados a enviar:', normalizedFormData);
@@ -710,6 +718,20 @@ export default function EditProfile({
               <option value={3}>Otro</option>
             </select>
           </div>
+        </div>
+
+        <div className="p-4 bg-white border border-gray-200 rounded-lg">
+          <label className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              name="en_noticias"
+              checked={formData.en_noticias}
+              onChange={handleInputChange}
+              className="h-4 w-4 text-blue-600"
+            />
+            <span className="text-sm text-gray-700">Recibir noticias y promociones por correo</span>
+          </label>
+          <p className="text-xs text-gray-500 mt-1">Podrás darte de baja en cualquier momento desde tu perfil.</p>
         </div>
 
         <div className="flex justify-between pt-6 border-t border-gray-200">

@@ -6,6 +6,7 @@ export default function AdminFlights() {
   const [flights, setFlights] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [publishingCcv, setPublishingCcv] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingFlight, setEditingFlight] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -161,6 +162,33 @@ export default function AdminFlights() {
     } catch (error) {
       console.error('Network error:', error);
       alert('Error de conexión al intentar cancelar el vuelo: ' + error.message);
+    }
+  };
+
+  const handlePublish = async (flight) => {
+    const confirmed = confirm(`¿Enviar promoción por correo para el vuelo #${flight.ccv}?`);
+    if (!confirmed) return;
+
+    try {
+      setPublishingCcv(flight.ccv);
+      const response = await fetch(`http://localhost:3001/api/v1/flights/publish-promotion/${flight.ccv}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const result = await response.json().catch(() => ({}));
+        alert(result.message || 'Promoción publicada correctamente');
+      } else {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        const message = errorData.error || errorData.message || `Error ${response.status}`;
+        alert('Error al publicar promoción: ' + message);
+      }
+    } catch (err) {
+      console.error('Network error publishing promotion:', err);
+      alert('Error de conexión al publicar la promoción: ' + (err.message || err));
+    } finally {
+      setPublishingCcv(null);
     }
   };
 
@@ -870,6 +898,13 @@ export default function AdminFlights() {
                           className="text-blue-600 hover:text-blue-900 mr-3"
                         >
                           ✏️ Editar
+                        </button>
+                        <button
+                          onClick={() => handlePublish(flight)}
+                          disabled={publishingCcv === flight.ccv}
+                          className={`mr-3 ${publishingCcv === flight.ccv ? 'text-gray-400' : 'text-green-600 hover:text-green-900'}`}
+                        >
+                          {publishingCcv === flight.ccv ? 'Enviando...' : '📣 Publicar'}
                         </button>
                         <button
                           onClick={() => handleDelete(flight.ccv)}

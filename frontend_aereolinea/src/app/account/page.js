@@ -237,6 +237,15 @@ export default function MyAccount() {
                    'No especificado'}
                 </p>
               </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Recibir noticias y promociones
+                </label>
+                <p className="text-gray-900 font-medium">
+                  {userProfile?.usuarioPerfil?.en_noticias ? 'Sí' : 'No'}
+                </p>
+              </div>
             </div>
 
             {/* Botón para editar */}
