@@ -216,7 +216,7 @@ export default function AdminFlights() {
       setFormData({
         ...formData,
         fecha_vuelo: newDate,
-        // Limpiar las horas si se cambia la fecha
+        // Limpiar las horas si se cambia la fecha para forzar nueva selección con restricciones actualizadas
         hora_salida_vuelo: '',
         hora_llegada_vuelo: ''
       });
@@ -224,11 +224,33 @@ export default function AdminFlights() {
 
     // Función para obtener el mínimo datetime para hora de salida basado en la fecha de vuelo
     const getMinSalidaDateTime = () => {
-      if (!formData.fecha_vuelo) return currentDateTime;
+      if (!formData.fecha_vuelo || !formData.ruta_relacionada) return currentDateTime;
       
-      // Si la fecha de vuelo es hoy, usar la hora actual como mínimo
+      // Buscar la ruta seleccionada para verificar si es nacional o internacional
+      const rutaSeleccionada = routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada));
+      
+      // Si la fecha de vuelo es hoy, aplicar restricciones de tiempo según el tipo de ruta
       if (formData.fecha_vuelo === today) {
-        return currentDateTime;
+        const ahora = new Date();
+        let horasMinimas = 1; // Por defecto 1 hora para nacional
+        
+        if (rutaSeleccionada) {
+          // Si es internacional, mínimo 3 horas de anticipación
+          // Si es nacional, mínimo 1 hora de anticipación
+          horasMinimas = rutaSeleccionada.es_nacional ? 1 : 3;
+        }
+        
+        // Calcular la hora mínima agregando las horas necesarias
+        const horaMinima = new Date(ahora.getTime() + horasMinimas * 60 * 60 * 1000);
+        
+        // Formatear al formato requerido por datetime-local
+        const year = horaMinima.getFullYear();
+        const month = String(horaMinima.getMonth() + 1).padStart(2, '0');
+        const day = String(horaMinima.getDate()).padStart(2, '0');
+        const hours = String(horaMinima.getHours()).padStart(2, '0');
+        const minutes = String(horaMinima.getMinutes()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
       }
       
       // Si es una fecha futura, permitir desde las 00:00 de ese día
@@ -261,8 +283,9 @@ export default function AdminFlights() {
     const handleSubmit = async (e) => {
       e.preventDefault();
       
-      // Validación adicional para crear vuelo: hora de llegada al menos 1 hora mayor
+      // Validación adicional para crear vuelo
       if (!editingFlight) {
+        // Validar que la hora de llegada sea al menos 15 minutos mayor a la hora de salida
         const salidaDate = new Date(formData.hora_salida_vuelo);
         const llegadaDate = new Date(formData.hora_llegada_vuelo);
         const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
@@ -270,6 +293,22 @@ export default function AdminFlights() {
         if (diffMinutes < 15) {
           alert('⚠️ Error: La hora de llegada debe ser al menos 15 minutos mayor a la hora de salida.');
           return;
+        }
+
+        // Validar la anticipación mínima según el tipo de ruta
+        const rutaSeleccionada = routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada));
+        const ahora = new Date();
+        const horaSalida = new Date(formData.hora_salida_vuelo);
+        const diferenciaHoras = (horaSalida - ahora) / (1000 * 60 * 60);
+
+        if (rutaSeleccionada) {
+          const horasMinimas = rutaSeleccionada.es_nacional ? 1 : 3;
+          const tipoRuta = rutaSeleccionada.es_nacional ? 'nacional' : 'internacional';
+          
+          if (diferenciaHoras < horasMinimas) {
+            alert(`⚠️ Error: Para vuelos ${tipoRuta}es, la hora de salida debe ser al menos ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''} mayor a la hora actual.\n\nHora actual: ${ahora.toLocaleString('es-ES')}\nAnticipación requerida: ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''}`);
+            return;
+          }
         }
       }
       
@@ -530,7 +569,15 @@ export default function AdminFlights() {
                   </label>
                   <select
                     value={formData.ruta_relacionada}
-                    onChange={(e) => setFormData({...formData, ruta_relacionada: e.target.value})}
+                    onChange={(e) => {
+                      // Al cambiar la ruta, limpiar las horas para que se apliquen las nuevas restricciones
+                      setFormData({
+                        ...formData, 
+                        ruta_relacionada: e.target.value,
+                        hora_salida_vuelo: '',
+                        hora_llegada_vuelo: ''
+                      });
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
                     disabled={routes.length === 0}
@@ -586,10 +633,10 @@ export default function AdminFlights() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Hora de Salida
-                    {formData.ccv_ruta && routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.origen?.nombre_ciudad && (
+                    Hora de Salida *
+                    {formData.ruta_relacionada && routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada))?.origen?.nombre_ciudad && (
                       <span className="ml-2 text-xs text-blue-600">
-                        🌍 {routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.origen?.nombre_ciudad}
+                        🌍 {routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada))?.origen?.nombre_ciudad}
                       </span>
                     )}
                   </label>
@@ -613,12 +660,22 @@ export default function AdminFlights() {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
-                    disabled={!formData.fecha_vuelo}
+                    disabled={!formData.fecha_vuelo || !formData.ruta_relacionada}
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     {!formData.fecha_vuelo 
                       ? '⚠️ Primero selecciona la fecha de vuelo' 
-                      : 'Debe estar dentro del día seleccionado'}
+                      : !formData.ruta_relacionada
+                      ? '⚠️ Primero selecciona una ruta'
+                      : (() => {
+                          const rutaSeleccionada = routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada));
+                          if (rutaSeleccionada && formData.fecha_vuelo === today) {
+                            const horasMinimas = rutaSeleccionada.es_nacional ? 1 : 3;
+                            return `📅 ${rutaSeleccionada.es_nacional ? 'Vuelo nacional' : 'Vuelo internacional'}: mínimo ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''} de anticipación`;
+                          }
+                          return 'Debe estar dentro del día seleccionado';
+                        })()
+                    }
                   </p>
                 </div>
                 
