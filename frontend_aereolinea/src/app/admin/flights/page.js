@@ -206,7 +206,6 @@ export default function AdminFlights() {
       ruta_relacionada: '',
       fecha_vuelo: '',
       hora_salida_vuelo: '',
-      hora_llegada_vuelo: '',
       porcentaje_promocion: 0,
       estado: 1
     });
@@ -217,8 +216,7 @@ export default function AdminFlights() {
         ...formData,
         fecha_vuelo: newDate,
         // Limpiar las horas si se cambia la fecha para forzar nueva selección con restricciones actualizadas
-        hora_salida_vuelo: '',
-        hora_llegada_vuelo: ''
+        hora_salida_vuelo: ''
       });
     };
 
@@ -269,32 +267,11 @@ export default function AdminFlights() {
       return formData.hora_salida_vuelo;
     };
 
-    // Función para obtener el máximo datetime para hora de llegada (hasta el final del día siguiente al día de salida)
-    const getMaxLlegadaDateTime = () => {
-      if (!formData.hora_salida_vuelo) return undefined;
-      const salidaDate = new Date(formData.hora_salida_vuelo);
-      // Obtener solo la fecha (sin hora) y agregar 1 día
-      const fechaSalida = salidaDate.toISOString().split('T')[0];
-      const fechaMaxima = new Date(fechaSalida);
-      fechaMaxima.setDate(fechaMaxima.getDate() + 1);
-      return `${fechaMaxima.toISOString().split('T')[0]}T23:59`;
-    };
-
     const handleSubmit = async (e) => {
       e.preventDefault();
       
       // Validación adicional para crear vuelo
       if (!editingFlight) {
-        // Validar que la hora de llegada sea al menos 15 minutos mayor a la hora de salida
-        const salidaDate = new Date(formData.hora_salida_vuelo);
-        const llegadaDate = new Date(formData.hora_llegada_vuelo);
-        const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
-        
-        if (diffMinutes < 15) {
-          alert('⚠️ Error: La hora de llegada debe ser al menos 15 minutos mayor a la hora de salida.');
-          return;
-        }
-
         // Validar la anticipación mínima según el tipo de ruta
         const rutaSeleccionada = routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada));
         const ahora = new Date();
@@ -390,7 +367,6 @@ export default function AdminFlights() {
             ruta_relacionada: parseInt(formData.ruta_relacionada),
             fecha_vuelo: formData.fecha_vuelo, // Ya está en formato YYYY-MM-DD
             hora_salida_vuelo: formatDateTime(formData.hora_salida_vuelo),
-            hora_llegada_vuelo: formatDateTime(formData.hora_llegada_vuelo),
             estado: parseInt(formData.estado),
             porcentaje_promocion: parseFloat(formData.porcentaje_promocion) || 0
           };
@@ -574,8 +550,7 @@ export default function AdminFlights() {
                       setFormData({
                         ...formData, 
                         ruta_relacionada: e.target.value,
-                        hora_salida_vuelo: '',
-                        hora_llegada_vuelo: ''
+                        hora_salida_vuelo: ''
                       });
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
@@ -647,16 +622,7 @@ export default function AdminFlights() {
                     max={getMaxSalidaDateTime()}
                     onChange={(e) => {
                       const newSalida = e.target.value;
-                      // Si hay hora de llegada y la nueva salida es mayor o igual, limpiar llegada
-                      if (formData.hora_llegada_vuelo && newSalida >= formData.hora_llegada_vuelo) {
-                        setFormData({
-                          ...formData, 
-                          hora_salida_vuelo: newSalida, 
-                          hora_llegada_vuelo: ''
-                        });
-                      } else {
-                        setFormData({...formData, hora_salida_vuelo: newSalida});
-                      }
+                      setFormData({...formData, hora_salida_vuelo: newSalida});
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     required
@@ -676,44 +642,6 @@ export default function AdminFlights() {
                           return 'Debe estar dentro del día seleccionado';
                         })()
                     }
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Hora de Llegada
-                    {formData.ccv_ruta && routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.destino?.nombre_ciudad && (
-                      <span className="ml-2 text-xs text-purple-600">
-                        🌍 {routes.find(r => r.ccv === parseInt(formData.ccv_ruta))?.destino?.nombre_ciudad}
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.hora_llegada_vuelo}
-                    min={getMinLlegadaDateTime()}
-                    max={getMaxLlegadaDateTime()}
-                    onChange={(e) => {
-                      const newLlegada = e.target.value;
-                      const salidaDate = new Date(formData.hora_salida_vuelo);
-                      const llegadaDate = new Date(newLlegada);
-                      const diffMinutes = (llegadaDate - salidaDate) / (1000 * 60);
-
-                      // Validar que sea al menos 15 minutos mayor
-                      if (diffMinutes < 15) {
-                        alert('⚠️ La hora de llegada debe ser al menos 15 minutos mayor a la hora de salida.');
-                        return;
-                      }
-                      setFormData({...formData, hora_llegada_vuelo: newLlegada});
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    required
-                    disabled={!formData.hora_salida_vuelo}
-                  />
-                  <p className="mt-1 text-xs text-red-600 font-medium">
-                    {!formData.hora_salida_vuelo 
-                      ? ' Primero selecciona la hora de salida' 
-                      : ' Debe ser al menos 15 minutos mayor a la hora de salida'}
                   </p>
                 </div>
                 
@@ -852,9 +780,6 @@ export default function AdminFlights() {
                     Salida
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Llegada
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Precio
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -871,7 +796,6 @@ export default function AdminFlights() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredFlights.map((flight) => {
                   const departure = formatDateTime(flight.hora_salida_vuelo);
-                  const arrival = formatDateTime(flight.hora_llegada_vuelo);
                   
                   // Calcular precios con descuento si hay promoción
                   const precioClase1 = flight.porcentaje_promocion 
@@ -913,20 +837,6 @@ export default function AdminFlights() {
                             </div>
                             <div className="text-xs text-blue-600">
                               {flight.timezone_info.salida.hora}
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{arrival.date}</div>
-                        <div className="text-sm font-medium text-gray-900">{arrival.time}</div>
-                        {flight.timezone_info?.llegada && (
-                          <div className="mt-1 pt-1 border-t border-gray-200">
-                            <div className="text-xs font-semibold text-purple-700">
-                              {flight.ruta?.destino?.nombre_ciudad}
-                            </div>
-                            <div className="text-xs text-purple-600">
-                              {flight.timezone_info.llegada.hora}
                             </div>
                           </div>
                         )}
