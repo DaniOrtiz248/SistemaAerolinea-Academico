@@ -9,7 +9,6 @@ const flightSchema = z.object({
   estado: z.number().int().min(0), // Required
   fecha_vuelo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.null()), // DATEONLY
   hora_salida_vuelo: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).or(z.null()), // TIMESTAMP
-  hora_llegada_vuelo: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).or(z.null()), // TIMESTAMP
   ruta_relacionada: z.number().int().positive(), // Required
   porcentaje_promocion: z.number().min(0).optional() // Optional
 })

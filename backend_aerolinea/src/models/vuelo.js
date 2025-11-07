@@ -21,10 +21,6 @@ const Vuelo = sequelize.define('vuelo', {
         type: DataTypes.DATE, // TIMESTAMP
         allowNull: false
     },
-    hora_llegada_vuelo: {
-        type: DataTypes.DATE, // TIMESTAMP
-        allowNull: false
-    },
     ruta_relacionada:{
         type: DataTypes.INTEGER,
         allowNull: false

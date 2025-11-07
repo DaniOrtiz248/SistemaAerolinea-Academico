@@ -490,25 +490,6 @@ export default function Home() {
                         </div>
                       )}
                       
-                      {flight.hora_llegada_vuelo && (
-                        <div className="border-b border-gray-200 pb-3 mb-3">
-                          <div className="flex items-center text-gray-700 mb-2">
-                            <span className="font-semibold mr-2">🕐 Llegada:</span>
-                            <span>{new Date(flight.hora_llegada_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                          {flight.timezone_info?.llegada && (
-                            <div className="ml-6 bg-purple-50 p-2 rounded">
-                              <div className="text-sm font-semibold text-purple-700">
-                                📍 {flight.timezone_info.llegada.ciudad}
-                              </div>
-                              <div className="text-sm text-purple-600">
-                                🕐 {flight.timezone_info.llegada.hora}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
                       {flight.porcentaje_promocion && flight.porcentaje_promocion > 0 && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-2">
                           <span className="text-yellow-700 font-semibold">🎉 {flight.porcentaje_promocion}% de descuento</span>
