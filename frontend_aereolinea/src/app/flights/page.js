@@ -1,13 +1,15 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { getCityTimezone } from "../../utils/timezones";
 
 export default function FlightsPage() {
   const searchParams = useSearchParams();
   const [flights, setFlights] = useState([]);
+  const [flightDetails, setFlightDetails] = useState({});
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState(searchParams.get('search') || "");
   const [ciudades, setCiudades] = useState([]);
@@ -21,6 +23,70 @@ export default function FlightsPage() {
   const [selectedArrivalDate, setSelectedArrivalDate] = useState(searchParams.get('arrivalDate') || "");
   const [filterDescuento, setFilterDescuento] = useState(searchParams.get('descuento') || "0");
 
+  // Función para formatear hora con timezone
+  const formatTimeWithTimezone = (dateString, ciudad) => {
+    if (!dateString || !ciudad) return null;
+    
+    const date = new Date(dateString);
+    const offset = getCityTimezone(ciudad);
+    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
+    
+    // Ajustar la hora según el offset de la ciudad
+    const localDate = new Date(date.getTime() + offset * 60 * 60 * 1000);
+    
+    // Hora local ajustada al timezone de la ciudad
+    const horaLocal = localDate.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'UTC'
+    });
+    
+    return {
+      local: horaLocal,
+      offset: offsetStr,
+      fecha: localDate.toLocaleDateString('es-ES', { timeZone: 'UTC' })
+    };
+  };
+
+  // Función para calcular llegada y duración
+  const calcularDetallesVuelo = async (flight) => {
+    if (!flight.hora_salida_vuelo || !flight.ruta?.origen?.nombre_ciudad || !flight.ruta?.destino?.nombre_ciudad) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/v1/flight-durations/duration?origen=${encodeURIComponent(flight.ruta.origen.nombre_ciudad)}&destino=${encodeURIComponent(flight.ruta.destino.nombre_ciudad)}`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const minutos = result.data.duracion_minutos;
+          const salidaDate = new Date(flight.hora_salida_vuelo);
+          const llegadaDate = new Date(salidaDate.getTime() + minutos * 60000);
+          
+          const horas = Math.floor(minutos / 60);
+          const mins = minutos % 60;
+          let duracionTexto = '';
+          if (horas === 0) duracionTexto = `${mins}min`;
+          else if (mins === 0) duracionTexto = `${horas}h`;
+          else duracionTexto = `${horas}h ${mins}min`;
+
+          return {
+            llegada: llegadaDate.toISOString(),
+            duracion: duracionTexto,
+            duracionMinutos: minutos
+          };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error calculando detalles:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     // Obtener vuelos
@@ -29,6 +95,16 @@ export default function FlightsPage() {
       .then((result) => {
         if (result.success && result.data) {
           setFlights(result.data);
+          // Calcular detalles de cada vuelo
+          result.data.forEach(async (flight) => {
+            const detalles = await calcularDetallesVuelo(flight);
+            if (detalles) {
+              setFlightDetails(prev => ({
+                ...prev,
+                [flight.ccv]: detalles
+              }));
+            }
+          });
         }
       })
       .catch(() => {})
@@ -168,7 +244,18 @@ export default function FlightsPage() {
                 flight.ruta?.codigo_ruta?.toLowerCase().includes(term) ||
                 String(flight.ccv).includes(term)
               );
-            }).map((flight) => (
+            }).map((flight) => {
+              const detalles = flightDetails[flight.ccv];
+              const salidaTimezone = flight.hora_salida_vuelo ? formatTimeWithTimezone(
+                flight.hora_salida_vuelo,
+                flight.ruta?.origen?.nombre_ciudad
+              ) : null;
+              const llegadaTimezone = detalles?.llegada ? formatTimeWithTimezone(
+                detalles.llegada,
+                flight.ruta?.destino?.nombre_ciudad
+              ) : null;
+              
+              return (
               <div key={flight.ccv} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow border border-gray-200">
                 <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
                   <div className="flex justify-between items-center">
@@ -204,24 +291,65 @@ export default function FlightsPage() {
                         <span>{new Date(flight.fecha_vuelo).toLocaleDateString("es-ES")}</span>
                       </div>
                     )}
-                    {flight.hora_salida_vuelo && (
-                      <div className="border-b border-gray-200 pb-3 mb-3">
-                        <div className="flex items-center text-gray-700 mb-2">
-                          <span className="font-semibold mr-2">🕐 Salida:</span>
-                          <span>{new Date(flight.hora_salida_vuelo).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</span>
+                    
+                    {/* Comparación de Horas: Salida y Llegada */}
+                    {flight.hora_salida_vuelo && salidaTimezone && (
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-300 rounded-lg p-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Salida */}
+                          <div className="bg-white rounded-lg p-3 border border-blue-200">
+                            <div className="text-xs font-semibold text-gray-600 mb-1">Salida</div>
+                            <div className="text-lg font-bold text-blue-700">{salidaTimezone.local}</div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              📍 {flight.ruta?.origen?.nombre_ciudad}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              (UTC{salidaTimezone.offset})
+                            </div>
+                          </div>
+                          
+                          {/* Llegada */}
+                          {detalles?.llegada && llegadaTimezone ? (
+                            <div className="bg-white rounded-lg p-3 border border-purple-200">
+                              <div className="text-xs font-semibold text-gray-600 mb-1">Llegada</div>
+                              <div className="text-lg font-bold text-purple-700">{llegadaTimezone.local}</div>
+                              <div className="text-xs text-purple-600 mt-1">
+                                📍 {flight.ruta?.destino?.nombre_ciudad}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                (UTC{llegadaTimezone.offset})
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-center">
+                              <span className="text-xs text-gray-500">Calculando...</span>
+                            </div>
+                          )}
                         </div>
-                        {flight.timezone_info?.salida && (
-                          <div className="ml-6 bg-blue-50 p-2 rounded">
-                            <div className="text-sm font-semibold text-blue-700">
-                              📍 {flight.timezone_info.salida.ciudad}
-                            </div>
-                            <div className="text-sm text-blue-600">
-                              🕐 {flight.timezone_info.salida.hora}
-                            </div>
+                        
+                        {/* Línea de diferencia horaria */}
+                        {detalles?.llegada && llegadaTimezone && (
+                          <div className="mt-2 pt-2 border-t border-gray-200 text-center">
+                            <span className="text-xs text-gray-600">
+                              Diferencia: <span className="font-semibold text-gray-800">
+                                {Math.abs(parseInt(salidaTimezone.offset) - parseInt(llegadaTimezone.offset))} horas
+                              </span>
+                            </span>
                           </div>
                         )}
                       </div>
                     )}
+                    
+                    {/* Duración del vuelo */}
+                    {detalles?.duracion && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center text-gray-700">
+                          <span className="font-semibold mr-2">⏱️ Duración:</span>
+                          <span className="text-lg font-bold text-gray-700">{detalles.duracion}</span>
+                        </div>
+                      </div>
+                    )}
+                    
                     {flight.porcentaje_promocion && flight.porcentaje_promocion > 0 && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-2">
                         <span className="text-yellow-700 font-semibold">🎉 {flight.porcentaje_promocion}% de descuento</span>
@@ -251,7 +379,7 @@ export default function FlightsPage() {
                   </button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </section>
@@ -259,3 +387,5 @@ export default function FlightsPage() {
     </div>
   );
 }
+
+

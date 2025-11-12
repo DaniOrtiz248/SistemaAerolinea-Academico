@@ -1,0 +1,60 @@
+### ============================================
+### PRUEBAS DEL GRAFO DE DURACIONES DE VUELOS
+### ============================================
+
+### Variables
+@baseUrl = http://localhost:3001/api/v1
+
+### ============================================
+### 1. Obtener duración entre Bogotá y Madrid
+### ============================================
+GET {{baseUrl}}/flight-durations/duration?origen=Bogota&destino=Madrid
+Content-Type: application/json
+
+### ============================================
+### 2. Obtener duración entre Pereira y Bogotá
+### ============================================
+GET {{baseUrl}}/flight-durations/duration?origen=Pereira&destino=Bogota
+Content-Type: application/json
+
+### ============================================
+### 3. Obtener duración entre Medellín y Miami
+### ============================================
+GET {{baseUrl}}/flight-durations/duration?origen=Medellin&destino=Miami
+Content-Type: application/json
+
+### ============================================
+### 4. Calcular hora de llegada (Bogotá a Madrid)
+### ============================================
+POST {{baseUrl}}/flight-durations/calculate-arrival
+Content-Type: application/json
+
+{
+  "origen": "Bogota",
+  "destino": "Madrid",
+  "hora_salida": "2025-11-15T10:00:00"
+}
+
+### ============================================
+### 5. Calcular hora de llegada (Pereira a Medellín)
+### ============================================
+POST {{baseUrl}}/flight-durations/calculate-arrival
+Content-Type: application/json
+
+{
+  "origen": "Pereira",
+  "destino": "Medellin",
+  "hora_salida": "2025-11-15T14:30:00"
+}
+
+### ============================================
+### 6. Calcular hora de llegada (Cartagena a Miami)
+### ============================================
+POST {{baseUrl}}/flight-durations/calculate-arrival
+Content-Type: application/json
+
+{
+  "origen": "Cartagena",
+  "destino": "Miami",
+  "hora_salida": "2025-11-15T08:00:00"
+}

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import { getCityTimezone } from '../../../utils/timezones';
 
 export default function AdminFlights() {
   const [flights, setFlights] = useState([]);
@@ -76,6 +77,29 @@ export default function AdminFlights() {
     fetchData();
   }, []);
 
+  // Función para obtener la duración del vuelo desde el grafo
+  const getFlightDuration = async (origen, destino) => {
+    try {
+      if (!origen || !destino) return null;
+      
+      const response = await fetch(
+        `http://localhost:3001/api/v1/flight-durations/duration?origen=${encodeURIComponent(origen)}&destino=${encodeURIComponent(destino)}`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return {
+          minutos: result.data.duracion_minutos,
+          formateada: result.data.duracion_formateada
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error obteniendo duración:', error);
+      return null;
+    }
+  };
+
   const filteredFlights = flights.filter(flight => {
     const matchesSearch = 
       flight.ccv?.toString().includes(searchTerm.toLowerCase()) ||
@@ -121,6 +145,40 @@ export default function AdminFlights() {
     return {
       date: date.toLocaleDateString('es-ES'),
       time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    };
+  };
+
+  // Función para formatear hora con información de timezone
+  const formatTimeWithTimezone = (dateString, ciudad) => {
+    if (!dateString || !ciudad) return null;
+    
+    const date = new Date(dateString);
+    const offset = getCityTimezone(ciudad);
+    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
+    
+    // Ajustar la hora según el offset de la ciudad
+    // La fecha viene en UTC, la ajustamos al timezone local de la ciudad
+    const localDate = new Date(date.getTime() + offset * 60 * 60 * 1000);
+    
+    // Hora local ajustada al timezone de la ciudad
+    const horaLocal = localDate.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'UTC' // Usamos UTC porque ya ajustamos manualmente
+    });
+    
+    // Hora UTC (sin ajuste)
+    const horaUTC = date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'UTC'
+    });
+    
+    return {
+      local: horaLocal,
+      utc: horaUTC,
+      offset: offsetStr,
+      fecha: localDate.toLocaleDateString('es-ES', { timeZone: 'UTC' })
     };
   };
 
@@ -210,6 +268,60 @@ export default function AdminFlights() {
       estado: 1
     });
 
+    const [horaLlegadaCalculada, setHoraLlegadaCalculada] = useState(null);
+    const [duracionVuelo, setDuracionVuelo] = useState(null);
+
+    // Función para calcular la hora de llegada usando el grafo
+    const calcularHoraLlegada = async (rutaId, horaSalida) => {
+      if (!rutaId || !horaSalida) {
+        setHoraLlegadaCalculada(null);
+        setDuracionVuelo(null);
+        return;
+      }
+
+      try {
+        const ruta = routes.find(r => r.id_ruta === parseInt(rutaId));
+        if (!ruta) return;
+
+        const origen = ruta.origen?.nombre_ciudad;
+        const destino = ruta.destino?.nombre_ciudad;
+
+        if (!origen || !destino) return;
+
+        // Llamar al backend para obtener la duración
+        const response = await fetch(
+          `http://localhost:3001/api/v1/flight-durations/duration?origen=${encodeURIComponent(origen)}&destino=${encodeURIComponent(destino)}`
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          const duracionMinutos = result.data.duracion_minutos;
+          
+          // Calcular hora de llegada
+          const salida = new Date(horaSalida);
+          const llegada = new Date(salida.getTime() + duracionMinutos * 60000);
+          
+          setHoraLlegadaCalculada(llegada);
+          setDuracionVuelo(result.data.duracion_formateada);
+        } else {
+          console.error('Error al obtener duración del vuelo');
+          setHoraLlegadaCalculada(null);
+          setDuracionVuelo(null);
+        }
+      } catch (error) {
+        console.error('Error calculando hora de llegada:', error);
+        setHoraLlegadaCalculada(null);
+        setDuracionVuelo(null);
+      }
+    };
+
+    // Efecto para calcular hora de llegada cuando cambien ruta o hora de salida
+    useEffect(() => {
+      if (formData.ruta_relacionada && formData.hora_salida_vuelo) {
+        calcularHoraLlegada(formData.ruta_relacionada, formData.hora_salida_vuelo);
+      }
+    }, [formData.ruta_relacionada, formData.hora_salida_vuelo]);
+
     // Función para manejar el cambio de fecha de vuelo
     const handleFechaVueloChange = (newDate) => {
       setFormData({
@@ -272,6 +384,12 @@ export default function AdminFlights() {
       
       // Validación adicional para crear vuelo
       if (!editingFlight) {
+        // Validar que se haya calculado la hora de llegada
+        if (!horaLlegadaCalculada) {
+          alert('⚠️ Error: No se pudo calcular la hora de llegada. Verifica que la ruta y hora de salida sean correctas.');
+          return;
+        }
+
         // Validar la anticipación mínima según el tipo de ruta
         const rutaSeleccionada = routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada));
         const ahora = new Date();
@@ -367,6 +485,7 @@ export default function AdminFlights() {
             ruta_relacionada: parseInt(formData.ruta_relacionada),
             fecha_vuelo: formData.fecha_vuelo, // Ya está en formato YYYY-MM-DD
             hora_salida_vuelo: formatDateTime(formData.hora_salida_vuelo),
+            hora_llegada_vuelo: formatDateTime(horaLlegadaCalculada.toISOString().slice(0, 16)), // Hora calculada desde el grafo
             estado: parseInt(formData.estado),
             porcentaje_promocion: parseFloat(formData.porcentaje_promocion) || 0
           };
@@ -645,6 +764,42 @@ export default function AdminFlights() {
                   </p>
                 </div>
                 
+                {/* Campo informativo de hora de llegada calculada */}
+                {horaLlegadaCalculada && duracionVuelo && (
+                  <div className="md:col-span-2 bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <h3 className="text-sm font-medium text-blue-800">
+                          ✈️ Hora de Llegada Calculada Automáticamente
+                        </h3>
+                        <div className="mt-2 text-sm text-blue-700">
+                          <p className="font-semibold">
+                            🕐 Llegada estimada: {horaLlegadaCalculada.toLocaleString('es-ES', { 
+                              dateStyle: 'short', 
+                              timeStyle: 'short' 
+                            })}
+                          </p>
+                          <p className="mt-1">
+                            ⏱️ Duración del vuelo: <span className="font-medium">{duracionVuelo}</span>
+                          </p>
+                          {formData.ruta_relacionada && routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada))?.destino?.nombre_ciudad && (
+                            <p className="mt-1">
+                              📍 Destino: <span className="font-medium">
+                                {routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada))?.destino?.nombre_ciudad}
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-900 mb-1">
                     Porcentaje de Promoción (%)
@@ -767,28 +922,34 @@ export default function AdminFlights() {
         {/* Tabla de vuelos */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-200 table-fixed">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-24 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Vuelo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-40 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ruta
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-44 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Salida
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-44 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Llegada
+                  </th>
+                  <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Duración
+                  </th>
+                  <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Precio
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-32 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Asientos
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-64 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -796,6 +957,80 @@ export default function AdminFlights() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredFlights.map((flight) => {
                   const departure = formatDateTime(flight.hora_salida_vuelo);
+                  
+                  // Calcular hora de llegada y duración usando el grafo
+                  let llegadaCalculada = null;
+                  let duracionMinutos = null;
+                  let duracionFormateada = 'N/A';
+                  
+                  if (flight.hora_salida_vuelo && flight.ruta?.origen?.nombre_ciudad && flight.ruta?.destino?.nombre_ciudad) {
+                    // Obtener duración desde el grafo de forma síncrona (ya cargado)
+                    fetch(`http://localhost:3001/api/v1/flight-durations/duration?origen=${encodeURIComponent(flight.ruta.origen.nombre_ciudad)}&destino=${encodeURIComponent(flight.ruta.destino.nombre_ciudad)}`)
+                      .then(res => res.json())
+                      .then(result => {
+                        if (result.success && result.data) {
+                          const minutos = result.data.duracion_minutos;
+                          const salidaDate = new Date(flight.hora_salida_vuelo);
+                          const llegadaDate = new Date(salidaDate.getTime() + minutos * 60000);
+                          
+                          // Actualizar el DOM directamente para este vuelo
+                          const arriboCells = document.querySelectorAll(`[data-flight-arrival="${flight.ccv}"]`);
+                          const duracionCells = document.querySelectorAll(`[data-flight-duration="${flight.ccv}"]`);
+                          
+                          arriboCells.forEach(cell => {
+                            const arrivalFormatted = formatDateTime(llegadaDate.toISOString());
+                            const llegadaTimezone = formatTimeWithTimezone(llegadaDate.toISOString(), flight.ruta.destino.nombre_ciudad);
+                            
+                            cell.innerHTML = `
+                              <div class="text-sm text-gray-900">${arrivalFormatted.date}</div>
+                              <div class="text-sm font-medium text-gray-900">${arrivalFormatted.time}</div>
+                              <div class="mt-1 pt-1 border-t border-gray-200">
+                                <div class="text-xs font-semibold text-purple-700">
+                                  🛬 ${flight.ruta.destino.nombre_ciudad}
+                                </div>
+                                <div class="text-xs text-purple-600">
+                                  Local: ${llegadaTimezone.local} (UTC${llegadaTimezone.offset})
+                                </div>
+                              </div>
+                            `;
+                          });
+                          
+                          duracionCells.forEach(cell => {
+                            const horas = Math.floor(minutos / 60);
+                            const mins = minutos % 60;
+                            let duracionTexto = '';
+                            if (horas === 0) duracionTexto = `${mins}min`;
+                            else if (mins === 0) duracionTexto = `${horas}h`;
+                            else duracionTexto = `${horas}h ${mins}min`;
+                            
+                            cell.innerHTML = `
+                              <div class="text-sm font-medium text-gray-900">
+                                ⏱️ ${duracionTexto}
+                              </div>
+                              <div class="text-xs text-gray-500 mt-1">
+                                ${minutos} minutos
+                              </div>
+                            `;
+                          });
+                        }
+                      })
+                      .catch(err => console.error('Error calculando duración:', err));
+                  }
+                  
+                  // Obtener información de timezone para salida
+                  const salidaTimezone = formatTimeWithTimezone(
+                    flight.hora_salida_vuelo, 
+                    flight.ruta?.origen?.nombre_ciudad
+                  );
+
+                  const formatDuracion = (minutos) => {
+                    if (!minutos) return 'N/A';
+                    const horas = Math.floor(minutos / 60);
+                    const mins = minutos % 60;
+                    if (horas === 0) return `${mins}min`;
+                    if (mins === 0) return `${horas}h`;
+                    return `${horas}h ${mins}min`;
+                  };
                   
                   // Calcular precios con descuento si hay promoción
                   const precioClase1 = flight.porcentaje_promocion 
@@ -808,7 +1043,7 @@ export default function AdminFlights() {
                   
                   return (
                     <tr key={flight.ccv} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">#{flight.ccv}</div>
                         {flight.porcentaje_promocion > 0 && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -816,9 +1051,9 @@ export default function AdminFlights() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{flight.ruta?.codigo_ruta || 'N/A'}</div>
-                        <div className="text-sm text-gray-900">
+                      <td className="px-4 py-4">
+                        <div className="text-sm font-medium text-gray-900 truncate">{flight.ruta?.codigo_ruta || 'N/A'}</div>
+                        <div className="text-xs text-gray-900 truncate">
                           {flight.ruta?.origen?.nombre_ciudad || 'N/A'} → {flight.ruta?.destino?.nombre_ciudad || 'N/A'}
                         </div>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -827,25 +1062,31 @@ export default function AdminFlights() {
                           {flight.ruta?.es_nacional ? 'Nacional' : 'Internacional'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4">
                         <div className="text-sm text-gray-900">{departure.date}</div>
                         <div className="text-sm font-medium text-gray-900">{departure.time}</div>
-                        {flight.timezone_info?.salida && (
+                        {salidaTimezone && (
                           <div className="mt-1 pt-1 border-t border-gray-200">
-                            <div className="text-xs font-semibold text-blue-700">
-                              {flight.ruta?.origen?.nombre_ciudad}
+                            <div className="text-xs font-semibold text-blue-700 truncate">
+                              🛫 {flight.ruta?.origen?.nombre_ciudad || 'N/A'}
                             </div>
                             <div className="text-xs text-blue-600">
-                              {flight.timezone_info.salida.hora}
+                              {salidaTimezone.local} (UTC{salidaTimezone.offset})
                             </div>
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4" data-flight-arrival={flight.ccv}>
+                        <div className="text-sm text-gray-500">Calculando...</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap" data-flight-duration={flight.ccv}>
+                        <div className="text-sm text-gray-500">Calculando...</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-blue-600">1ª: ${precioClase1}</div>
                         <div className="text-sm font-medium text-green-600">2ª: ${precioClase2}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {flight.available_seats || 0}/{flight.total_seats}
                         </div>
@@ -856,29 +1097,31 @@ export default function AdminFlights() {
                           ></div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         {getStatusBadge(flight)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleEdit(flight)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          ✏️ Editar
-                        </button>
-                        <button
-                          onClick={() => handlePublish(flight)}
-                          disabled={publishingCcv === flight.ccv}
-                          className={`mr-3 ${publishingCcv === flight.ccv ? 'text-gray-400' : 'text-green-600 hover:text-green-900'}`}
-                        >
-                          {publishingCcv === flight.ccv ? 'Enviando...' : '📣 Publicar'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(flight.ccv)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          🗑️ Cancelar
-                        </button>
+                      <td className="px-4 py-4 text-sm font-medium">
+                        <div className="flex flex-col space-y-2">
+                          <button
+                            onClick={() => handleEdit(flight)}
+                            className="text-blue-600 hover:text-blue-900 text-left"
+                          >
+                            ✏️ Editar
+                          </button>
+                          <button
+                            onClick={() => handlePublish(flight)}
+                            disabled={publishingCcv === flight.ccv}
+                            className={`text-left ${publishingCcv === flight.ccv ? 'text-gray-400' : 'text-green-600 hover:text-green-900'}`}
+                          >
+                            {publishingCcv === flight.ccv ? 'Enviando...' : '📣 Publicar'}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(flight.ccv)}
+                            className="text-red-600 hover:text-red-900 text-left"
+                          >
+                            🗑️ Cancelar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -7,6 +7,7 @@ import { userRoutes } from './routes/userRoutes.js'
 import { flightRoutes } from './routes/flightRoutes.js'
 import { routeRoutes } from './routes/routeRoutes.js'
 import { ciudadRoutes } from './routes/ciudadRoutes.js'
+import flightDurationRoutes from './routes/flightDurationRoutes.js'
 import { corsMiddleware } from './middleware/cors.js'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
@@ -34,6 +35,7 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/flights', flightRoutes)
 app.use('/api/v1/routes', routeRoutes)
 app.use('/api/v1/ciudades', ciudadRoutes)
+app.use('/api/v1/flight-durations', flightDurationRoutes)
 
 // Manejo de errores
 app.use((req, res, next) => {
