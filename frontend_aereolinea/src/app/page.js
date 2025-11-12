@@ -74,24 +74,22 @@ export default function Home() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    // Validar campos requeridos
-    if (!searchData.origin || !searchData.destination) {
-      alert('Por favor selecciona ciudad de origen y destino');
+    // Require at least origin OR destination
+    if (!searchData.origin && !searchData.destination) {
+      alert('Por favor selecciona origen o destino para realizar la búsqueda.');
       return;
     }
-    if (!searchData.departureDate) {
-      alert('Por favor selecciona la fecha de salida');
-      return;
-    }
+
+    // Construir parámetros solo con los campos provistos
+    const params = new URLSearchParams();
+    if (searchData.origin) params.append('origin', searchData.origin);
+    if (searchData.destination) params.append('destination', searchData.destination);
+    if (searchData.departureDate) params.append('departureDate', searchData.departureDate);
+    if (searchData.returnDate) params.append('returnDate', searchData.returnDate);
+    if (searchData.passengers) params.append('passengers', searchData.passengers);
+    if (searchData.tripType) params.append('tripType', searchData.tripType);
+
     // Redirigir a /flights con los parámetros
-    const params = new URLSearchParams({
-      origin: searchData.origin,
-      destination: searchData.destination,
-      departureDate: searchData.departureDate,
-      returnDate: searchData.returnDate,
-      passengers: searchData.passengers,
-      tripType: searchData.tripType
-    });
     router.push(`/flights?${params.toString()}`);
   };
 
@@ -219,7 +217,6 @@ export default function Home() {
                   value={searchData.origin}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border text-gray-600 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
                 >
                   <option value="">Selecciona origen</option>
                   {ciudades.map((ciudad) => (
@@ -240,7 +237,6 @@ export default function Home() {
                   value={searchData.destination}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border text-gray-600 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
                 >
                   <option value="">Selecciona destino</option>
                   {ciudades.map((ciudad) => (
