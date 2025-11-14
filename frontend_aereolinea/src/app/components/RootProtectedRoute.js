@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
+import CustomPopup from './CustomPopup';
+import usePopup from '../hooks/usePopup';
 
 export default function RootProtectedRoute({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const { popupState, showError, closePopup } = usePopup();
 
   useEffect(() => {
     checkAuthorization();
@@ -25,8 +28,10 @@ export default function RootProtectedRoute({ children }) {
       // Check if user is root (id_rol = 1)
       if (user.id_rol !== 1) {
         // Not a root user, redirect to home
-        alert('Acceso denegado. Solo el usuario root puede acceder a esta sección.');
-        window.location.href = '/';
+        showError('Solo el usuario root puede acceder a esta sección.', 'Acceso denegado');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
         return;
       }
 
@@ -96,6 +101,16 @@ export default function RootProtectedRoute({ children }) {
         </button>
       </div>
       {children}
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </div>
   );
 }

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import AdminCard from '../../components/AdminCard';
 import AdminForm from '../../components/AdminForm';
 import adminService from '../../services/adminService';
+import CustomPopup from '../../components/CustomPopup';
+import usePopup from '../../hooks/usePopup';
 
 export default function RootDashboard() {
   const [admins, setAdmins] = useState([]);
@@ -11,6 +13,7 @@ export default function RootDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const { popupState, showSuccess, showError, closePopup } = usePopup();
 
   // Load admins on component mount
   useEffect(() => {
@@ -45,10 +48,9 @@ export default function RootDashboard() {
     try {
       await adminService.deleteAdmin(adminId);
       setAdmins(prev => prev.filter(admin => admin.id_usuario !== adminId));
-      // Show success message
-      alert('Administrador eliminado exitosamente');
+      showSuccess('Administrador eliminado exitosamente');
     } catch (err) {
-      alert('Error al eliminar administrador: ' + err.message);
+      showError('Error al eliminar administrador: ' + err.message);
       console.error('Error deleting admin:', err);
     }
   };
@@ -57,7 +59,7 @@ export default function RootDashboard() {
     try {
       // Create new admin
       await adminService.createAdmin(formData);
-      alert('Administrador creado exitosamente');
+      showSuccess('Administrador creado exitosamente');
       
       setShowForm(false);
       await loadAdmins(); // Refresh the list
@@ -238,6 +240,16 @@ export default function RootDashboard() {
         onSave={handleSaveAdmin}
         onCancel={handleCancelForm}
         isOpen={showForm}
+      />
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
       />
     </div>
   );

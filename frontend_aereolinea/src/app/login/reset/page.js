@@ -3,10 +3,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import CustomPopup from '../../components/CustomPopup';
+import usePopup from '../../hooks/usePopup';
 
 export default function ResetPassword() {
   const [step, setStep] = useState(1); // 1: request PIN, 2: enter PIN and new password
   const [loading, setLoading] = useState(false);
+  const { popupState, showWarning, showSuccess, showError, closePopup } = usePopup();
   const [formData, setFormData] = useState({
     identifier: '',
     pin: '',
@@ -27,7 +30,7 @@ export default function ResetPassword() {
     e.preventDefault();
     
     if (!formData.identifier.trim()) {
-      alert('Por favor ingresa tu usuario o correo electrónico');
+      showWarning('Por favor ingresa tu usuario o correo electrónico');
       return;
     }
 
@@ -49,10 +52,10 @@ export default function ResetPassword() {
         throw new Error(data.error || 'Error al solicitar el PIN');
       }
 
-      alert('PIN enviado exitosamente. Revisa tu correo electrónico');
+      showSuccess('Revisa tu correo electrónico', 'PIN enviado exitosamente');
       setStep(2);
     } catch (error) {
-      alert('Error: ' + error.message);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
@@ -64,22 +67,22 @@ export default function ResetPassword() {
 
     // Validation
     if (!formData.pin.trim()) {
-      alert('Por favor ingresa el PIN');
+      showWarning('Por favor ingresa el PIN');
       return;
     }
 
     if (!formData.newPassword.trim()) {
-      alert('Por favor ingresa la nueva contraseña');
+      showWarning('Por favor ingresa la nueva contraseña');
       return;
     }
 
     if (formData.newPassword.length < 8) {
-      alert('La contraseña debe tener al menos 8 caracteres');
+      showWarning('La contraseña debe tener al menos 8 caracteres');
       return;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      showWarning('Las contraseñas no coinciden');
       return;
     }
 
@@ -103,12 +106,14 @@ export default function ResetPassword() {
         throw new Error(data.error || 'Error al restablecer la contraseña');
       }
 
-      alert('¡Contraseña restablecida exitosamente! Ahora puedes iniciar sesión con tu nueva contraseña.');
+      showSuccess('¡Ahora puedes iniciar sesión con tu nueva contraseña!', '¡Contraseña restablecida!');
       
       // Redirect to login page
-      window.location.href = '/login';
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
     } catch (error) {
-      alert('Error: ' + error.message);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
@@ -359,6 +364,16 @@ export default function ResetPassword() {
       </section>
 
       <Footer />
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </div>
   );
 }

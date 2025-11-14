@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { getCityTimezone } from '../../../utils/timezones';
+import CustomPopup from '../../components/CustomPopup';
+import usePopup from '../../hooks/usePopup';
 
 export default function AdminFlights() {
   const [flights, setFlights] = useState([]);
@@ -12,6 +14,7 @@ export default function AdminFlights() {
   const [editingFlight, setEditingFlight] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const { popupState, showWarning, showSuccess, showError, showConfirm, closePopup } = usePopup();
 
   useEffect(() => {
     // Cargar vuelos y rutas del backend
@@ -69,7 +72,7 @@ export default function AdminFlights() {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Error al cargar los datos: ' + error.message);
+        showError('Error al cargar los datos: ' + error.message);
       } finally {
         setLoading(false);
       }
@@ -188,66 +191,74 @@ export default function AdminFlights() {
   };
 
   const handleDelete = async (flightId) => {
-    if (!confirm('¿Estás seguro de que quieres cancelar este vuelo? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    showConfirm(
+      '¿Estás seguro de que quieres cancelar este vuelo? Esta acción no se puede deshacer.',
+      async () => {
+        try {
+          const response = await fetch(`http://localhost:3001/api/v1/flights/${flightId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
 
-    try {
-      const response = await fetch(`http://localhost:3001/api/v1/flights/${flightId}`, {
-        method: 'DELETE',
-        credentials: 'include' // Para enviar cookies de autenticación
-      });
+          if (response.ok) {
+            const result = await response.json();
+            showSuccess(result.message || 'Vuelo eliminado exitosamente');
+            
+            setFlights(flights.filter(f => f.ccv !== flightId));
+          } else {
+            const error = await response.json();
+            console.error('Error canceling flight:', error);
 
-      if (response.ok) {
-        const result = await response.json();
-        alert(result.message || 'Vuelo eliminado exitosamente');
-        
-        // Actualizar la lista de vuelos
-        setFlights(flights.filter(f => f.ccv !== flightId));
-      } else {
-        const error = await response.json();
-        console.error('Error canceling flight:', error);
-
-        let errorMessage = 'Error al cancelar el vuelo';
-        if (error.details) {
-          errorMessage = error.details;
-        } else if (error.error) {
-          errorMessage = error.error;
+            let errorMessage = 'Error al cancelar el vuelo';
+            if (error.details) {
+              errorMessage = error.details;
+            } else if (error.error) {
+              errorMessage = error.error;
+            }
+            
+            showError(errorMessage);
+          }
+        } catch (error) {
+          console.error('Network error:', error);
+          showError('Error de conexión al intentar cancelar el vuelo: ' + error.message);
         }
-        
-        alert(errorMessage);
-      }
-    } catch (error) {
-      console.error('Network error:', error);
-      alert('Error de conexión al intentar cancelar el vuelo: ' + error.message);
-    }
+      },
+      '¿Cancelar vuelo?',
+      'Sí, cancelar',
+      'No'
+    );
   };
 
   const handlePublish = async (flight) => {
-    const confirmed = confirm(`¿Enviar promoción por correo para el vuelo #${flight.ccv}?`);
-    if (!confirmed) return;
+    showConfirm(
+      `¿Enviar promoción por correo para el vuelo #${flight.ccv}?`,
+      async () => {
+        try {
+          setPublishingCcv(flight.ccv);
+          const response = await fetch(`http://localhost:3001/api/v1/flights/publish-promotion/${flight.ccv}`, {
+            method: 'POST',
+            credentials: 'include'
+          });
 
-    try {
-      setPublishingCcv(flight.ccv);
-      const response = await fetch(`http://localhost:3001/api/v1/flights/publish-promotion/${flight.ccv}`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const result = await response.json().catch(() => ({}));
-        alert(result.message || 'Promoción publicada correctamente');
-      } else {
-        const errorData = await response.json().catch(() => ({ error: response.statusText }));
-        const message = errorData.error || errorData.message || `Error ${response.status}`;
-        alert('Error al publicar promoción: ' + message);
-      }
-    } catch (err) {
-      console.error('Network error publishing promotion:', err);
-      alert('Error de conexión al publicar la promoción: ' + (err.message || err));
-    } finally {
-      setPublishingCcv(null);
-    }
+          if (response.ok) {
+            const result = await response.json().catch(() => ({}));
+            showSuccess(result.message || 'Promoción publicada correctamente');
+          } else {
+            const errorData = await response.json().catch(() => ({ error: response.statusText }));
+            const message = errorData.error || errorData.message || `Error ${response.status}`;
+            showError('Error al publicar promoción: ' + message);
+          }
+        } catch (err) {
+          console.error('Network error publishing promotion:', err);
+          showError('Error de conexión al publicar la promoción: ' + (err.message || err));
+        } finally {
+          setPublishingCcv(null);
+        }
+      },
+      'Publicar Promoción',
+      'Sí, enviar',
+      'Cancelar'
+    );
   };
 
   const FlightModal = () => {
@@ -386,7 +397,7 @@ export default function AdminFlights() {
       if (!editingFlight) {
         // Validar que se haya calculado la hora de llegada
         if (!horaLlegadaCalculada) {
-          alert('⚠️ Error: No se pudo calcular la hora de llegada. Verifica que la ruta y hora de salida sean correctas.');
+          showWarning('No se pudo calcular la hora de llegada. Verifica que la ruta y hora de salida sean correctas.', '⚠️ Error');
           return;
         }
 
@@ -401,7 +412,7 @@ export default function AdminFlights() {
           const tipoRuta = rutaSeleccionada.es_nacional ? 'nacional' : 'internacional';
           
           if (diferenciaHoras < horasMinimas) {
-            alert(`⚠️ Error: Para vuelos ${tipoRuta}es, la hora de salida debe ser al menos ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''} mayor a la hora actual.\n\nHora actual: ${ahora.toLocaleString('es-ES')}\nAnticipación requerida: ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''}`);
+            showWarning(`Para vuelos ${tipoRuta}es, la hora de salida debe ser al menos ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''} mayor a la hora actual.\n\nHora actual: ${ahora.toLocaleString('es-ES')}\nAnticipación requerida: ${horasMinimas} hora${horasMinimas > 1 ? 's' : ''}`, '⚠️ Error de Anticipación');
             return;
           }
         }
@@ -427,7 +438,7 @@ export default function AdminFlights() {
 
           if (response.ok) {
             const result = await response.json();
-            alert('Descuento aplicado exitosamente');
+            showSuccess('Descuento aplicado exitosamente');
             
             // Recargar vuelos
             const flightsResponse = await fetch('http://localhost:3001/api/v1/flights');
@@ -464,7 +475,7 @@ export default function AdminFlights() {
               errorMessage = error.error;
             }
             
-            alert(errorMessage);
+            showError(errorMessage);
           }
         } else {
           // Crear nuevo vuelo
@@ -503,7 +514,7 @@ export default function AdminFlights() {
 
           if (response.ok) {
             const result = await response.json();
-            alert('Vuelo creado exitosamente');
+            showSuccess('Vuelo creado exitosamente');
             
             // Recargar vuelos
             const flightsResponse = await fetch('http://localhost:3001/api/v1/flights/admin');
@@ -541,12 +552,12 @@ export default function AdminFlights() {
               errorMessage = error.error;
             }
             
-            alert(errorMessage);
+            showError(errorMessage);
           }
         }
       } catch (error) {
         console.error('Network error:', error);
-        alert('Error de conexión al crear el vuelo: ' + error.message);
+        showError('Error de conexión al crear el vuelo: ' + error.message);
       }
     };
 
@@ -1139,6 +1150,16 @@ export default function AdminFlights() {
       </div>
 
       {showModal && <FlightModal />}
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </AdminLayout>
   );
 }

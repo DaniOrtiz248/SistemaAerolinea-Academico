@@ -1,10 +1,18 @@
 'use client';
+import CustomPopup from './CustomPopup';
+import usePopup from '../hooks/usePopup';
 
 export default function AdminCard({ admin, onDelete }) {
+  const { popupState, showConfirm, closePopup } = usePopup();
+
   const handleDelete = () => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar al administrador ${admin.descripcion_usuario}?`)) {
-      onDelete(admin.id_usuario);
-    }
+    showConfirm(
+      `¿Estás seguro de que deseas eliminar al administrador ${admin.descripcion_usuario}?`,
+      () => onDelete(admin.id_usuario),
+      'Eliminar Administrador',
+      'Sí, eliminar',
+      'Cancelar'
+    );
   };
 
   return (
@@ -52,6 +60,16 @@ export default function AdminCard({ admin, onDelete }) {
           </button>
         </div>
       </div>
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </div>
   );
 }

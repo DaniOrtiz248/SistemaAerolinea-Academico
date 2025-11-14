@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
+import CustomPopup from "../../components/CustomPopup";
+import usePopup from "../../hooks/usePopup";
 
 export default function AdminRoutes() {
   const [routes, setRoutes] = useState([]);
   const [ciudades, setCiudades] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingRoute, setEditingRoute] = useState(null);
+  const { popupState, showConfirm, showSuccess, showError, closePopup } = usePopup();
   const [formData, setFormData] = useState({
     ciudad_origen: "",
     ciudad_destino: "",
@@ -90,8 +93,17 @@ export default function AdminRoutes() {
         })
       });
       if (res.ok) {
-        const created = await res.json();
-        setRoutes(prev => [created, ...prev]);
+        // Recargar todas las rutas después de crear
+        const resRoutes = await fetch("http://localhost:3001/api/v1/routes", { credentials: "include" });
+        if (resRoutes.ok) {
+          const dataRoutes = await resRoutes.json();
+          if (Array.isArray(dataRoutes)) {
+            setRoutes(dataRoutes);
+          } else if (dataRoutes.data && Array.isArray(dataRoutes.data)) {
+            setRoutes(dataRoutes.data);
+          }
+        }
+        showSuccess('Ruta creada exitosamente');
         setShowModal(false);
         setFormData({
           ciudad_origen: "",
@@ -116,21 +128,28 @@ export default function AdminRoutes() {
   };
 
   const handleDeleteRoute = async id_ruta => {
-    if (!window.confirm("¿Estás seguro de que deseas eliminar esta ruta?")) return;
-    try {
-      // Consulta directa DELETE (aunque no haya endpoint en backend)
-      const res = await fetch(`http://localhost:3001/api/v1/routes/${id_ruta}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-      if (res.ok) {
-        setRoutes(prev => prev.filter(r => r.id_ruta !== id_ruta));
-      } else {
-        setError("No se pudo eliminar la ruta");
-      }
-    } catch (err) {
-      setError("Error de red al eliminar ruta");
-    }
+    showConfirm(
+      '¿Estás seguro de que deseas eliminar esta ruta?',
+      async () => {
+        try {
+          const res = await fetch(`http://localhost:3001/api/v1/routes/${id_ruta}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+          if (res.ok) {
+            setRoutes(prev => prev.filter(r => r.id_ruta !== id_ruta));
+            showSuccess('Ruta eliminada exitosamente');
+          } else {
+            showError("No se pudo eliminar la ruta");
+          }
+        } catch (err) {
+          showError("Error de red al eliminar ruta");
+        }
+      },
+      'Eliminar Ruta',
+      'Sí, eliminar',
+      'Cancelar'
+    );
   };
 
   const handleEditRoute = route => {
@@ -162,8 +181,17 @@ export default function AdminRoutes() {
         })
       });
       if (res.ok) {
-        const updated = await res.json();
-        setRoutes(prev => prev.map(r => r.id_ruta === editingRoute.id_ruta ? updated : r));
+        // Recargar todas las rutas después de actualizar
+        const resRoutes = await fetch("http://localhost:3001/api/v1/routes", { credentials: "include" });
+        if (resRoutes.ok) {
+          const dataRoutes = await resRoutes.json();
+          if (Array.isArray(dataRoutes)) {
+            setRoutes(dataRoutes);
+          } else if (dataRoutes.data && Array.isArray(dataRoutes.data)) {
+            setRoutes(dataRoutes.data);
+          }
+        }
+        showSuccess('Ruta actualizada exitosamente');
         setShowModal(false);
         setEditingRoute(null);
         setFormData({
@@ -360,6 +388,16 @@ export default function AdminRoutes() {
           </div>
         )}
       </div>
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </AdminLayout>
   );
 }

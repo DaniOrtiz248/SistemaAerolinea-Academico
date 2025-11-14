@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import CustomPopup from './components/CustomPopup';
+import usePopup from './hooks/usePopup';
 
 export default function Home() {
   const router = useRouter();
@@ -11,6 +13,7 @@ export default function Home() {
   const [flights, setFlights] = useState([]);
   const [loadingFlights, setLoadingFlights] = useState(false);
   const [ciudades, setCiudades] = useState([]);
+  const { popupState, showWarning, showSuccess, showError, showAlert, closePopup } = usePopup();
   const [searchData, setSearchData] = useState({
     origin: '',
     destination: '',
@@ -76,7 +79,7 @@ export default function Home() {
     e.preventDefault();
     // Require at least origin OR destination
     if (!searchData.origin && !searchData.destination) {
-      alert('Por favor selecciona origen o destino para realizar la búsqueda.');
+      showWarning('Por favor selecciona origen o destino para realizar la búsqueda.');
       return;
     }
 
@@ -111,7 +114,7 @@ export default function Home() {
           setFlights(result.data);
           
           if (result.data.length > 0) {
-            alert(`Se encontraron ${result.data.length} vuelos disponibles. Revisa la sección de vuelos más abajo.`);
+            showSuccess(`Se encontraron ${result.data.length} vuelos disponibles. Revisa la sección de vuelos más abajo.`);
             
             // Scroll suave a la sección de vuelos
             setTimeout(() => {
@@ -121,16 +124,16 @@ export default function Home() {
               }
             }, 500);
           } else {
-            alert('No hay vuelos disponibles en este momento.');
+            showAlert('No hay vuelos disponibles en este momento.', 'info');
           }
         }
       } else {
         console.error('Error fetching flights:', response.status);
-        alert('Error al obtener los vuelos');
+        showError('Error al obtener los vuelos');
       }
     } catch (error) {
       console.error('Network error:', error);
-      alert('Error de conexión al obtener los vuelos');
+      showError('Error de conexión al obtener los vuelos');
     } finally {
       setLoadingFlights(false);
     }
@@ -524,6 +527,16 @@ export default function Home() {
       )}
 
       <Footer />
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </div>
   );
 }

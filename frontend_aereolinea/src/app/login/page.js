@@ -4,10 +4,13 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import CustomPopup from '../components/CustomPopup';
+import usePopup from '../hooks/usePopup';
 
 
 export default function Login() {
   const searchParams = useSearchParams();
+  const { popupState, showSuccess, showError, closePopup } = usePopup();
   const [loginData, setLoginData] = useState({
     identifier: '',
     password: '',
@@ -78,26 +81,26 @@ export default function Login() {
         window.location.href = '/root/dashboard';
       } else if (userData.id_rol === 2) {
         // Administrator user - redirect to admin dashboard
-        alert('Inicio de sesión exitoso - Bienvenido Administrador');
-        window.location.href = '/admin';
+        showSuccess('Bienvenido Administrador', '¡Inicio de sesión exitoso!');
+        setTimeout(() => window.location.href = '/admin', 1500);
       } else if (userData.id_rol === 3) {
         // Regular users
         if (fromAccount === 'account') {
           // If they came from "Mi Cuenta", redirect them there
-          alert('Inicio de sesión exitoso - Redirigiendo a tu cuenta');
-          window.location.href = '/account';
+          showSuccess('Redirigiendo a tu cuenta...', '¡Inicio de sesión exitoso!');
+          setTimeout(() => window.location.href = '/account', 1500);
         } else {
           // Otherwise, redirect to home page
-          alert('Inicio de sesión exitoso');
-          window.location.href = '/';
+          showSuccess('Bienvenido', '¡Inicio de sesión exitoso!');
+          setTimeout(() => window.location.href = '/', 1500);
         }
       } else {
         // Fallback for other roles
-        alert('Inicio de sesión exitoso');
-        window.location.href = '/';
+        showSuccess('Bienvenido', '¡Inicio de sesión exitoso!');
+        setTimeout(() => window.location.href = '/', 1500);
       }
     } catch (err) {
-      alert('Error: ' + err.message);
+      showError(err.message);
     }
   };
 
@@ -288,6 +291,16 @@ export default function Login() {
       </section>
 
       <Footer />
+      <CustomPopup
+        isOpen={popupState.isOpen}
+        onClose={closePopup}
+        title={popupState.title}
+        message={popupState.message}
+        type={popupState.type}
+        onConfirm={popupState.onConfirm}
+        confirmText={popupState.confirmText}
+        cancelText={popupState.cancelText}
+      />
     </div>
   );
 }
