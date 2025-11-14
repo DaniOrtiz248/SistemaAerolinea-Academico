@@ -29,6 +29,10 @@ const Vuelo = sequelize.define('vuelo', {
         type: DataTypes.INTEGER,
         allowNull: true
     },
+    asientos: {
+        type: DataTypes.JSON,
+        allowNull: true
+    },
 }, {
     tableName: 'vuelo',
     timestamps: false
