@@ -75,7 +75,7 @@ export class RouteRepository {
     return route
   }
 
-  static async findById (id) {
+  static async findById ({ id }) {
     return await Ruta.findByPk(id, {
       include: [
         {

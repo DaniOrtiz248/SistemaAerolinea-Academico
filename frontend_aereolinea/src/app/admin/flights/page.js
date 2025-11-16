@@ -35,13 +35,8 @@ export default function AdminFlights() {
             flightsData = flightsResult;
           }
           
-          const flightsWithSeats = flightsData.map(flight => ({
-            ...flight,
-            available_seats: 100,
-            total_seats: 180
-          }));
-          setFlights(flightsWithSeats);
-          console.log('Vuelos cargados:', flightsWithSeats.length);
+          setFlights(flightsData);
+          console.log('Vuelos cargados:', flightsData.length);
         } else {
           console.error('Error al obtener vuelos:', flightsResponse.status);
         }
@@ -113,7 +108,6 @@ export default function AdminFlights() {
     // Mapear estado numérico a string para el filtro
     let flightStatus = 'active';
     if (flight.estado === 0) flightStatus = 'ended';
-    else if (flight.available_seats === 0) flightStatus = 'sold_out';
     
     const matchesFilter = filterStatus === 'all' || flightStatus === filterStatus;
     
@@ -445,19 +439,9 @@ export default function AdminFlights() {
             if (flightsResponse.ok) {
               const flightsResult = await flightsResponse.json();
               if (flightsResult.success && flightsResult.data) {
-                const flightsWithSeats = flightsResult.data.map(flight => ({
-                  ...flight,
-                  available_seats: 100,
-                  total_seats: 180
-                }));
-                setFlights(flightsWithSeats);
+                setFlights(flightsResult.data);
               } else if (Array.isArray(flightsResult)) {
-                const flightsWithSeats = flightsResult.map(flight => ({
-                  ...flight,
-                  available_seats: 100,
-                  total_seats: 180
-                }));
-                setFlights(flightsWithSeats);
+                setFlights(flightsResult);
               }
             }
             
@@ -521,19 +505,9 @@ export default function AdminFlights() {
             if (flightsResponse.ok) {
               const flightsResult = await flightsResponse.json();
               if (flightsResult.success && flightsResult.data) {
-                const flightsWithSeats = flightsResult.data.map(flight => ({
-                  ...flight,
-                  available_seats: 100,
-                  total_seats: 180
-                }));
-                setFlights(flightsWithSeats);
+                setFlights(flightsResult.data);
               } else if (Array.isArray(flightsResult)) {
-                const flightsWithSeats = flightsResult.map(flight => ({
-                  ...flight,
-                  available_seats: 100,
-                  total_seats: 180
-                }));
-                setFlights(flightsWithSeats);
+                setFlights(flightsResult);
               }
             }
             
@@ -805,6 +779,37 @@ export default function AdminFlights() {
                               </span>
                             </p>
                           )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Campo informativo de cantidad de asientos */}
+                {formData.ruta_relacionada && (
+                  <div className="md:col-span-2 bg-green-50 border border-green-200 rounded-md p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <h3 className="text-sm font-medium text-green-800">
+                          💺 Capacidad de Asientos
+                        </h3>
+                        <div className="mt-2 text-sm text-green-700">
+                          <p className="font-semibold">
+                            {(() => {
+                              const rutaSeleccionada = routes.find(r => r.id_ruta === parseInt(formData.ruta_relacionada));
+                              const cantidadAsientos = rutaSeleccionada?.es_nacional ? 150 : 250;
+                              const tipoVuelo = rutaSeleccionada?.es_nacional ? 'Nacional' : 'Internacional';
+                              return `Total de asientos: ${cantidadAsientos} (Vuelo ${tipoVuelo})`;
+                            })()}
+                          </p>
+                          <p className="mt-1 text-xs text-green-600">
+                            ℹ️ La cantidad de asientos se asigna automáticamente según el tipo de ruta
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1098,14 +1103,11 @@ export default function AdminFlights() {
                         <div className="text-sm font-medium text-green-600">2ª: ${precioClase2}</div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {flight.available_seats || 0}/{flight.total_seats}
+                        <div className="text-sm font-medium text-gray-900">
+                          💺 {flight.asientos || 'N/A'}
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${((flight.available_seats || 0) / flight.total_seats) * 100}%` }}
-                          ></div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {flight.ruta?.es_nacional ? 'Nacional' : 'Internacional'}
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">

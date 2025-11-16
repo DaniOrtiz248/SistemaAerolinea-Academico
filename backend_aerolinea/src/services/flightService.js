@@ -1,4 +1,5 @@
 import { FlightRepository } from '../repositories/flightRepository.js'
+import { RouteRepository } from '../repositories/routeRepository.js'
 import { UserPerfilRepository } from '../repositories/userPerfilRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
@@ -53,7 +54,23 @@ export class FlightService {
     }
 
     try {
-      return await FlightRepository.create({ vuelo })
+      // Obtener información de la ruta para determinar el tipo de vuelo
+      const ruta = await RouteRepository.findById({ id: vuelo.ruta_relacionada })
+      
+      if (!ruta) {
+        throw new AppError(404, 'ROUTE_NOT_FOUND', 'La ruta asociada no existe')
+      }
+
+      // Asignar cantidad de asientos según el tipo de vuelo
+      const cantidadAsientos = ruta.es_nacional ? 150 : 250
+
+      // Agregar cantidad de asientos al objeto vuelo
+      const vueloConAsientos = {
+        ...vuelo,
+        asientos: cantidadAsientos
+      }
+
+      return await FlightRepository.create({ vuelo: vueloConAsientos })
     } catch (error) {
       console.log('Error programando el vuelo:', error)
       throw error
