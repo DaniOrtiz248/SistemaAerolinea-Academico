@@ -9,7 +9,11 @@ const Viajero = sequelize.define('viajero', {
     primaryKey: true,
     autoIncrement: true
   },
-    dni_viajero: {
+  reserva_id:{
+    type: DataTypes.INTEGER,
+    allowNull: false 
+  },
+  dni_viajero: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -53,11 +57,23 @@ const Viajero = sequelize.define('viajero', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  hizo_checkin:{
-    type: DataTypes.INTEGER,
-    defaultValue: false,
+  numero_asiento:{
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  estado_reserva:{
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  trayecto:{
+    type: DataTypes.STRING,
     allowNull: false
   }
+  // hizo_checkin:{
+  //   type: DataTypes.INTEGER,
+  //   defaultValue: false,
+  //   allowNull: false
+  // } Se hace en el ticket
 }, {
   tableName: 'viajero',
   timestamps: false
