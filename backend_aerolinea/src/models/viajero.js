@@ -9,7 +9,7 @@ const Viajero = sequelize.define('viajero', {
     primaryKey: true,
     autoIncrement: true
   },
-    dni_viajero: {
+  dni_viajero: {
     type: DataTypes.STRING,
     allowNull: false
   },
