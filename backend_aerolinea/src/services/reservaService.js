@@ -1,9 +1,9 @@
-import { reservaRepository } from '../repositories/reservaRepository.js'
+import { ReservaRepository } from '../repositories/reservaRepository.js'
 
-export class reservaService {
+export class ReservaService {
   static async createReserva (reservaData) {
     try {
-      return await reservaRepository.createReserva(reservaData)
+      return await ReservaRepository.createReserva(reservaData)
     } catch (error) {
       console.error('Error creando reserva:', error)
       throw error
@@ -12,7 +12,7 @@ export class reservaService {
 
   static async getReservaById (id) {
     try {
-      return await reservaRepository.getReservaById(id)
+      return await ReservaRepository.getReservaById(id)
     } catch (error) {
       console.error('Error obteniendo reserva por ID:', error)
       throw error
@@ -21,7 +21,7 @@ export class reservaService {
 
   static async updateReserva (id, updateData) {
     try {
-      return await reservaRepository.updateReserva(id, updateData)
+      return await ReservaRepository.updateReserva(id, updateData)
     } catch (error) {
       console.error('Error actualizando reserva:', error)
       throw error
@@ -30,7 +30,7 @@ export class reservaService {
 
   static async deleteReserva (id) {
     try {
-      return await reservaRepository.deleteReserva(id)
+      return await ReservaRepository.deleteReserva(id)
     } catch (error) {
       console.error('Error eliminando reserva:', error)
       throw error
@@ -39,7 +39,7 @@ export class reservaService {
 
   static async getReservaByIdUsuario (usuarioId) {
     try {
-      return await reservaRepository.getReservaByIdUsuario(usuarioId)
+      return await ReservaRepository.getReservaByIdUsuario(usuarioId)
     } catch (error) {
       console.error('Error obteniendo reserva por ID de usuario:', error)
       throw error
@@ -48,7 +48,7 @@ export class reservaService {
 
   static async getReservaByIdVuelo (vueloId) {
     try {
-      return await reservaRepository.getReservaByIdVuelo(vueloId)
+      return await ReservaRepository.getReservaByIdVuelo(vueloId)
     } catch (error) {
       console.error('Error obteniendo reserva por ID de vuelo:', error)
       throw error

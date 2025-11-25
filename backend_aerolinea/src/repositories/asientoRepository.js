@@ -1,4 +1,4 @@
-import { Asiento } from '../models/asiento.js'
+import Asiento from '../models/asiento.js'
 
 export class AsientoRepository {
   static async create (asientoData) {

@@ -1,11 +1,12 @@
 import { AsientoRepository } from '../repositories/asientoRepository.js'
 
 import fs from 'fs'
+import path from 'path'
 
-const asientosNacionales = fs.readFileSync('../asientos-json/asientosNacionales.json', 'utf8')
+const asientosNacionales = fs.readFileSync(path.resolve('src/asientos-json/asientosNacionales.json'), 'utf8')
 const asientosNacionalesJson = JSON.parse(asientosNacionales)
 
-const asientosInternacionales = fs.readFileSync('../asientos-json/asientosInternacionales.json', 'utf8')
+const asientosInternacionales = fs.readFileSync(path.resolve('src/asientos-json/asientosInternacionales.json'), 'utf8')
 const asientosInternacionalesJson = JSON.parse(asientosInternacionales)
 
 export class AsientoService {
@@ -24,7 +25,7 @@ export class AsientoService {
     try {
       const asiento = await AsientoRepository.findById(id_asiento)
       return asiento
-    }catch (error) {
+    } catch (error) {
       console.error('Error getting asiento by ID:', error)
       throw error
     }

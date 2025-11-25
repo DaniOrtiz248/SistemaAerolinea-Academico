@@ -4,6 +4,7 @@ import { UserPerfilRepository } from '../repositories/userPerfilRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
 import { sendNewsPromotion } from '../utils/mailer.js'
+import { AsientoService } from './asientoService.js'
 
 export class FlightService {
   static errors = []
@@ -70,7 +71,9 @@ export class FlightService {
         asientos: cantidadAsientos
       }
 
-      return await FlightRepository.create({ vuelo: vueloConAsientos })
+      const newVuelo = await FlightRepository.create({ vuelo: vueloConAsientos })
+      await AsientoService.bulkCreate(newVuelo.ccv, ruta.es_nacional)
+      return newVuelo
     } catch (error) {
       console.log('Error programando el vuelo:', error)
       throw error

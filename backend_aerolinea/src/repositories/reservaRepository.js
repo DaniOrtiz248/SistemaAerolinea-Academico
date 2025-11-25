@@ -1,7 +1,7 @@
-import { Reserva } from '../models/reserva.js'
-import { Viajero } from '../models/viajero.js'
+import Reserva from '../models/reserva.js'
+import Viajero from '../models/viajero.js'
 
-export class reservaRepository {
+export class ReservaRepository {
   static async createReserva (reservaData) {
     const reserva = await Reserva.create(reservaData)
     return reserva

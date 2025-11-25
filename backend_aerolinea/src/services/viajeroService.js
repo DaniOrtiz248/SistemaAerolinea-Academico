@@ -1,7 +1,7 @@
 import { ViajeroRepository } from '../repositories/viajeroRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
-import { validateViajero } from '../utils/viajeroValidation.js'
+import { validateViajero } from '../utils/validateViajero.js'
 
 export class ViajeroService {
   static errors = []
