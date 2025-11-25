@@ -1,6 +1,7 @@
 import Vuelo from '../models/vuelo.js'
 import Ruta from '../models/ruta.js'
 import Ciudad from '../models/ciudad.js'
+import { AsientoService } from '../services/asientoService.js'
 
 export class FlightRepository {
   static async getAll () {
@@ -86,7 +87,9 @@ export class FlightRepository {
   }
 
   static async create ({ vuelo }) {
-    return await Vuelo.create(vuelo)
+    const newVuelo = await Vuelo.create(vuelo)
+    await AsientoService.bulkCreate(newVuelo.ccv, vuelo.es_nacional)
+    return newVuelo
   }
 
   static async update ({ ccv, flightData }) {
