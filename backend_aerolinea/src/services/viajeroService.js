@@ -1,6 +1,7 @@
 import { ViajeroRepository } from '../repositories/viajeroRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
+import { validateViajero } from '../utils/viajeroValidation.js'
 
 export class ViajeroService {
   static errors = []
@@ -47,6 +48,7 @@ export class ViajeroService {
     }
 
     try {
+      await validateViajero.validate(viajero, viajero.vueloId)
       return await ViajeroRepository.create({ viajero })
     } catch (error) {
       console.error('Error creating viajero:', error)
@@ -57,7 +59,7 @@ export class ViajeroService {
   static async update ({ id_viajero, viajeroData }) {
     try {
       const viajero = await ViajeroRepository.findById({ id_viajero })
-      
+
       if (!viajero) {
         const errors = [
           new AppError(
@@ -84,7 +86,7 @@ export class ViajeroService {
   static async delete ({ id_viajero }) {
     try {
       const viajero = await ViajeroRepository.findById({ id_viajero })
-      
+
       if (!viajero) {
         const errors = [
           new AppError(
@@ -98,7 +100,7 @@ export class ViajeroService {
       }
 
       await ViajeroRepository.delete({ id_viajero })
-      
+
       return {
         message: 'Viajero eliminado exitosamente',
         deletedViajero: {
@@ -113,6 +115,15 @@ export class ViajeroService {
       }
       console.error('Error deleting viajero:', error)
       throw new AppError(500, 'INTERNAL_ERROR', 'Error al eliminar el viajero')
+    }
+  }
+
+  static async getViajerosByReservaId (reservaId) {
+    try {
+      return await ViajeroRepository.getViajerosByReservaId(reservaId)
+    } catch (error) {
+      console.error('Error getting viajeros by reserva ID:', error)
+      throw new AppError(500, 'INTERNAL_ERROR', 'Error al obtener los viajeros de la reserva')
     }
   }
 }

@@ -10,7 +10,7 @@ export class TiqueteRepository {
     return await Tiquete.findAll({
       include: [
         { model: Compra },
-        { 
+        {
           model: Vuelo,
           include: [{
             model: Ruta,
@@ -30,7 +30,7 @@ export class TiqueteRepository {
     return await Tiquete.findByPk(id_tiquete, {
       include: [
         { model: Compra },
-        { 
+        {
           model: Vuelo,
           include: [{
             model: Ruta,
@@ -51,7 +51,7 @@ export class TiqueteRepository {
       where: { id_compra },
       include: [
         { model: Compra },
-        { 
+        {
           model: Vuelo,
           include: [{
             model: Ruta,
@@ -74,7 +74,7 @@ export class TiqueteRepository {
   static async update ({ id_tiquete, tiqueteData }) {
     const tiquete = await Tiquete.findByPk(id_tiquete)
     if (!tiquete) return null
-    
+
     await tiquete.update(tiqueteData)
     return await this.findById({ id_tiquete })
   }
@@ -82,8 +82,15 @@ export class TiqueteRepository {
   static async delete ({ id_tiquete }) {
     const tiquete = await this.findById({ id_tiquete })
     if (!tiquete) return null
-    
+
     await Tiquete.destroy({ where: { id_tiquete } })
     return tiquete
+  }
+
+  static async getTiquetesByVueloId (vueloId) {
+    return await Tiquete.findAll({
+      where: { vuelo_id: vueloId },
+      include: Viajero
+    })
   }
 }

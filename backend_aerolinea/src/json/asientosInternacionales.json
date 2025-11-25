@@ -1,0 +1,1506 @@
+{
+  "primeraclase": [
+    {
+      "asiento": "1A",
+      "fila": 1,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "1B",
+      "fila": 1,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "1C",
+      "fila": 1,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "1D",
+      "fila": 1,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "1E",
+      "fila": 1,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "1F",
+      "fila": 1,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "2A",
+      "fila": 2,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "2B",
+      "fila": 2,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "2C",
+      "fila": 2,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "2D",
+      "fila": 2,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "2E",
+      "fila": 2,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "2F",
+      "fila": 2,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "3A",
+      "fila": 3,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "3B",
+      "fila": 3,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "3C",
+      "fila": 3,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "3D",
+      "fila": 3,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "3E",
+      "fila": 3,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "3F",
+      "fila": 3,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "4A",
+      "fila": 4,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "4B",
+      "fila": 4,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "4C",
+      "fila": 4,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "4D",
+      "fila": 4,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "4E",
+      "fila": 4,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "4F",
+      "fila": 4,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "5A",
+      "fila": 5,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "5B",
+      "fila": 5,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "5C",
+      "fila": 5,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "5D",
+      "fila": 5,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "5E",
+      "fila": 5,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "5F",
+      "fila": 5,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "6A",
+      "fila": 6,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "6B",
+      "fila": 6,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "6C",
+      "fila": 6,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "6D",
+      "fila": 6,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "6E",
+      "fila": 6,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "6F",
+      "fila": 6,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "7A",
+      "fila": 7,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "7B",
+      "fila": 7,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "7C",
+      "fila": 7,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "7D",
+      "fila": 7,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "7E",
+      "fila": 7,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "7F",
+      "fila": 7,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "8A",
+      "fila": 8,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "8B",
+      "fila": 8,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "8E",
+      "fila": 8,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "8F",
+      "fila": 8,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "9A",
+      "fila": 9,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "9B",
+      "fila": 9,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "9E",
+      "fila": 9,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "9F",
+      "fila": 9,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    }
+  ],
+  "segundaclase": [
+    {
+      "asiento": "10A",
+      "fila": 10,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "10B",
+      "fila": 10,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "10E",
+      "fila": 10,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "10F",
+      "fila": 10,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "11A",
+      "fila": 11,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "11B",
+      "fila": 11,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "11E",
+      "fila": 11,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "11F",
+      "fila": 11,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "12A",
+      "fila": 12,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "12B",
+      "fila": 12,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "12C",
+      "fila": 12,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "12D",
+      "fila": 12,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "12E",
+      "fila": 12,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "12F",
+      "fila": 12,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "13A",
+      "fila": 13,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "13B",
+      "fila": 13,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "13C",
+      "fila": 13,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "13D",
+      "fila": 13,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "13E",
+      "fila": 13,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "13F",
+      "fila": 13,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "14A",
+      "fila": 14,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "14B",
+      "fila": 14,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "14C",
+      "fila": 14,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "14D",
+      "fila": 14,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "14E",
+      "fila": 14,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "14F",
+      "fila": 14,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "15A",
+      "fila": 15,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "15B",
+      "fila": 15,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "15C",
+      "fila": 15,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "15D",
+      "fila": 15,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "15E",
+      "fila": 15,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "15F",
+      "fila": 15,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "16A",
+      "fila": 16,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "16B",
+      "fila": 16,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "16C",
+      "fila": 16,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "16D",
+      "fila": 16,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "16E",
+      "fila": 16,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "16F",
+      "fila": 16,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "17A",
+      "fila": 17,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "17B",
+      "fila": 17,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "17C",
+      "fila": 17,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "17D",
+      "fila": 17,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "17E",
+      "fila": 17,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "17F",
+      "fila": 17,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "18A",
+      "fila": 18,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "18B",
+      "fila": 18,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "18C",
+      "fila": 18,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "18D",
+      "fila": 18,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "18E",
+      "fila": 18,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "18F",
+      "fila": 18,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "19A",
+      "fila": 19,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "19B",
+      "fila": 19,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "19C",
+      "fila": 19,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "19D",
+      "fila": 19,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "19E",
+      "fila": 19,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "19F",
+      "fila": 19,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "20A",
+      "fila": 20,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "20B",
+      "fila": 20,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "20C",
+      "fila": 20,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "20D",
+      "fila": 20,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "20E",
+      "fila": 20,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "20F",
+      "fila": 20,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "21A",
+      "fila": 21,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "21B",
+      "fila": 21,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "21C",
+      "fila": 21,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "21D",
+      "fila": 21,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "21E",
+      "fila": 21,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "21F",
+      "fila": 21,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "22A",
+      "fila": 22,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "22B",
+      "fila": 22,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "22C",
+      "fila": 22,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "22D",
+      "fila": 22,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "22E",
+      "fila": 22,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "22F",
+      "fila": 22,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "23A",
+      "fila": 23,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "23B",
+      "fila": 23,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "23C",
+      "fila": 23,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "23D",
+      "fila": 23,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "23E",
+      "fila": 23,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "23F",
+      "fila": 23,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "24A",
+      "fila": 24,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "24B",
+      "fila": 24,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "24C",
+      "fila": 24,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "24D",
+      "fila": 24,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "24E",
+      "fila": 24,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "24F",
+      "fila": 24,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "25A",
+      "fila": 25,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "25B",
+      "fila": 25,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "25C",
+      "fila": 25,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "25D",
+      "fila": 25,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "25E",
+      "fila": 25,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "25F",
+      "fila": 25,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "26A",
+      "fila": 26,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "26B",
+      "fila": 26,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "26C",
+      "fila": 26,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "26D",
+      "fila": 26,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "26E",
+      "fila": 26,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "26F",
+      "fila": 26,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "27A",
+      "fila": 27,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "27B",
+      "fila": 27,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "27C",
+      "fila": 27,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "27D",
+      "fila": 27,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "27E",
+      "fila": 27,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "27F",
+      "fila": 27,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "28A",
+      "fila": 28,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "28B",
+      "fila": 28,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "28C",
+      "fila": 28,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "28D",
+      "fila": 28,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "28E",
+      "fila": 28,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "28F",
+      "fila": 28,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "29A",
+      "fila": 29,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "29B",
+      "fila": 29,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "29C",
+      "fila": 29,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "29D",
+      "fila": 29,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "29E",
+      "fila": 29,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "29F",
+      "fila": 29,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "30A",
+      "fila": 30,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "30B",
+      "fila": 30,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "30C",
+      "fila": 30,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "30D",
+      "fila": 30,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "30E",
+      "fila": 30,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "30F",
+      "fila": 30,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "31A",
+      "fila": 31,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "31B",
+      "fila": 31,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "31C",
+      "fila": 31,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "31D",
+      "fila": 31,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "31E",
+      "fila": 31,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "31F",
+      "fila": 31,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "32A",
+      "fila": 32,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "32B",
+      "fila": 32,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "32C",
+      "fila": 32,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "32D",
+      "fila": 32,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "32E",
+      "fila": 32,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "32F",
+      "fila": 32,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "33A",
+      "fila": 33,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "33B",
+      "fila": 33,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "33C",
+      "fila": 33,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "33D",
+      "fila": 33,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "33E",
+      "fila": 33,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "33F",
+      "fila": 33,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "34A",
+      "fila": 34,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "34B",
+      "fila": 34,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "34C",
+      "fila": 34,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "34D",
+      "fila": 34,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "34E",
+      "fila": 34,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "34F",
+      "fila": 34,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "35A",
+      "fila": 35,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "35B",
+      "fila": 35,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "35C",
+      "fila": 35,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "35D",
+      "fila": 35,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "35E",
+      "fila": 35,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "35F",
+      "fila": 35,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "36A",
+      "fila": 36,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "36B",
+      "fila": 36,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "36C",
+      "fila": 36,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "36D",
+      "fila": 36,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "36E",
+      "fila": 36,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "36F",
+      "fila": 36,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "37A",
+      "fila": 37,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "37B",
+      "fila": 37,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "37C",
+      "fila": 37,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "37D",
+      "fila": 37,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "37E",
+      "fila": 37,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "37F",
+      "fila": 37,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "38A",
+      "fila": 38,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "38B",
+      "fila": 38,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "38C",
+      "fila": 38,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "38D",
+      "fila": 38,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "38E",
+      "fila": 38,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "38F",
+      "fila": 38,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "39A",
+      "fila": 39,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "39B",
+      "fila": 39,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "39C",
+      "fila": 39,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "39D",
+      "fila": 39,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "39E",
+      "fila": 39,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "39F",
+      "fila": 39,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "40A",
+      "fila": 40,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "40B",
+      "fila": 40,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "40C",
+      "fila": 40,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "40D",
+      "fila": 40,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "40E",
+      "fila": 40,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "40F",
+      "fila": 40,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "41A",
+      "fila": 41,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "41B",
+      "fila": 41,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "41C",
+      "fila": 41,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "41D",
+      "fila": 41,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "41E",
+      "fila": 41,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "41F",
+      "fila": 41,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "42A",
+      "fila": 42,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "42B",
+      "fila": 42,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "42C",
+      "fila": 42,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "42D",
+      "fila": 42,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "42E",
+      "fila": 42,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "42F",
+      "fila": 42,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "43A",
+      "fila": 43,
+      "columna": "A",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "43B",
+      "fila": 43,
+      "columna": "B",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "43C",
+      "fila": 43,
+      "columna": "C",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "43D",
+      "fila": 43,
+      "columna": "D",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "43E",
+      "fila": 43,
+      "columna": "E",
+      "estado": "DISPONIBLE"
+    },
+    {
+      "asiento": "43F",
+      "fila": 43,
+      "columna": "F",
+      "estado": "DISPONIBLE"
+    }
+  ]
+}

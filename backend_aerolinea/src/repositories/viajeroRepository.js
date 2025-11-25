@@ -50,4 +50,8 @@ export class ViajeroRepository {
     await Viajero.destroy({ where: { id_viajero } })
     return viajero
   }
+
+  static async getViajerosByReservaId (reservaId) {
+    return await Viajero.findAll({ where: { reserva_id: reservaId } })
+  }
 }

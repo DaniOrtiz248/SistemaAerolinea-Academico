@@ -84,7 +84,7 @@ export class TiqueteService {
   static async delete ({ id_tiquete }) {
     try {
       const tiquete = await TiqueteRepository.findById({ id_tiquete })
-      
+
       if (!tiquete) {
         const errors = [
           new AppError(
@@ -98,7 +98,7 @@ export class TiqueteService {
       }
 
       await TiqueteRepository.delete({ id_tiquete })
-      
+
       return {
         message: 'Tiquete eliminado exitosamente',
         deletedTiquete: {
@@ -112,6 +112,15 @@ export class TiqueteService {
       }
       console.error('Error deleting tiquete:', error)
       throw new AppError(500, 'INTERNAL_ERROR', 'Error al eliminar el tiquete')
+    }
+  }
+
+  static async getTiquetesByVueloId (vueloId) {
+    try {
+      return await TiqueteRepository.getTiquetesByVueloId(vueloId)
+    } catch (error) {
+      console.error('Error getting tiquetes by vuelo ID:', error)
+      throw new AppError(500, 'INTERNAL_ERROR', 'Error al obtener los tiquetes del vuelo')
     }
   }
 }

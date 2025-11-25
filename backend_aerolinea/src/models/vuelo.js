@@ -32,7 +32,7 @@ const Vuelo = sequelize.define('vuelo', {
     asientos: {
         type: DataTypes.JSON,
         allowNull: true
-    },
+    }
 }, {
     tableName: 'vuelo',
     timestamps: false

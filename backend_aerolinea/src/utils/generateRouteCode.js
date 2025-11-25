@@ -4,13 +4,13 @@ import { Op } from 'sequelize'
 
 export async function generateRouteCode (esNacional) {
   console.log('Generando código para ruta', esNacional ? 'nacional' : 'internacional')
-  
+
   const rangoInicio = esNacional ? 1 : 500
   const rangoFin = esNacional ? 499 : 999
 
   // Buscar todas las rutas del mismo tipo para encontrar el código más alto
   const rutas = await Ruta.findAll({
-    where: { 
+    where: {
       es_nacional: esNacional,
       codigo_ruta: {
         [Op.like]: 'AP%'
@@ -45,7 +45,7 @@ export async function generateRouteCode (esNacional) {
 
   // Formatear con ceros a la izquierda
   const code = `AP${String(nextNum).padStart(3, '0')}`
-  
+
   // Verificar que el código no exista (seguridad adicional)
   const existingCode = await Ruta.findOne({
     where: { codigo_ruta: code }
