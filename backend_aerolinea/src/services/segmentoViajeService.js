@@ -38,6 +38,14 @@ export class SegmentoViajeService {
     }
   }
 
+  static async deleteSegmentosReserva (reservaID) {
+    try {
+      return await SegmentoViajeRepository.deleteByReservaId(reservaID)
+    } catch (error) {
+      throw new Error('Error deleting segmentos viaje by reserva ID: ' + error.message)
+    }
+  }
+
   static async update (id_segmento, updateData) {
     try {
       const updatedSegmento = await SegmentoViajeRepository.update(id_segmento, updateData)
@@ -47,6 +55,14 @@ export class SegmentoViajeService {
       return updatedSegmento
     } catch (error) {
       throw new Error('Error updating segmento viaje: ' + error.message)
+    }
+  }
+
+  static async findAllByReservaId (reservaId) {
+    try {
+      return await SegmentoViajeRepository.findAllByReservaId(reservaId)
+    } catch (error) {
+      throw new Error('Error getting segmentos viaje by reserva ID: ' + error.message)
     }
   }
 }

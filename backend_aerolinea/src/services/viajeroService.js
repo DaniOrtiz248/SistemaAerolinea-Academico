@@ -59,7 +59,8 @@ export class ViajeroService {
         viajero_id: newViajero.id_viajero,
         vuelo_id: reserva.vuelo_ida_id,
         trayecto: 'IDA',
-        asiento_id: asiento.id_asiento
+        asiento_id: asiento.id_asiento,
+        reserva_id: reserva.id_reserva
       }
       await SegmentoViajeService.create(segmento)
 
@@ -69,6 +70,7 @@ export class ViajeroService {
         segmento.vuelo_id = reserva.vuelo_vuelta_id
         segmento.trayecto = 'VUELTA'
         segmento.asiento_id = asientoVuelta.id_asiento
+        segmento.reserva_id = reserva.id_reserva
         await SegmentoViajeService.create(segmento)
       }
       return viajero

@@ -108,4 +108,14 @@ export class ReservaController {
       return res.status(500).json({ error: 'Error al obtener reservas del vuelo' })
     }
   }
+
+  static async cancelarReserva (req, res) {
+    try {
+      const updatedReserva = await ReservaService.cancelarReserva(req.params.id)
+      res.json(updatedReserva)
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ error: 'Error al cancelar la reserva' })
+    }
+  }
 }

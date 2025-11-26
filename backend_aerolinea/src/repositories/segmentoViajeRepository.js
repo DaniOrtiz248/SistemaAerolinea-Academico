@@ -31,4 +31,12 @@ export class SegmentoViajeRepository {
     }
     return null
   }
+
+  static async deleteByReservaId (reservaId) {
+    return await SegmentoViaje.destroy({ where: { reserva_id: reservaId } })
+  }
+
+  static async findAllByReservaId (reservaId) {
+    return await SegmentoViaje.findAll({ where: { reserva_id: reservaId } })
+  }
 }
