@@ -60,4 +60,18 @@ export class AsientoService {
       throw error
     }
   }
+
+  static async reservarAsientoRandom (vuelo_id, clase) {
+    try {
+      const asiento = await AsientoRepository.asientoRandomDisponible(vuelo_id, clase)
+      if (asiento) {
+        asiento.estado = 'RESERVADO'
+        await AsientoRepository.update(asiento.id_asiento, asiento)
+      }
+      return asiento
+    } catch (error) {
+      console.error('Error reservando asiento random:', error)
+      throw error
+    }
+  }
 }

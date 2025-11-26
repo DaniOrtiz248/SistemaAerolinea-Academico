@@ -2,6 +2,8 @@ import { ViajeroRepository } from '../repositories/viajeroRepository.js'
 import { AppError } from '../utils/appError.js'
 import { ValidationError } from '../utils/validateError.js'
 import { validateViajero } from '../utils/validateViajero.js'
+import { AsientoService } from './asientoService.js'
+import { ReservaService } from './reservaService.js'
 
 export class ViajeroService {
   static errors = []
@@ -49,6 +51,9 @@ export class ViajeroService {
 
     try {
       await validateViajero.validate(viajero, viajero.vueloId)
+      const reserva = await ReservaService.getReservaById(viajero.reserva_id)
+      const asiento = await AsientoService.reservarAsientoRandom(viajero.vueloId, reserva.clase_reserva)
+      viajero.asiento_id = asiento.id_asiento
       return await ViajeroRepository.create({ viajero })
     } catch (error) {
       console.error('Error creating viajero:', error)

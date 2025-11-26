@@ -33,10 +33,10 @@ export class AsientoRepository {
 
   static async update (id_asiento, updateData) {
     try {
-      const [updatedRowsCount] = await Asiento.update(updateData, {
+      const asiento = await Asiento.update(updateData, {
         where: { id_asiento }
       })
-      return updatedRowsCount
+      return asiento
     } catch (error) {
       console.error('Error updating asiento:', error)
       throw error
@@ -63,6 +63,20 @@ export class AsientoRepository {
       return asientos
     } catch (error) {
       console.error('Error finding asientos by vuelo ID:', error)
+      throw error
+    }
+  }
+
+  static async asientoRandomDisponible (vuelo_id, clase) {
+    try {
+      const asiento = await Asiento.findOne({
+        where: { vuelo_id, estado: 'DISPONIBLE', clase },
+        order: Asiento.sequelize.random()
+      })
+
+      return asiento
+    } catch (error) {
+      console.error('Error finding random disponible asiento:', error)
       throw error
     }
   }

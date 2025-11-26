@@ -10,7 +10,7 @@ const Tiquete = sequelize.define('tiquete', {
     primaryKey: true,
     autoIncrement: true
   },
-  codigo_tiquete: {
+  codigo_reserva: {
     type: DataTypes.STRING,
     allowNull: false
   },

@@ -19,7 +19,7 @@ const Reserva = sequelize.define('reserva', {
     allowNull: false
   },
   clase_reserva: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('PRIMERACLASE', 'SEGUNDACLASE'),
     allowNull: false
   },
   fecha_reserva: {
