@@ -37,11 +37,15 @@ const Reserva = sequelize.define('reserva', {
   cantidad_viajeros: {
     type: DataTypes.INTEGER,
     allowNull: false
-  }//,
-  // precio_total:{
-  //   type: DataTypes.DECIMAL(10, 2),
-  //   allowNull: false
-  // }
+  },
+  precio_total: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
+  },
+  trayectoria: {
+    type: DataTypes.ENUM('IDAVUELTA', 'SOLOIDA'),
+    allowNull: false
+  }
 }, {
   tableName: 'reserva',
   timestamps: false
