@@ -23,6 +23,7 @@ Cookie: access_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjUsImRlc2NyaX
   "precio_total": 600000
 }
 
+
 ### Crear viajeros
 POST http://localhost:3001/api/v1/viajeros
 Content-Type: application/json
@@ -57,6 +58,15 @@ Content-Type: application/json
   "telefono_contacto": "3007654321",
   "usuario_asociado": 25,
   "reserva_id": 1
+}
+
+### Enviar email de reserva
+POST http://localhost:3001/api/v1/reservas/send-confirmation-email
+Content-Type: application/json
+
+{
+  "toEmail": "b.valencia1@utp.edu.co",
+  "reservaId": 1
 }
 
 ### Obtener vuelo por id 29
