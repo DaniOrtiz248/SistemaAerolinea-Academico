@@ -4,6 +4,7 @@ import { ValidationError } from '../utils/validateError.js'
 import { validateViajero } from '../utils/validateViajero.js'
 import { AsientoService } from './asientoService.js'
 import { ReservaService } from './reservaService.js'
+import { SegmentoViajeService } from './segmentoViajeService.js'
 
 export class ViajeroService {
   static errors = []
@@ -50,11 +51,27 @@ export class ViajeroService {
     }
 
     try {
-      await validateViajero.validate(viajero, viajero.vueloId)
       const reserva = await ReservaService.getReservaById(viajero.reserva_id)
-      const asiento = await AsientoService.reservarAsientoRandom(viajero.vueloId, reserva.clase_reserva)
-      viajero.asiento_id = asiento.id_asiento
-      return await ViajeroRepository.create({ viajero })
+      await validateViajero.validate(viajero, reserva.vuelo_ida_id, 1)
+      const newViajero = await ViajeroRepository.create({ viajero })
+      const asiento = await AsientoService.reservarAsientoRandom(reserva.vuelo_ida_id, reserva.clase_reserva)
+      const segmento = {
+        viajero_id: newViajero.id_viajero,
+        vuelo_id: reserva.vuelo_ida_id,
+        trayecto: 'IDA',
+        asiento_id: asiento.id_asiento
+      }
+      await SegmentoViajeService.create(segmento)
+
+      if (reserva.trayectoria === 'IDAVUELTA' && reserva.vuelo_vuelta_id) {
+        // await validateViajero.validate(viajero, reserva.vuelo_vuelta_id, 0)
+        const asientoVuelta = await AsientoService.reservarAsientoRandom(reserva.vuelo_vuelta_id, reserva.clase_reserva)
+        segmento.vuelo_id = reserva.vuelo_vuelta_id
+        segmento.trayecto = 'VUELTA'
+        segmento.asiento_id = asientoVuelta.id_asiento
+        await SegmentoViajeService.create(segmento)
+      }
+      return viajero
     } catch (error) {
       console.error('Error creating viajero:', error)
       throw error

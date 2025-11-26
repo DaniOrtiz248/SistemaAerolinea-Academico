@@ -4,13 +4,15 @@ import { ViajeroService } from '../services/viajeroService.js'
 import { TiqueteService } from '../services/tiqueteService.js'
 
 export class validateViajero {
-  static async validate (viajero, vueloId) {
-    const vuelo = await FlightService.getFlightById(vueloId)
+  static async validate (viajero, vueloId, es_Ida) {
+    vueloId = parseInt(vueloId)
+    console.log('Validating viajero:', viajero, 'for vueloId:', vueloId)
+    const vuelo = await FlightService.getFlightById({ ccv: vueloId })
     if (!vuelo) {
       throw new Error('Vuelo no encontrado')
     }
 
-    const reservas = await ReservaService.getReservaByIdVuelo(vueloId)
+    const reservas = es_Ida ? await ReservaService.getReservaByIdVueloIda(vueloId) : await ReservaService.getReservaByIdVueloVuelta(vueloId)
 
     for (const reserva of reservas) {
       if (reserva.estado_reserva !== 'CANCELADA') {

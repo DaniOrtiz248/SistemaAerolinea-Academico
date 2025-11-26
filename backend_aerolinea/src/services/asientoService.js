@@ -64,9 +64,12 @@ export class AsientoService {
   static async reservarAsientoRandom (vuelo_id, clase) {
     try {
       const asiento = await AsientoRepository.asientoRandomDisponible(vuelo_id, clase)
+      console.log('Asiento reservado:', asiento)
       if (asiento) {
+        console.log('cambio estado asiento')
         asiento.estado = 'RESERVADO'
-        await AsientoRepository.update(asiento.id_asiento, asiento)
+        console.log('nuevo asiento', asiento)
+        await AsientoRepository.update(asiento.id_asiento, asiento.dataValues)
       }
       return asiento
     } catch (error) {

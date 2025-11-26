@@ -7,7 +7,7 @@ function transformEmptyToUndefined (val) {
 
 const reservaSchema = z.object({
   id_reserva: z.number().int().positive().optional(),
-  codigo_reserva: z.string().min(1),
+  codigo_reserva: z.string().min(1).optional(),
   usuario_id: z.number().int().positive(),
   clase_reserva: z.enum(['PRIMERACLASE', 'SEGUNDACLASE']),
   fecha_reserva: z.preprocess(transformEmptyToUndefined, z.string().refine((d) => {
@@ -15,7 +15,11 @@ const reservaSchema = z.object({
     return !isNaN(t)
   }, { message: 'Fecha de reserva inválida' })),
   estado_reserva: z.enum(['ACTIVA', 'CANCELADA', 'PAGADA']),
-  cantidad_viajeros: z.number().int().min(1)
+  cantidad_viajeros: z.number().int().min(1),
+  precio_total: z.number().positive(),
+  vuelo_ida_id: z.number().int().positive(),
+  vuelo_vuelta_id: z.number().int().positive().optional().nullable(),
+  trayectoria: z.enum(['IDAVUELTA', 'SOLOIDA'])
 })
 
 const partialReservaSchema = reservaSchema.partial()

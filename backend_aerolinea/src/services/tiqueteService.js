@@ -117,7 +117,8 @@ export class TiqueteService {
 
   static async getTiquetesByVueloId (vueloId) {
     try {
-      return await TiqueteRepository.getTiquetesByVueloId(vueloId)
+      const tiquetes = await TiqueteRepository.getTiquetesByVueloId(vueloId)
+      return tiquetes
     } catch (error) {
       console.error('Error getting tiquetes by vuelo ID:', error)
       throw new AppError(500, 'INTERNAL_ERROR', 'Error al obtener los tiquetes del vuelo')

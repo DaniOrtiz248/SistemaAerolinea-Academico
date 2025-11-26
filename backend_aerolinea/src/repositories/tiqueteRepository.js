@@ -89,7 +89,7 @@ export class TiqueteRepository {
 
   static async getTiquetesByVueloId (vueloId) {
     return await Tiquete.findAll({
-      where: { vuelo_id: vueloId },
+      where: { id_vuelo: vueloId },
       include: Viajero
     })
   }

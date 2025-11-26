@@ -2,7 +2,7 @@ import Reserva from '../models/reserva.js'
 import Viajero from '../models/viajero.js'
 
 export class ReservaRepository {
-  static async createReserva (reservaData) {
+  static async create (reservaData) {
     const reserva = await Reserva.create(reservaData)
     return reserva
   }
@@ -35,7 +35,11 @@ export class ReservaRepository {
     return await Reserva.findAll({ where: { usuario_id: usuarioId } })
   }
 
-  static async getReservaByIdVuelo (vueloId) {
-    return await Reserva.findAll({ where: { vuelo_id: vueloId } })
+  static async getReservaByIdVueloIda (vueloId) {
+    return await Reserva.findAll({ where: { vuelo_ida_id: vueloId } })
+  }
+
+  static async getReservaByIdVueloVuelta (vueloId) {
+    return await Reserva.findAll({ where: { vuelo_vuelta_id: vueloId } })
   }
 }

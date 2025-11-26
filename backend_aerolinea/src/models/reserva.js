@@ -2,6 +2,7 @@ import { DataTypes } from 'sequelize'
 import { sequelize } from '../db/sequelize/sequelize.js'
 import Usuario from './usuario.js'
 import Viajero from './viajero.js'
+import Vuelo from './vuelo.js'
 
 const Reserva = sequelize.define('reserva', {
   id_reserva: {
@@ -14,12 +15,12 @@ const Reserva = sequelize.define('reserva', {
     allowNull: false,
     unique: true
   },
-  usuario_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
   clase_reserva: {
     type: DataTypes.ENUM('PRIMERACLASE', 'SEGUNDACLASE'),
+    allowNull: false
+  },
+  usuario_id: {
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   fecha_reserva: {
@@ -42,6 +43,14 @@ const Reserva = sequelize.define('reserva', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
+  vuelo_ida_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  vuelo_vuelta_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
   trayectoria: {
     type: DataTypes.ENUM('IDAVUELTA', 'SOLOIDA'),
     allowNull: false
@@ -53,5 +62,7 @@ const Reserva = sequelize.define('reserva', {
 
 Reserva.belongsTo(Usuario, { foreignKey: 'usuario_id' })
 Reserva.hasMany(Viajero, { foreignKey: 'reserva_id' })
+Reserva.belongsTo(Vuelo, { foreignKey: 'vuelo_ida_id', as: 'vuelo_ida' })
+Reserva.belongsTo(Vuelo, { foreignKey: 'vuelo_vuelta_id', as: 'vuelo_vuelta' })
 
 export default Reserva

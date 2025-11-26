@@ -56,19 +56,19 @@ const Viajero = sequelize.define('viajero', {
   usuario_asociado: {
     type: DataTypes.INTEGER,
     allowNull: false
-  },
-  numero_asiento: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
+  }
+  // numero_asiento: {
+  //   type: DataTypes.STRING,
+  //   allowNull: false
+  // }
   // estado_reserva:{
   //   type: DataTypes.STRING,
   //   allowNull: false
   // },
-  trayecto: {
-    type: DataTypes.ENUM('IDAVUELTA', 'SOLOIDA'),
-    allowNull: false
-  }
+  // trayecto: {
+  //   type: DataTypes.ENUM('IDAVUELTA', 'SOLOIDA'),
+  //   allowNull: false
+  // }
   // hizo_checkin:{
   //   type: DataTypes.INTEGER,
   //   defaultValue: false,

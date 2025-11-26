@@ -3,6 +3,7 @@ import { sequelize } from '../db/sequelize/sequelize.js'
 import Compra from './compra.js'
 import Vuelo from './vuelo.js'
 import Viajero from './viajero.js'
+import Reserva from './reserva.js'
 
 const Tiquete = sequelize.define('tiquete', {
   id_tiquete: {
@@ -10,22 +11,22 @@ const Tiquete = sequelize.define('tiquete', {
     primaryKey: true,
     autoIncrement: true
   },
-  codigo_reserva: {
+  reserva_id: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  tipo_trayecto: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
+  // tipo_trayecto: {
+  //   type: DataTypes.ENUM('IDA', 'VUELTA'),
+  //   allowNull: false
+  // },
   id_vuelo: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  costo_tiquete: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
+  // costo_tiquete: {
+  //   type: DataTypes.INTEGER,
+  //   allowNull: false
+  // },
   clase_silla_tiquete: {
     type: DataTypes.INTEGER,
     allowNull: false
@@ -45,6 +46,11 @@ const Tiquete = sequelize.define('tiquete', {
   id_viajero_tiquete: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  hizo_checkin: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   tableName: 'tiquete',
@@ -54,5 +60,6 @@ const Tiquete = sequelize.define('tiquete', {
 Tiquete.belongsTo(Compra, { foreignKey: 'id_compra' })
 Tiquete.belongsTo(Vuelo, { foreignKey: 'id_vuelo' })
 Tiquete.belongsTo(Viajero, { foreignKey: 'id_viajero_tiquete' })
+Tiquete.belongsTo(Reserva, { foreignKey: 'reserva_id' })
 
 export default Tiquete

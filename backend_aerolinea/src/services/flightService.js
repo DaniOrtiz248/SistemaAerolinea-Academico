@@ -20,6 +20,7 @@ export class FlightService {
 
   static async getFlightById ({ ccv }) {
     try {
+      console.log('Fetching flight with CCV:', ccv)
       const flight = await FlightRepository.findById({ ccv })
       if (!flight) {
         throw new AppError(404, 'FLIGHT_NOT_FOUND', 'Vuelo no encontrado')

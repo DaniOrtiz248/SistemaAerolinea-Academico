@@ -1,0 +1,64 @@
+POST http://localhost:3001/api/v1/users/login
+Content-Type: application/json
+
+{
+    "identifier": "PEPESITO",
+    "contrasena": "12345678"
+}
+
+### Crear Reserva para el usuario 25
+POST http://localhost:3001/api/v1/reservas
+Content-Type: application/json
+Cookie: access_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjUsImRlc2NyaXBjaW9uX3VzdWFyaW8iOiJQRVBFU0lUTyIsImVtYWlsIjoidml5dWVsYUBnbWFpbC5jb20iLCJyb2xlIjozLCJpYXQiOjE3NjQxODU0MjksImV4cCI6MTc2NDE4OTAyOX0.Pc9xn_aquE_9N_mKMuJq2QhJwtrsbkHsiwhrBdCcUJO69fz01RfgSSgFj78WMF7aDkNZxHyTSZ0SwdpHxmganPOZXuBt9sLF5GddX8JZYXgEf6Pg3qcMo_cLlPb_6oouRjln8oFz5-wDxIYP29GGu8lx7oxSQI-CQzMNLe8EXR076n5ZXeTpQwOOZdXMUcLMAaWi2q9hQlVBa_x4LHmPik-IeNs0K7I0SBCM-RWqc9OFxZlR7ZSh8latWp7Y2igIkyrIBkRbmhgMHYXRLDbrzmZ37__7vUsDbW7C6OSr-aJlogX1sxylRSWcJ0D_l2_RKmeGHObjk1FhI-Gv5uFTlQ
+
+{
+  "fecha_reserva": "2024-06-15T10:00:00Z",
+  "estado_reserva": "ACTIVA",
+  "clase_reserva": "SEGUNDACLASE",
+  "usuario_id": 25,
+  "cantidad_viajeros": 2,
+  "trayectoria": "IDAVUELTA",
+  "vuelo_ida_id": 29,
+  "vuelo_vuelta_id": 30,
+  "precio_total": 600000
+}
+
+### Crear viajeros
+POST http://localhost:3001/api/v1/viajeros
+Content-Type: application/json
+
+{
+  "dni_viajero": "12345678",
+  "primer_nombre": "Garzon",
+  "primer_apellido": "Vergara",
+  "fecha_nacimiento": "1990-05-20",
+  "id_genero": 2,
+  "telefono": "3001234567",
+  "correo_electronico": "b.valencia1@utp.edu.co",
+  "nombre_contacto": "Ana Maria",
+  "telefono_contacto": "3007654321",
+  "usuario_asociado": 25,
+  "reserva_id": 1
+}
+
+### Crear viajeros
+POST http://localhost:3001/api/v1/viajeros
+Content-Type: application/json
+
+{
+  "dni_viajero": "1234578",
+  "primer_nombre": "Ortiz",
+  "primer_apellido": "Vergara",
+  "fecha_nacimiento": "1990-05-20",
+  "id_genero": 2,
+  "telefono": "3001234567",
+  "correo_electronico": "b.valencia1@utp.edu.co",
+  "nombre_contacto": "Ana Maria",
+  "telefono_contacto": "3007654321",
+  "usuario_asociado": 25,
+  "reserva_id": 1
+}
+
+### Obtener vuelo por id 29
+GET http://localhost:3001/api/v1/flights/29
+Accept: application/json

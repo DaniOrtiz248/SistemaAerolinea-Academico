@@ -1,9 +1,16 @@
 import { ReservaRepository } from '../repositories/reservaRepository.js'
+import { generarCodigoReserva, calcularExpiracionReserva } from '../utils/reservaUtils.js'
 
 export class ReservaService {
-  static async createReserva (reservaData) {
+  static async create (reservaData) {
     try {
-      return await ReservaRepository.createReserva(reservaData)
+      const codigoReserva = await generarCodigoReserva()
+      const fechaExpiracion = calcularExpiracionReserva()
+
+      reservaData.fecha_expiracion = fechaExpiracion
+      reservaData.codigo_reserva = codigoReserva
+
+      return await ReservaRepository.create(reservaData)
     } catch (error) {
       console.error('Error creando reserva:', error)
       throw error
@@ -28,7 +35,7 @@ export class ReservaService {
     }
   }
 
-  static async deleteReserva (id) {
+  static async delete (id) {
     try {
       return await ReservaRepository.deleteReserva(id)
     } catch (error) {
@@ -46,9 +53,18 @@ export class ReservaService {
     }
   }
 
-  static async getReservaByIdVuelo (vueloId) {
+  static async getReservaByIdVueloIda (vueloId) {
     try {
-      return await ReservaRepository.getReservaByIdVuelo(vueloId)
+      return await ReservaRepository.getReservaByIdVueloIda(vueloId)
+    } catch (error) {
+      console.error('Error obteniendo reserva por ID de vuelo:', error)
+      throw error
+    }
+  }
+
+  static async getReservaByIdVueloVuelta (vueloId) {
+    try {
+      return await ReservaRepository.getReservaByIdVueloVuelta(vueloId)
     } catch (error) {
       console.error('Error obteniendo reserva por ID de vuelo:', error)
       throw error

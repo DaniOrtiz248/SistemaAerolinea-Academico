@@ -12,8 +12,9 @@ const viajeroSchema = z.object({
   correo_electronico: z.string().email().optional(),
   nombre_contacto: z.string().min(1),
   telefono_contacto: z.string().min(1),
-  usuario_asociado: z.string().min(1),
-  hizo_checkin: z.number().int().min(0).max(1).optional()
+  usuario_asociado: z.number().int().positive(),
+  reserva_id: z.number().int().positive().optional()
+  // hizo_checkin: z.number().int().min(0).max(1).optional()
 })
 
 const partialViajeroSchema = viajeroSchema.partial()
