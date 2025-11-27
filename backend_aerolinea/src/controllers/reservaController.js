@@ -113,7 +113,7 @@ export class ReservaController {
 
   static async getReservaByIdVuelo (req, res) {
     try {
-      const reservas = await ReservaService.getReservaByIdVuelo(req.params.idVuelo)
+      const reservas = await ReservaService.getReservaByIdVuelo(req.params.vueloId)
       if (!reservas || reservas.length === 0) {
         return res.status(404).json({ error: 'No se encontraron reservas para el vuelo' })
       }

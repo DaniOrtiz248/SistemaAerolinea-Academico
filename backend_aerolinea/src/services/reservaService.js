@@ -73,6 +73,25 @@ export class ReservaService {
     }
   }
 
+  static async getReservaByIdVuelo (vueloId) {
+    try {
+      // Obtener reservas donde el vuelo es ida o vuelta
+      const reservasIda = await ReservaRepository.getReservaByIdVueloIda(vueloId) || []
+      const reservasVuelta = await ReservaRepository.getReservaByIdVueloVuelta(vueloId) || []
+      
+      // Combinar y eliminar duplicados por id_reserva
+      const reservasMap = new Map()
+      
+      reservasIda.forEach(r => reservasMap.set(r.id_reserva, r))
+      reservasVuelta.forEach(r => reservasMap.set(r.id_reserva, r))
+      
+      return Array.from(reservasMap.values())
+    } catch (error) {
+      console.error('Error obteniendo reservas por ID de vuelo:', error)
+      throw error
+    }
+  }
+
   static async cancelarReserva (reservaId) {
     try {
       const reserva = await ReservaRepository.getReservaById(reservaId)

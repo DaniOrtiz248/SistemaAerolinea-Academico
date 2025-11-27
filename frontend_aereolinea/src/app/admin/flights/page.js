@@ -1124,6 +1124,12 @@ export default function AdminFlights() {
                             💺 Ver Asientos
                           </button>
                           <button
+                            onClick={() => router.push(`/admin/flights/${flight.ccv}/reservations`)}
+                            className="text-indigo-600 hover:text-indigo-900 text-left"
+                          >
+                            📋 Ver Reservas
+                          </button>
+                          <button
                             onClick={() => handleEdit(flight)}
                             className="text-blue-600 hover:text-blue-900 text-left"
                           >
