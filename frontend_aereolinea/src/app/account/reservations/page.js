@@ -70,9 +70,27 @@ export default function ReservationsPage() {
     );
   };
 
-  const handleContinuePayment = (reservaId) => {
-    // TODO: Implementar pasarela de pago
-    showError("La pasarela de pago está en desarrollo. Por favor, contacte al administrador.");
+  const handleContinuePayment = async (reservaId) => {
+    showConfirm(
+      "¿Desea procesar el pago de esta reserva? Se enviará un correo de confirmación a todos los pasajeros.",
+      async () => {
+        try {
+          setProcessingCancel(reservaId); // Reusar el estado para mostrar loading
+          const result = await reservationService.procesarPago(reservaId);
+          showSuccess(
+            `¡Pago procesado exitosamente! Se han enviado ${result.correos_enviados} correos de confirmación.`
+          );
+          // Recargar reservas para actualizar el estado
+          await loadReservations();
+        } catch (error) {
+          console.error("Error processing payment:", error);
+          showError(error.message || "Error al procesar el pago");
+        } finally {
+          setProcessingCancel(null);
+        }
+      },
+      "Confirmar Pago"
+    );
   };
 
   const formatDate = (dateString) => {

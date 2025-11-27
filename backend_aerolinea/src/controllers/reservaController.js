@@ -2,7 +2,9 @@ import { ReservaService } from '../services/reservaService.js'
 import { ValidationError } from '../utils/validateError.js'
 import { formatErrors } from '../utils/formatErrors.js'
 import { validateReserva, validatePartialReserva } from '../schema/reservaSchema.js'
-import { sendReservationConfirmation } from '../utils/mailer.js'
+import { sendReservationConfirmation, sendPurchaseConfirmation } from '../utils/mailer.js'
+import Usuario from '../models/usuario.js'
+import Viajero from '../models/viajero.js'
 
 export class ReservaController {
   static async getAll (req, res) {
@@ -23,6 +25,19 @@ export class ReservaController {
     }
     try {
       const created = await ReservaService.create(req.body)
+      
+      // Enviar correo automáticamente al crear la reserva
+      try {
+        const usuario = await Usuario.findByPk(created.usuario_id)
+        if (usuario && usuario.correo_electronico) {
+          console.log(`📧 Enviando correo de confirmación a: ${usuario.correo_electronico}`)
+          await sendReservationConfirmation(usuario.correo_electronico, created)
+        }
+      } catch (emailError) {
+        console.error('⚠️ Error enviando correo (reserva creada exitosamente):', emailError.message)
+        // No fallar la reserva por error de email
+      }
+      
       return res.status(201).json(created)
     } catch (err) {
       console.error(err)
@@ -116,6 +131,62 @@ export class ReservaController {
     } catch (err) {
       console.error(err)
       return res.status(500).json({ error: 'Error al cancelar la reserva' })
+    }
+  }
+
+  // Nuevo método para procesar el pago de una compra
+  static async procesarPagoCompra (req, res) {
+    try {
+      const { reservaId } = req.params
+      
+      // Obtener la reserva
+      const reserva = await ReservaService.getReservaById(reservaId)
+      if (!reserva) {
+        return res.status(404).json({ error: 'Reserva no encontrada' })
+      }
+
+      // Verificar que esté ACTIVA
+      if (reserva.estado_reserva !== 'ACTIVA') {
+        return res.status(400).json({ 
+          error: 'La reserva no está en estado ACTIVA',
+          estado_actual: reserva.estado_reserva
+        })
+      }
+
+      // Cambiar estado a PAGADA
+      reserva.estado_reserva = 'PAGADA'
+      await ReservaService.updateReserva(reservaId, reserva.dataValues)
+
+      // Obtener usuario dueño de la reserva
+      const usuario = await Usuario.findByPk(reserva.usuario_id)
+      if (!usuario) {
+        return res.status(404).json({ error: 'Usuario no encontrado' })
+      }
+
+      // Obtener todos los viajeros de esta reserva
+      const viajeros = await Viajero.findAll({ 
+        where: { reserva_id: reservaId } 
+      })
+
+      // Enviar correos
+      try {
+        console.log(`💳 Procesando pago de reserva ${reserva.codigo_reserva}...`)
+        await sendPurchaseConfirmation(usuario.correo_electronico, viajeros, reserva)
+        console.log(`✅ Correos de compra enviados exitosamente`)
+      } catch (emailError) {
+        console.error('⚠️ Error enviando correos (pago procesado exitosamente):', emailError.message)
+      }
+
+      return res.json({
+        success: true,
+        message: 'Pago procesado exitosamente',
+        reserva: reserva,
+        correos_enviados: viajeros.length + 1 // viajeros + dueño
+      })
+
+    } catch (err) {
+      console.error('Error procesando pago:', err)
+      return res.status(500).json({ error: 'Error al procesar el pago' })
     }
   }
 }

@@ -277,4 +277,31 @@ export const reservationService = {
       throw error;
     }
   },
+
+  // Procesar pago de una compra (marca reserva como PAGADA y envía correos)
+  async procesarPago(reservaId) {
+    try {
+      console.log(`💳 Procesando pago de reserva ${reservaId}...`);
+      
+      const response = await fetch(`${API_URL}/reservas/procesar-pago/${reservaId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al procesar el pago');
+      }
+
+      console.log('✅ Pago procesado exitosamente:', data);
+      return data;
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      throw error;
+    }
+  },
 };

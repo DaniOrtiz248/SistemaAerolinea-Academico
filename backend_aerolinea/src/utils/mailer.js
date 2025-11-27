@@ -264,6 +264,11 @@ export async function sendReservationConfirmation(toEmail, reserva) {
               Tu reserva está activa y pendiente de pago.  
               Una vez realices el pago, tu reserva cambiará a <strong>PAGADA</strong> y podrás realizar el check-in.
           </p>
+          <p style="color:#b45309; font-size:14px; margin-top:8px;">
+              <strong>⏰ Plazo de pago:</strong> Hasta ${new Date(fecha_expiracion).toLocaleString('es-ES', { 
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}
+          </p>
       </div>
     `
 
@@ -276,8 +281,8 @@ export async function sendReservationConfirmation(toEmail, reserva) {
         <h3 style="margin-top:0; color:#0ea5e9;">✈️ Vuelo de IDA</h3>
 
         <p><strong>Ruta:</strong> ${origenIda.nombre_ciudad} → ${destinoIda.nombre_ciudad}</p>
-        <p><strong>Fecha del vuelo:</strong> ${vueloIda.fecha_vuelo}</p>
-        <p><strong>Hora de salida:</strong> ${new Date(vueloIda.hora_salida_vuelo).toLocaleString()}</p>
+        <p><strong>Fecha del vuelo:</strong> ${new Date(vueloIda.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Hora de salida:</strong> ${new Date(vueloIda.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Clase:</strong> ${clase_reserva}</p>
     </div>
   `
@@ -291,8 +296,8 @@ export async function sendReservationConfirmation(toEmail, reserva) {
         <h3 style="margin-top:0; color:#0284c7;">🔁 Vuelo de VUELTA</h3>
 
         <p><strong>Ruta:</strong> ${origenVuelta.nombre_ciudad} → ${destinoVuelta.nombre_ciudad}</p>
-        <p><strong>Fecha del vuelo:</strong> ${vueloVuelta.fecha_vuelo}</p>
-        <p><strong>Hora de salida:</strong> ${new Date(vueloVuelta.hora_salida_vuelo).toLocaleString()}</p>
+        <p><strong>Fecha del vuelo:</strong> ${new Date(vueloVuelta.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Hora de salida:</strong> ${new Date(vueloVuelta.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Clase:</strong> ${clase_reserva}</p>
     </div>
   ` : ''
@@ -348,8 +353,8 @@ export async function sendReservationConfirmation(toEmail, reserva) {
           <div style="background:#fff7ed; padding:20px; border-left:4px solid #fb923c; border-radius:8px; margin:30px 0;">
               <h3 style="margin-top:0; color:#ea580c;">Estado de la Reserva</h3>
               <p><strong>Estado:</strong> ${estado_reserva}</p>
-              <p><strong>Fecha de reserva:</strong> ${fecha_reserva}</p>
-              <p><strong>Expira el:</strong> ${fecha_expiracion}</p>
+              <p><strong>Fecha de reserva:</strong> ${new Date(fecha_reserva).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <p><strong>Expira el:</strong> ${new Date(fecha_expiracion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               <p><strong>Viajeros:</strong> ${cantidad_viajeros}</p>
               <p><strong>Trayecto:</strong> ${trayectoria === 'IDAVUELTA' ? 'Ida y Vuelta' : 'Solo Ida'}</p>
           </div>
@@ -359,7 +364,9 @@ export async function sendReservationConfirmation(toEmail, reserva) {
 
           <p style="font-size:15px; line-height:1.6; margin-top:20px; color:#444;">
               Conserva este correo y tu código de reserva.  
-              Si la reserva está pagada, podrás realizar el check-in 24h antes del vuelo.  
+              ${estado_reserva === 'PAGADA' 
+                ? 'Podrás realizar el check-in 24h antes del vuelo.' 
+                : 'Completa el pago antes de la fecha de expiración para confirmar tu reserva.'}  
               ¡Te deseamos un excelente viaje! ✨
           </p>
       </div>
@@ -383,9 +390,238 @@ export async function sendReservationConfirmation(toEmail, reserva) {
 
   try {
     await transporter.sendMail(mailOptions)
+    console.log(`✅ Correo de reserva enviado a: ${toEmail}`)
     return true
   } catch (err) {
     console.error('❌ Error enviando confirmación:', err.message)
+    return false
+  }
+}
+
+// Nueva función para enviar confirmación de compra pagada
+export async function sendPurchaseConfirmation(ownerEmail, viajeros, reserva) {
+  const {
+    codigo_reserva,
+    clase_reserva,
+    cantidad_viajeros,
+    precio_total,
+    fecha_reserva,
+    trayectoria
+  } = reserva
+
+  // Cargar vuelo IDA
+  const vueloIda = await reserva.getVuelo_ida()
+  const rutaIda = await vueloIda.getRuta()
+  const origenIda = await rutaIda.getOrigen()
+  const destinoIda = await rutaIda.getDestino()
+
+  // Preparar posible vuelo de vuelta
+  let vueloVuelta = null
+  let rutaVuelta = null
+  let origenVuelta = null
+  let destinoVuelta = null
+
+  if (trayectoria === 'IDAVUELTA' && reserva.vuelo_vuelta_id) {
+    vueloVuelta = await reserva.getVuelo_vuelta()
+    rutaVuelta = await vueloVuelta.getRuta()
+    origenVuelta = await rutaVuelta.getOrigen()
+    destinoVuelta = await rutaVuelta.getDestino()
+  }
+
+  // -----------------------------
+  // BLOQUE DEL VUELO IDA
+  // -----------------------------
+
+  const bloqueVueloIda = `
+    <div style="background:#f8fafc; padding:20px; border-radius:10px; margin-top:20px;">
+        <h3 style="margin-top:0; color:#0ea5e9;">✈️ Vuelo de IDA</h3>
+        <p><strong>Ruta:</strong> ${origenIda.nombre_ciudad} → ${destinoIda.nombre_ciudad}</p>
+        <p><strong>Fecha:</strong> ${new Date(vueloIda.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Hora de salida:</strong> ${new Date(vueloIda.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+        <p><strong>Clase:</strong> ${clase_reserva}</p>
+    </div>
+  `
+
+  const bloqueVueloVuelta = vueloVuelta ? `
+    <div style="background:#f1f5f9; padding:20px; border-radius:10px; margin-top:20px;">
+        <h3 style="margin-top:0; color:#0284c7;">🔁 Vuelo de VUELTA</h3>
+        <p><strong>Ruta:</strong> ${origenVuelta.nombre_ciudad} → ${destinoVuelta.nombre_ciudad}</p>
+        <p><strong>Fecha:</strong> ${new Date(vueloVuelta.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Hora de salida:</strong> ${new Date(vueloVuelta.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+        <p><strong>Clase:</strong> ${clase_reserva}</p>
+    </div>
+  ` : ''
+
+  // -----------------------------
+  // ENVIAR A TODOS LOS VIAJEROS
+  // -----------------------------
+  
+  const emailsViajeros = viajeros
+    .filter(v => v.correo_electronico && v.correo_electronico.trim() !== '')
+    .map(v => v.correo_electronico)
+
+  console.log(`📧 Enviando tickets a ${emailsViajeros.length} viajeros...`)
+
+  for (const emailViajero of emailsViajeros) {
+    const htmlViajero = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tu Ticket de Vuelo</title>
+    </head>
+    <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f0f4f8;">
+    
+    <div style="max-width:700px; margin:40px auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    
+        <!-- HEADER -->
+        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; padding:30px; text-align:center;">
+            <h1 style="margin:0; font-size:28px;">🎫 Tu Ticket de Vuelo</h1>
+            <p style="margin-top:8px; opacity:0.9; font-size:16px;">Aero Penguin Airlines</p>
+        </div>
+    
+        <!-- BODY -->
+        <div style="padding:35px; color:#333;">
+    
+            <h2 style="color:#059669; margin-top:0;">¡Tu vuelo está confirmado y pagado!</h2>
+            <p style="font-size:16px; line-height:1.6; color:#555;">
+                Gracias por volar con <strong>Aero Penguin</strong>. Este es tu ticket confirmado.
+            </p>
+    
+            <!-- CÓDIGO -->
+            <div style="background:linear-gradient(135deg, #10b981, #059669); padding:20px; border-radius:10px; text-align:center; margin:25px 0; color:white;">
+                <p style="margin:0; font-size:14px;">Código de Reserva</p>
+                <div style="background:white; padding:15px 40px; border-radius:8px; margin-top:10px; display:inline-block;">
+                    <span style="font-size:30px; font-weight:bold; color:#059669; letter-spacing:5px; font-family:'Courier New', monospace;">
+                        ${codigo_reserva}
+                    </span>
+                </div>
+            </div>
+    
+            ${bloqueVueloIda}
+            ${bloqueVueloVuelta}
+    
+            <div style="background:#ecfdf5; padding:20px; border-left:4px solid #10b981; border-radius:8px; margin:30px 0;">
+                <h3 style="margin-top:0; color:#059669;">✅ Compra Confirmada</h3>
+                <p><strong>Estado:</strong> PAGADA</p>
+                <p><strong>Total pagado:</strong> $${precio_total}</p>
+                <p><strong>Fecha de compra:</strong> ${new Date(fecha_reserva).toLocaleDateString('es-ES')}</p>
+                <p><strong>Viajeros:</strong> ${cantidad_viajeros}</p>
+            </div>
+    
+            <p style="font-size:15px; line-height:1.6; margin-top:20px; color:#444;">
+                Podrás realizar el check-in 24 horas antes del vuelo.  
+                Conserva este correo como comprobante. ¡Buen viaje! ✈️✨
+            </p>
+        </div>
+    
+        <!-- FOOTER -->
+        <div style="background:#f8f9fa; padding:20px; text-align:center; font-size:13px; color:#999;">
+            Aero Penguin Airlines © 2025
+        </div>
+    </div>
+    
+    </body>
+    </html>
+    `
+
+    const mailOptions = {
+      from: process.env.MAIL_FROM,
+      to: emailViajero,
+      subject: `🎫 Tu Ticket de Vuelo · ${codigo_reserva}`,
+      html: htmlViajero
+    }
+
+    try {
+      await transporter.sendMail(mailOptions)
+      console.log(`✅ Ticket enviado a: ${emailViajero}`)
+    } catch (err) {
+      console.error(`❌ Error enviando ticket a ${emailViajero}:`, err.message)
+    }
+  }
+
+  // -----------------------------
+  // NOTIFICACIÓN AL DUEÑO DE LA CUENTA
+  // -----------------------------
+
+  const htmlOwner = `
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Compra Confirmada</title>
+  </head>
+  <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f0f4f8;">
+  
+  <div style="max-width:700px; margin:40px auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+  
+      <!-- HEADER -->
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; padding:30px; text-align:center;">
+          <h1 style="margin:0; font-size:28px;">💳 Compra Confirmada</h1>
+          <p style="margin-top:8px; opacity:0.9; font-size:16px;">Aero Penguin Airlines</p>
+      </div>
+  
+      <!-- BODY -->
+      <div style="padding:35px; color:#333;">
+  
+          <h2 style="color:#059669; margin-top:0;">¡Pago procesado exitosamente!</h2>
+          <p style="font-size:16px; line-height:1.6; color:#555;">
+              Tu compra ha sido confirmada y todos los pasajeros han recibido sus tickets por correo electrónico.
+          </p>
+  
+          <!-- CÓDIGO -->
+          <div style="background:linear-gradient(135deg, #10b981, #059669); padding:20px; border-radius:10px; text-align:center; margin:25px 0; color:white;">
+              <p style="margin:0; font-size:14px;">Código de Reserva</p>
+              <div style="background:white; padding:15px 40px; border-radius:8px; margin-top:10px; display:inline-block;">
+                  <span style="font-size:30px; font-weight:bold; color:#059669; letter-spacing:5px; font-family:'Courier New', monospace;">
+                      ${codigo_reserva}
+                  </span>
+              </div>
+          </div>
+  
+          ${bloqueVueloIda}
+          ${bloqueVueloVuelta}
+  
+          <div style="background:#ecfdf5; padding:20px; border-left:4px solid #10b981; border-radius:8px; margin:30px 0;">
+              <h3 style="margin-top:0; color:#059669;">Resumen de Pago</h3>
+              <p style="font-size:22px; font-weight:bold; color:#059669; margin:5px 0;">
+                  Total pagado: $${precio_total}
+              </p>
+              <p><strong>Viajeros:</strong> ${cantidad_viajeros}</p>
+              <p><strong>Fecha de compra:</strong> ${new Date(fecha_reserva).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+  
+          <p style="font-size:15px; line-height:1.6; margin-top:20px; color:#444;">
+              Todos los pasajeros han recibido sus tickets individuales.  
+              Puedes realizar el check-in 24 horas antes del vuelo. ¡Gracias por tu compra! 🎉
+          </p>
+      </div>
+  
+      <!-- FOOTER -->
+      <div style="background:#f8f9fa; padding:20px; text-align:center; font-size:13px; color:#999;">
+          Aero Penguin Airlines © 2025
+      </div>
+  </div>
+  
+  </body>
+  </html>
+  `
+
+  const mailOptionsOwner = {
+    from: process.env.MAIL_FROM,
+    to: ownerEmail,
+    subject: `💳 Compra Confirmada · ${codigo_reserva} - ${cantidad_viajeros} Pasajeros`,
+    html: htmlOwner
+  }
+
+  try {
+    await transporter.sendMail(mailOptionsOwner)
+    console.log(`✅ Notificación de compra enviada al dueño: ${ownerEmail}`)
+    return true
+  } catch (err) {
+    console.error(`❌ Error enviando notificación al dueño:`, err.message)
     return false
   }
 }

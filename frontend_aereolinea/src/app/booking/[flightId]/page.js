@@ -188,7 +188,7 @@ export default function BookingPage() {
         viajerosCreados.push(viajeroCreado);
       }
 
-      // Paso 3: Si es COMPRA, crear el registro de compra
+      // Paso 3: Si es COMPRA, crear el registro de compra y procesar pago
       if (actionType === "COMPRAR") {
         const compraData = {
           fecha_compra: new Date().toISOString(),
@@ -198,16 +198,17 @@ export default function BookingPage() {
 
         await reservationService.createPurchase(compraData);
 
-        // Actualizar estado de la reserva a PAGADA
-        // Nota: Según el backend, necesitarías actualizar la reserva aquí
-        // pero no veo un endpoint directo para esto en el controller
+        // Procesar el pago inmediatamente (marca como PAGADA y envía correos)
+        console.log('🎫 Procesando pago de compra directa...');
+        await reservationService.procesarPago(reservaId);
+        console.log('✅ Pago procesado y correos enviados');
       }
 
       // Éxito
       const mensaje =
         actionType === "COMPRAR"
-          ? "¡Compra realizada exitosamente! Recibirás un correo de confirmación."
-          : "¡Reserva realizada exitosamente! Tienes 24 horas para completar el pago.";
+          ? "¡Compra realizada exitosamente! Todos los pasajeros recibirán un correo con sus tickets."
+          : "¡Reserva realizada exitosamente! Revisa tu correo y completa el pago en 24 horas.";
 
       showSuccess(mensaje);
 
