@@ -121,31 +121,26 @@ export default function HistoryPage() {
     }
   };
 
+  // Determinar si una reserva fue cancelada por tiempo o manualmente
+  const getCancelReason = (reserva) => {
+    if (reserva.estado_reserva !== "CANCELADA") return null;
+    
+    const fechaExpiracion = new Date(reserva.fecha_expiracion);
+    const ahora = new Date();
+    
+    // Si la fecha de expiración ya pasó, fue cancelada automáticamente por tiempo
+    if (fechaExpiracion < ahora) {
+      return "tiempo";
+    }
+    
+    // Si aún no ha expirado pero está cancelada, fue cancelación manual
+    return "manual";
+  };
+
   const filteredReservations = reservations.filter((reserva) => {
-    // Si el filtro es ALL, mostrar todo excepto las reservas canceladas manualmente
     if (filterStatus === "ALL") {
-      // Si está cancelada, verificar si fue por expiración de 24 horas
-      if (reserva.estado_reserva === "CANCELADA") {
-        const fechaExpiracion = new Date(reserva.fecha_expiracion);
-        const ahora = new Date();
-        // Solo mostrar si la fecha de expiración ya pasó (cancelada automáticamente por 24h)
-        return fechaExpiracion < ahora;
-      }
-      return true;
+      return true; // Mostrar todas las reservas
     }
-    
-    // Si el filtro es CANCELADA, solo mostrar las canceladas por expiración
-    if (filterStatus === "CANCELADA") {
-      if (reserva.estado_reserva === "CANCELADA") {
-        const fechaExpiracion = new Date(reserva.fecha_expiracion);
-        const ahora = new Date();
-        // Solo mostrar si la fecha de expiración ya pasó (cancelada automáticamente por 24h)
-        return fechaExpiracion < ahora;
-      }
-      return false;
-    }
-    
-    // Para otros filtros (PAGADA, ACTIVA), filtrar normalmente
     return reserva.estado_reserva === filterStatus;
   });
 
@@ -173,6 +168,50 @@ export default function HistoryPage() {
           <p className="text-gray-600">
             Revisa todas tus transacciones anteriores
           </p>
+        </div>
+
+        {/* Filtros */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilterStatus("ALL")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filterStatus === "ALL"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+            }`}
+          >
+            Todas
+          </button>
+          <button
+            onClick={() => setFilterStatus("PAGADA")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filterStatus === "PAGADA"
+                ? "bg-green-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+            }`}
+          >
+            Pagadas
+          </button>
+          <button
+            onClick={() => setFilterStatus("ACTIVA")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filterStatus === "ACTIVA"
+                ? "bg-yellow-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+            }`}
+          >
+            Pendientes
+          </button>
+          <button
+            onClick={() => setFilterStatus("CANCELADA")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filterStatus === "CANCELADA"
+                ? "bg-red-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+            }`}
+          >
+            Canceladas
+          </button>
         </div>
 
         {/* Lista de Reservas */}
@@ -225,6 +264,19 @@ export default function HistoryPage() {
                       >
                         {getStatusLabel(reserva.estado_reserva)}
                       </span>
+                      {reserva.estado_reserva === "CANCELADA" && (
+                        <div className="mt-2">
+                          {getCancelReason(reserva) === "tiempo" ? (
+                            <p className="text-xs text-red-600 bg-red-50 px-3 py-1 rounded-full inline-block">
+                              ⏱️ Cancelada por expiración de 24 horas
+                            </p>
+                          ) : (
+                            <p className="text-xs text-orange-600 bg-orange-50 px-3 py-1 rounded-full inline-block">
+                              👤 Cancelada manualmente
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

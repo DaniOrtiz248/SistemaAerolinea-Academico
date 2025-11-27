@@ -33,7 +33,24 @@ export default function PaymentSuccessPage() {
         }
 
         if (verifyData.status === 'paid') {
+          // Crear registro de compra antes de procesar el pago
+          try {
+            const compraData = {
+              fecha_compra: new Date().toISOString(),
+              valor_total: verifyData.amount_total,
+              es_pago: 1, // Indicar que es un pago
+            };
+            
+            console.log('💼 Creando registro de compra...');
+            await reservationService.createPurchase(compraData);
+            console.log('✅ Registro de compra creado');
+          } catch (compraError) {
+            console.error('⚠️ Error al crear registro de compra (continuando con procesamiento):', compraError);
+            // No fallar si esto falla, continuar con el procesamiento del pago
+          }
+
           // Procesar el pago en el backend (marcar como PAGADA y enviar correos)
+          console.log('📧 Procesando pago y enviando correos...');
           const result = await reservationService.procesarPago(reservaId);
           
           setPaymentInfo({

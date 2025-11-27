@@ -205,7 +205,7 @@ export default function BookingPage() {
     return true;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (submitActionType) => {
     if (!validateAllTravelers()) {
       showError("Por favor complete todos los formularios de pasajeros correctamente");
       return;
@@ -218,6 +218,7 @@ export default function BookingPage() {
     }
 
     setProcessing(true);
+    setActionType(submitActionType); // Actualizar el estado para la UI
 
     let reservaCreada = null;
     let viajerosCreados = [];
@@ -320,33 +321,52 @@ export default function BookingPage() {
         viajerosCreados.push(viajeroCreado);
       }
 
-      // Paso 3: Si es COMPRA, crear el registro de compra y procesar pago
-      if (actionType === "COMPRAR") {
-        const compraData = {
-          fecha_compra: new Date().toISOString(),
-          valor_total: calculateTotalPrice(),
-          es_pago: 1, // Indicar que es un pago
-        };
+      // Paso 3: Si es COMPRA, redirigir a Stripe Checkout
+      if (submitActionType === "COMPRAR") {
+        console.log('💳 Redirigiendo a Stripe Checkout para procesar pago...');
+        
+        // Crear sesión de checkout de Stripe
+        const stripeResponse = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reservaId: reservaId,
+            amount: parseFloat(calculateTotalPrice()),
+            currency: 'usd',
+            reservaInfo: {
+              codigo_reserva: reservaCreada.codigo_reserva,
+              cantidad_viajeros: numPassengers,
+              description: `Vuelo ${claseReserva === 'PRIMERACLASE' ? 'Primera Clase' : 'Segunda Clase'} - ${flight.ruta.origen.nombre_ciudad} → ${flight.ruta.destino.nombre_ciudad}`,
+            },
+          }),
+        });
 
-        await reservationService.createPurchase(compraData);
+        const stripeData = await stripeResponse.json();
 
-        // Procesar el pago inmediatamente (marca como PAGADA y envía correos)
-        console.log('🎫 Procesando pago de compra directa...');
-        await reservationService.procesarPago(reservaId);
-        console.log('✅ Pago procesado y correos enviados');
+        if (!stripeResponse.ok) {
+          throw new Error(stripeData.error || 'Error al crear la sesión de pago');
+        }
+
+        // Mostrar mensaje y redirigir a Stripe
+        showSuccess("¡Reserva creada! Redirigiendo a la pasarela de pago...");
+        
+        // Redirigir a Stripe Checkout
+        setTimeout(() => {
+          window.location.href = stripeData.url;
+        }, 1500);
+        
+        return; // Importante: salir aquí para no continuar con el flujo normal
       }
 
-      // Éxito
-      const mensaje =
-        actionType === "COMPRAR"
-          ? "¡Compra realizada exitosamente! Todos los pasajeros recibirán un correo con sus tickets."
-          : "¡Reserva realizada exitosamente! Revisa tu correo y completa el pago en 24 horas.";
-
+      // Éxito para RESERVAR (sin compra)
+      const mensaje = "¡Reserva realizada exitosamente! Revisa tu correo y completa el pago en 24 horas.";
       showSuccess(mensaje);
 
       // Redirigir después de un momento
       setTimeout(() => {
-        router.push("/account");
+        router.push("/account/reservations");
       }, 3000);
     } catch (error) {
       console.error("Error procesando:", error);
@@ -581,8 +601,7 @@ export default function BookingPage() {
           <div className="flex space-x-4">
             <button
               onClick={() => {
-                setActionType("RESERVAR");
-                handleSubmit();
+                handleSubmit("RESERVAR");
               }}
               disabled={processing || !isFormValid()}
               className={`flex-1 px-6 py-4 rounded-lg font-bold text-white transition-colors ${
@@ -595,8 +614,7 @@ export default function BookingPage() {
             </button>
             <button
               onClick={() => {
-                setActionType("COMPRAR");
-                handleSubmit();
+                handleSubmit("COMPRAR");
               }}
               disabled={processing || !isFormValid()}
               className={`flex-1 px-6 py-4 rounded-lg font-bold text-white transition-colors ${
