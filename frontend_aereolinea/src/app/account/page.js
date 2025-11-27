@@ -249,12 +249,26 @@ export default function MyAccount() {
             </div>
 
             {/* Botón para editar */}
-            <div className="flex justify-center pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6 border-t border-gray-200">
+              <Link
+                href="/account/reservations"
+                className="bg-orange-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors text-center"
+              >
+                📋 Mis Reservas Activas
+              </Link>
+              
+              <Link
+                href="/account/history"
+                className="bg-purple-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors text-center"
+              >
+                📜 Ver Historial
+              </Link>
+              
               <Link
                 href="/account/edit"
-                className="bg-blue-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                className="bg-blue-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-center"
               >
-                Editar Información
+                ✏️ Editar Información
               </Link>
             </div>
           </div>

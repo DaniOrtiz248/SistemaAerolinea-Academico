@@ -85,7 +85,7 @@ export class ReservaController {
 
   static async getReservaByIdUsuario (req, res) {
     try {
-      const reservas = await ReservaService.getReservaByIdUsuario(req.params.idUsuario)
+      const reservas = await ReservaService.getReservaByIdUsuario(req.params.usuarioId)
       if (!reservas || reservas.length === 0) {
         return res.status(404).json({ error: 'No se encontraron reservas para el usuario' })
       }

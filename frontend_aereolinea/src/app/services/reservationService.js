@@ -1,0 +1,280 @@
+const API_URL = 'http://localhost:3001/api/v1';
+
+export const reservationService = {
+  // Crear una nueva reserva
+  async createReservation(reservaData) {
+    try {
+      console.log('Creating reservation with data:', reservaData);
+      const response = await fetch(`${API_URL}/reservas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+        body: JSON.stringify(reservaData),
+      });
+
+      const data = await response.json();
+      console.log('Reservation response:', data);
+
+      if (!response.ok) {
+        // Manejar diferentes tipos de errores
+        if (data.error) {
+          if (Array.isArray(data.error)) {
+            throw new Error(JSON.stringify(data.error));
+          } else if (typeof data.error === 'object') {
+            throw new Error(JSON.stringify(data.error));
+          } else {
+            throw new Error(data.error);
+          }
+        }
+        throw new Error('Error al crear la reserva');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      throw error;
+    }
+  },
+
+  // Crear una nueva compra
+  async createPurchase(compraData) {
+    try {
+      const response = await fetch(`${API_URL}/compras`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+        body: JSON.stringify(compraData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear la compra');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating purchase:', error);
+      throw error;
+    }
+  },
+
+  // Crear un viajero
+  async createTraveler(viajeroData) {
+    try {
+      console.log('Creating traveler with data:', viajeroData);
+      const response = await fetch(`${API_URL}/viajeros`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+        body: JSON.stringify(viajeroData),
+      });
+
+      const data = await response.json();
+      console.log('Traveler response:', data);
+
+      if (!response.ok) {
+        // Manejar diferentes tipos de errores
+        if (data.details) {
+          throw new Error(data.details);
+        }
+        if (data.error) {
+          if (Array.isArray(data.error)) {
+            throw new Error(JSON.stringify(data.error));
+          } else if (typeof data.error === 'object') {
+            throw new Error(JSON.stringify(data.error));
+          } else {
+            throw new Error(data.error);
+          }
+        }
+        throw new Error('Error al crear el viajero');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating traveler:', error);
+      throw error;
+    }
+  },
+
+  // Obtener reservas del usuario
+  async getUserReservations(usuarioId) {
+    try {
+      const response = await fetch(`${API_URL}/reservas/usuario/${usuarioId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+      });
+
+      const data = await response.json();
+
+      // Si el backend devuelve 404, significa que no hay reservas, retornar array vacío
+      if (response.status === 404) {
+        console.log('No hay reservas para este usuario');
+        return [];
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener las reservas');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching user reservations:', error);
+      throw error;
+    }
+  },
+
+  // Obtener una reserva por ID
+  async getReservationById(reservaId) {
+    try {
+      const response = await fetch(`${API_URL}/reservas/${reservaId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener la reserva');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching reservation:', error);
+      throw error;
+    }
+  },
+
+  // Cancelar una reserva
+  async cancelReservation(reservaId) {
+    try {
+      const response = await fetch(`${API_URL}/reservas/cancel/${reservaId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cancelar la reserva');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error cancelling reservation:', error);
+      throw error;
+    }
+  },
+
+  // Enviar correo de confirmación de reserva
+  async sendConfirmationEmail(toEmail, reservaId) {
+    try {
+      const response = await fetch(`${API_URL}/reservas/send-confirmation-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Importante para enviar cookies de autenticación
+        body: JSON.stringify({ toEmail, reservaId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar el correo');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error sending confirmation email:', error);
+      throw error;
+    }
+  },
+
+  // Obtener géneros disponibles (útil para el formulario de viajeros)
+  async getGeneros() {
+    try {
+      const response = await fetch(`${API_URL}/users/generos`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener los géneros');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching generos:', error);
+      throw error;
+    }
+  },
+
+  // Obtener vuelo por ID
+  async getFlightById(flightId) {
+    try {
+      const response = await fetch(`${API_URL}/flights/${flightId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener el vuelo');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching flight:', error);
+      throw error;
+    }
+  },
+
+  // Obtener duración del vuelo
+  async getFlightDuration(origen, destino) {
+    try {
+      const response = await fetch(
+        `${API_URL}/flight-durations/duration?origen=${encodeURIComponent(origen)}&destino=${encodeURIComponent(destino)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener la duración del vuelo');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching flight duration:', error);
+      throw error;
+    }
+  },
+};

@@ -1,0 +1,458 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import TravelerForm from "../../components/TravelerForm";
+import { reservationService } from "../../services/reservationService";
+import CustomPopup from "../../components/CustomPopup";
+import usePopup from "../../hooks/usePopup";
+
+export default function BookingPage() {
+  const params = useParams();
+  const router = useRouter();
+  const flightId = params.flightId;
+
+  const [flight, setFlight] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [numPassengers, setNumPassengers] = useState(1);
+  const [travelers, setTravelers] = useState([]);
+  const [generos, setGeneros] = useState([
+    { id_genero: 1, descripcion_genero: "Masculino" },
+    { id_genero: 2, descripcion_genero: "Femenino" },
+    { id_genero: 3, descripcion_genero: "Otro" }
+  ]);
+  const [claseReserva, setClaseReserva] = useState("SEGUNDACLASE");
+  const [actionType, setActionType] = useState("RESERVAR"); // RESERVAR o COMPRAR
+  const [processing, setProcessing] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const { showSuccess, showError, popupState, closePopup } = usePopup();
+
+  useEffect(() => {
+    // Verificar si el usuario está autenticado
+    const userDataStr = localStorage.getItem("user");
+    if (!userDataStr) {
+      showError("Debe iniciar sesión para realizar una reserva");
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+      return;
+    }
+
+    const userData = JSON.parse(userDataStr);
+    setUser(userData);
+
+    // Cargar vuelo
+    const loadFlight = async () => {
+      try {
+        setLoading(true);
+        const result = await reservationService.getFlightById(flightId);
+        if (result.success && result.data) {
+          setFlight(result.data);
+        } else {
+          showError("No se pudo cargar el vuelo");
+        }
+      } catch (error) {
+        console.error("Error loading flight:", error);
+        showError("Error al cargar el vuelo");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFlight();
+  }, [flightId, router, showError]);
+
+  useEffect(() => {
+    // Inicializar viajeros cuando cambia la cantidad
+    setTravelers((prevTravelers) => {
+      const newTravelers = Array.from({ length: numPassengers }, (_, i) => ({
+        index: i,
+        data: prevTravelers[i]?.data || {},
+        errors: prevTravelers[i]?.errors || {},
+      }));
+      return newTravelers;
+    });
+  }, [numPassengers]);
+
+  const handleTravelerUpdate = (index, data, errors) => {
+    setTravelers((prev) => {
+      const updated = [...prev];
+      updated[index] = { index, data, errors };
+      return updated;
+    });
+  };
+
+  const calculateTotalPrice = () => {
+    if (!flight || !flight.ruta) return 0;
+
+    let precioBase = 0;
+    if (claseReserva === "PRIMERACLASE") {
+      precioBase = flight.ruta.precio_primer_clase || 0;
+    } else {
+      precioBase = flight.ruta.precio_segunda_clase || 0;
+    }
+
+    // Aplicar descuento si existe
+    if (flight.porcentaje_promocion && flight.porcentaje_promocion > 0) {
+      precioBase = precioBase * (1 - flight.porcentaje_promocion / 100);
+    }
+
+    return precioBase * numPassengers;
+  };
+
+  const validateAllTravelers = () => {
+    for (const traveler of travelers) {
+      // Verificar campos obligatorios
+      if (
+        !traveler.data.dni_viajero ||
+        !traveler.data.primer_nombre ||
+        !traveler.data.primer_apellido ||
+        !traveler.data.fecha_nacimiento ||
+        !traveler.data.id_genero ||
+        !traveler.data.nombre_contacto ||
+        !traveler.data.telefono_contacto
+      ) {
+        return false;
+      }
+
+      // Verificar que no haya errores
+      if (Object.keys(traveler.errors).length > 0) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateAllTravelers()) {
+      showError("Por favor complete todos los formularios de pasajeros correctamente");
+      return;
+    }
+
+    if (!user) {
+      showError("Debe iniciar sesión para continuar");
+      router.push("/login");
+      return;
+    }
+
+    setProcessing(true);
+
+    let reservaCreada = null;
+    let viajerosCreados = [];
+
+    try {
+      // Paso 1: Crear la reserva
+      const reservaData = {
+        usuario_id: user.id_usuario,
+        clase_reserva: claseReserva,
+        fecha_reserva: new Date().toISOString(),
+        estado_reserva: "ACTIVA",
+        cantidad_viajeros: numPassengers,
+        precio_total: Math.round(calculateTotalPrice()),
+        vuelo_ida_id: parseInt(flightId),
+        vuelo_vuelta_id: null, // Por ahora solo ida
+        trayectoria: "SOLOIDA",
+      };
+
+      console.log('Sending reservation data:', reservaData);
+      const reservaResult = await reservationService.createReservation(reservaData);
+
+      if (!reservaResult || !reservaResult.id_reserva) {
+        throw new Error("No se pudo crear la reserva");
+      }
+
+      reservaCreada = reservaResult;
+      const reservaId = reservaResult.id_reserva;
+
+      // Paso 2: Crear los viajeros
+      for (const traveler of travelers) {
+        const viajeroData = {
+          dni_viajero: traveler.data.dni_viajero,
+          primer_nombre: traveler.data.primer_nombre,
+          segundo_nombre: traveler.data.segundo_nombre || undefined,
+          primer_apellido: traveler.data.primer_apellido,
+          segundo_apellido: traveler.data.segundo_apellido || undefined,
+          fecha_nacimiento: traveler.data.fecha_nacimiento,
+          id_genero: parseInt(traveler.data.id_genero),
+          telefono: traveler.data.telefono || undefined,
+          correo_electronico: traveler.data.correo_electronico || undefined,
+          nombre_contacto: traveler.data.nombre_contacto,
+          telefono_contacto: traveler.data.telefono_contacto,
+          usuario_asociado: user.id_usuario,
+          reserva_id: reservaId,
+        };
+
+        const viajeroCreado = await reservationService.createTraveler(viajeroData);
+        viajerosCreados.push(viajeroCreado);
+      }
+
+      // Paso 3: Si es COMPRA, crear el registro de compra
+      if (actionType === "COMPRAR") {
+        const compraData = {
+          fecha_compra: new Date().toISOString(),
+          valor_total: calculateTotalPrice(),
+          es_pago: 1, // Indicar que es un pago
+        };
+
+        await reservationService.createPurchase(compraData);
+
+        // Actualizar estado de la reserva a PAGADA
+        // Nota: Según el backend, necesitarías actualizar la reserva aquí
+        // pero no veo un endpoint directo para esto en el controller
+      }
+
+      // Éxito
+      const mensaje =
+        actionType === "COMPRAR"
+          ? "¡Compra realizada exitosamente! Recibirás un correo de confirmación."
+          : "¡Reserva realizada exitosamente! Tienes 24 horas para completar el pago.";
+
+      showSuccess(mensaje);
+
+      // Redirigir después de un momento
+      setTimeout(() => {
+        router.push("/account");
+      }, 3000);
+    } catch (error) {
+      console.error("Error procesando:", error);
+      
+      // Si hubo error y se creó la reserva, intentar cancelarla
+      if (reservaCreada && reservaCreada.id_reserva) {
+        try {
+          console.log('Intentando cancelar reserva creada:', reservaCreada.id_reserva);
+          await reservationService.cancelReservation(reservaCreada.id_reserva);
+          console.log('Reserva cancelada exitosamente');
+        } catch (cancelError) {
+          console.error('Error al cancelar reserva:', cancelError);
+        }
+      }
+      
+      // Mejorar el mensaje de error
+      let errorMessage = error.message || "Error al procesar la solicitud";
+      
+      if (errorMessage.includes("Cannot read properties of null") || errorMessage.includes("id_asiento")) {
+        errorMessage = "No hay asientos disponibles para la clase seleccionada. Por favor intente con otra clase o vuelo. La reserva ha sido cancelada automáticamente.";
+      } else if (errorMessage.includes("ya está asociado a una reserva")) {
+        errorMessage = "Este pasajero ya tiene una reserva en este vuelo. Use un documento diferente o cancele la reserva anterior.";
+      }
+      
+      showError(errorMessage);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando información del vuelo...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!flight) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+          <p className="text-red-600">No se pudo cargar el vuelo</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
+      <Header />
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
+          ✈️ Reservar / Comprar Vuelo
+        </h2>
+
+        {/* Información del Vuelo */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Detalles del Vuelo</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Vuelo:</span> #{flight.ccv}
+              </p>
+              <p className="text-gray-600">
+                <span className="font-semibold">Origen:</span>{" "}
+                {flight.ruta?.origen?.nombre_ciudad}
+              </p>
+              <p className="text-gray-600">
+                <span className="font-semibold">Destino:</span>{" "}
+                {flight.ruta?.destino?.nombre_ciudad}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Fecha:</span>{" "}
+                {new Date(flight.fecha_vuelo).toLocaleDateString("es-ES")}
+              </p>
+              <p className="text-gray-600">
+                <span className="font-semibold">Hora de Salida:</span>{" "}
+                {new Date(flight.hora_salida_vuelo).toLocaleTimeString("es-ES", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              {flight.porcentaje_promocion > 0 && (
+                <p className="text-green-600 font-semibold">
+                  🎉 Descuento: {flight.porcentaje_promocion}%
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Selección de Cantidad de Pasajeros */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Cantidad de Pasajeros</h3>
+          <div className="flex items-center space-x-4">
+            <label className="text-gray-700 font-medium">Número de pasajeros (máx. 5):</label>
+            <select
+              value={numPassengers}
+              onChange={(e) => setNumPassengers(parseInt(e.target.value))}
+              className="px-4 py-2 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {[1, 2, 3, 4, 5].map((num) => (
+                <option key={num} value={num}>
+                  {num}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Selección de Clase */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Clase de Vuelo</h3>
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setClaseReserva("SEGUNDACLASE")}
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                claseReserva === "SEGUNDACLASE"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Segunda Clase - ${flight.ruta?.precio_segunda_clase}
+            </button>
+            <button
+              onClick={() => setClaseReserva("PRIMERACLASE")}
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                claseReserva === "PRIMERACLASE"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Primera Clase - ${flight.ruta?.precio_primer_clase}
+            </button>
+          </div>
+        </div>
+
+        {/* Formularios de Viajeros */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Información de Pasajeros</h3>
+          <div className="space-y-6">
+            {travelers.map((traveler, index) => (
+              <TravelerForm
+                key={index}
+                index={index}
+                travelerData={traveler.data}
+                onUpdate={handleTravelerUpdate}
+                generos={generos}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Resumen de Precio */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Resumen de Precio</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Precio por pasajero:</span>
+              <span className="font-semibold text-gray-800">
+                ${(calculateTotalPrice() / numPassengers).toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Número de pasajeros:</span>
+              <span className="font-semibold text-gray-800">{numPassengers}</span>
+            </div>
+            <div className="border-t border-gray-300 pt-2 mt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold text-gray-800">Total:</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  ${calculateTotalPrice().toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Botones de Acción */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Finalizar</h3>
+          <p className="text-gray-600 mb-6">
+            <strong>Reservar:</strong> Reserva tu vuelo por 24 horas. Deberás completar el pago
+            dentro de este período.
+            <br />
+            <strong>Comprar:</strong> Realiza el pago inmediatamente y confirma tu vuelo.
+          </p>
+          <div className="flex space-x-4">
+            <button
+              onClick={() => {
+                setActionType("RESERVAR");
+                handleSubmit();
+              }}
+              disabled={processing || !validateAllTravelers()}
+              className={`flex-1 px-6 py-4 rounded-lg font-bold text-white transition-colors ${
+                processing || !validateAllTravelers()
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {processing && actionType === "RESERVAR" ? "Procesando..." : "Reservar"}
+            </button>
+            <button
+              onClick={() => {
+                setActionType("COMPRAR");
+                handleSubmit();
+              }}
+              disabled={processing || !validateAllTravelers()}
+              className={`flex-1 px-6 py-4 rounded-lg font-bold text-white transition-colors ${
+                processing || !validateAllTravelers()
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {processing && actionType === "COMPRAR" ? "Procesando..." : "Comprar Ahora"}
+            </button>
+          </div>
+        </div>
+      </section>
+      <Footer />
+
+      {/* Popup */}
+      <CustomPopup 
+        isOpen={popupState.isOpen} 
+        type={popupState.type} 
+        title={popupState.title}
+        message={popupState.message} 
+        onClose={closePopup} 
+      />
+    </div>
+  );
+}

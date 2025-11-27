@@ -64,9 +64,17 @@ export default function Header() {
                 Vuelos
               </Link>
               {user && user.id_rol === 3 ? (
-                <Link href="/account" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Mi Cuenta
-                </Link>
+                <>
+                  <Link href="/account/reservations" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Reservas Activas
+                  </Link>
+                  <Link href="/account/history" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Historial
+                  </Link>
+                  <Link href="/account" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Mi Cuenta
+                  </Link>
+                </>
               ) : (
                 <Link href="/login?from=account" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Mi Cuenta
@@ -142,19 +150,21 @@ export default function Header() {
         {isMounted && isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-200">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+              <Link href="/flights" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                 Vuelos
-              </a>
-              <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                Destinos
-              </a>
-              <a href="#" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                Check-in
-              </a>
+              </Link>
               {user && user.id_rol === 3 ? (
-                <Link href="/account" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                  Mi Cuenta
-                </Link>
+                <>
+                  <Link href="/account/reservations" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    Reservas Activas
+                  </Link>
+                  <Link href="/account/history" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    Historial
+                  </Link>
+                  <Link href="/account" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    Mi Cuenta
+                  </Link>
+                </>
               ) : (
                 <Link href="/login?from=account" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                   Mi Cuenta

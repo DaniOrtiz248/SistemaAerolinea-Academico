@@ -374,16 +374,20 @@ export default function FlightsPage() {
                       </div>
                     </div>
                   </div>
-                  <button 
-                    disabled={flight.estado !== 1}
-                    className={`w-full mt-4 font-bold py-3 px-4 rounded-lg transition-colors shadow-md ${
-                      flight.estado === 1
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
-                        : 'bg-gray-400 text-gray-800 cursor-not-allowed opacity-60'
-                    }`}
-                  >
-                    {flight.estado === 1 ? 'Reservar Ahora' : 'No Disponible'}
-                  </button>
+                  {flight.estado === 1 ? (
+                    <Link href={`/booking/${flight.ccv}`}>
+                      <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md">
+                        Reservar Ahora
+                      </button>
+                    </Link>
+                  ) : (
+                    <button 
+                      disabled
+                      className="w-full mt-4 bg-gray-400 text-gray-800 cursor-not-allowed opacity-60 font-bold py-3 px-4 rounded-lg shadow-md"
+                    >
+                      No Disponible
+                    </button>
+                  )}
                 </div>
               </div>
             )})}
