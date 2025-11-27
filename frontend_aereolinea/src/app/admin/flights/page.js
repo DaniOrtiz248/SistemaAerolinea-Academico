@@ -1,11 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminLayout from '../../components/AdminLayout';
 import { getCityTimezone } from '../../../utils/timezones';
 import CustomPopup from '../../components/CustomPopup';
 import usePopup from '../../hooks/usePopup';
 
 export default function AdminFlights() {
+  const router = useRouter();
   const [flights, setFlights] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1115,6 +1117,12 @@ export default function AdminFlights() {
                       </td>
                       <td className="px-4 py-4 text-sm font-medium">
                         <div className="flex flex-col space-y-2">
+                          <button
+                            onClick={() => router.push(`/admin/flights/${flight.ccv}/seats`)}
+                            className="text-purple-600 hover:text-purple-900 text-left"
+                          >
+                            💺 Ver Asientos
+                          </button>
                           <button
                             onClick={() => handleEdit(flight)}
                             className="text-blue-600 hover:text-blue-900 text-left"

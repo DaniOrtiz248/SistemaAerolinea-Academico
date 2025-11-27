@@ -12,6 +12,7 @@ import styles from './SeatMap.module.css';
  * @param {Function} props.onSeatSelect - Callback cuando se selecciona un asiento
  * @param {string} props.tipoVuelo - 'NACIONAL' o 'INTERNACIONAL'
  * @param {string} props.claseReserva - 'PRIMERACLASE' o 'SEGUNDACLASE'
+ * @param {boolean} props.isReadOnly - Si es vista de solo lectura (admin)
  */
 export default function SeatMap({ 
   asientos = [], 
@@ -19,7 +20,8 @@ export default function SeatMap({
   selectedSeatId, 
   onSeatSelect,
   tipoVuelo = 'NACIONAL',
-  claseReserva = 'SEGUNDACLASE'
+  claseReserva = 'SEGUNDACLASE',
+  isReadOnly = false
 }) {
   // Agrupar asientos por fila
   const seatsByRow = asientos.reduce((acc, seat) => {
@@ -41,6 +43,15 @@ export default function SeatMap({
 
   // Obtener el estado visual de un asiento
   const getSeatStatus = (seat) => {
+    // Para admin o vista de solo lectura - mostrar estado real siempre
+    if (isReadOnly) {
+      if (seat.estado === 'DISPONIBLE') return 'available';
+      if (seat.estado === 'OCUPADO') return 'occupied';
+      if (seat.estado === 'RESERVADO') return 'reserved';
+      return 'available'; // Fallback
+    }
+    
+    // Para usuarios normales
     if (currentUserSeats.includes(seat.id_asiento)) return 'current';
     if (selectedSeatId === seat.id_asiento) return 'selected';
     if (seat.estado === 'OCUPADO') return 'occupied';
@@ -51,6 +62,9 @@ export default function SeatMap({
 
   // Determinar si un asiento es clickeable
   const isSeatClickable = (seat) => {
+    // Si es admin, no es clickeable
+    if (isReadOnly) return false;
+    
     const status = getSeatStatus(seat);
     return status === 'available' || status === 'current';
   };
@@ -63,8 +77,8 @@ export default function SeatMap({
     return (
       <button
         key={seat.id_asiento}
-        className={`${styles.seat} ${styles[status]} ${!clickable ? styles.disabled : ''}`}
-        onClick={() => clickable && onSeatSelect(seat)}
+        className={`${styles.seat} ${styles[status]} ${!clickable && !isReadOnly ? styles.disabled : ''}`}
+        onClick={() => clickable && onSeatSelect && onSeatSelect(seat)}
         disabled={!clickable}
         title={`${seat.asiento} - ${getSeatStatusText(status)}`}
       >
@@ -81,7 +95,7 @@ export default function SeatMap({
       reserved: 'Reservado',
       current: 'Tu asiento actual',
       selected: 'Seleccionado',
-      unavailable: 'No disponible para tu clase'
+      unavailable: isReadOnly ? 'Disponible' : 'No disponible para tu clase'
     };
     return texts[status] || '';
   };
@@ -147,28 +161,28 @@ export default function SeatMap({
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <div className={`${styles.legendSeat} ${styles.available}`}></div>
-          <span>Disponible</span>
+          <span className="text-gray-700 font-medium">Disponible</span>
         </div>
         <div className={styles.legendItem}>
           <div className={`${styles.legendSeat} ${styles.occupied}`}></div>
-          <span>Ocupado</span>
+          <span className="text-gray-700 font-medium">Ocupado</span>
         </div>
         <div className={styles.legendItem}>
           <div className={`${styles.legendSeat} ${styles.reserved}`}></div>
-          <span>Reservado</span>
+          <span className="text-gray-700 font-medium">Reservado</span>
         </div>
-        <div className={styles.legendItem}>
-          <div className={`${styles.legendSeat} ${styles.current}`}></div>
-          <span>Tu asiento</span>
-        </div>
-        <div className={styles.legendItem}>
-          <div className={`${styles.legendSeat} ${styles.selected}`}></div>
-          <span>Seleccionado</span>
-        </div>
-        <div className={styles.legendItem}>
-          <div className={`${styles.legendSeat} ${styles.unavailable}`}></div>
-          <span>No disponible</span>
-        </div>
+        {currentUserSeats.length > 0 && (
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSeat} ${styles.current}`}></div>
+            <span className="text-gray-700 font-medium">Tu asiento</span>
+          </div>
+        )}
+        {selectedSeatId && (
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSeat} ${styles.selected}`}></div>
+            <span className="text-gray-700 font-medium">Seleccionado</span>
+          </div>
+        )}
       </div>
 
       {/* Mapa de asientos */}
