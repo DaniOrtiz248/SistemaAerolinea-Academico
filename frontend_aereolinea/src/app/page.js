@@ -319,8 +319,6 @@ export default function Home() {
           Destinos Populares
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Depuración: mostrar en consola las ciudades disponibles */}
-          {console.log("Ciudades disponibles:", ciudades.map(c => c.nombre_ciudad))}
           {ciudades
             .filter(ciudad => {
               const nombre = ciudad.nombre_ciudad.trim().toLowerCase();

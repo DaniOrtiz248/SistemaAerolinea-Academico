@@ -34,26 +34,29 @@ export default function SeatSelectionPage() {
   const loadReservationData = async () => {
     try {
       setLoading(true);
+      console.log('Cargando datos de reserva:', reservaId);
 
       // Obtener datos de la reserva
       const reservaData = await reservationService.getReservationById(reservaId);
+      console.log('Reserva obtenida:', reservaData);
       
       if (!reservaData) {
         showError('Reserva no encontrada');
-        router.push('/account/reservations');
+        router.push('/account/change-seat');
         return;
       }
 
-      // Verificar que la reserva esté pagada
-      if (reservaData.estado_reserva !== 'PAGADA') {
-        showError('Solo puedes cambiar asientos de reservas pagadas');
-        router.push('/account/reservations');
+      // Verificar que la reserva esté ACTIVA o PAGADA
+      if (reservaData.estado_reserva !== 'PAGADA' && reservaData.estado_reserva !== 'ACTIVA') {
+        showError('Solo puedes cambiar asientos de reservas activas o pagadas');
+        router.push('/account/change-seat');
         return;
       }
 
       setReserva(reservaData);
 
       // Obtener segmentos de viaje de la reserva
+      console.log('Obteniendo segmentos de reserva...');
       const segmentosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/segmentos-viaje/reserva/${reservaId}`, {
         method: 'GET',
         headers: {
@@ -63,11 +66,20 @@ export default function SeatSelectionPage() {
       });
 
       if (!segmentosResponse.ok) {
-        throw new Error('Error al obtener segmentos de viaje');
+        const errorData = await segmentosResponse.json();
+        console.error('Error al obtener segmentos:', errorData);
+        throw new Error(errorData.message || 'Error al obtener segmentos de viaje');
       }
 
       const segmentosData = await segmentosResponse.json();
       const segmentos = segmentosData.data || segmentosData;
+      console.log('Segmentos obtenidos:', segmentos);
+
+      if (!segmentos || segmentos.length === 0) {
+        showError('Esta reserva aún no tiene asientos asignados. Completa tu reserva primero.');
+        router.push('/account/change-seat');
+        return;
+      }
 
       // Extraer información de vuelos y viajeros de los segmentos
       const viajerosMap = new Map();
@@ -142,7 +154,9 @@ export default function SeatSelectionPage() {
     } catch (error) {
       console.error('Error loading reservation:', error);
       showError(error.message || 'Error al cargar la reserva');
-      router.push('/account/reservations');
+      setTimeout(() => {
+        router.push('/account/change-seat');
+      }, 2000);
     } finally {
       setLoading(false);
     }
@@ -233,8 +247,8 @@ export default function SeatSelectionPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <button onClick={() => router.push('/account/reservations')} className={styles.backButton}>
-          ← Volver a Reservas
+        <button onClick={() => router.push('/account/change-seat')} className={styles.backButton}>
+          ← Volver a Cambio de Silla
         </button>
         <h1>Cambiar Asientos</h1>
         <p className={styles.reservaCode}>Reserva #{reserva.codigo_reserva}</p>
@@ -289,7 +303,7 @@ export default function SeatSelectionPage() {
                 >
                   <div className={styles.trayectoLabel}>Vuelo de Ida</div>
                   <div className={styles.trayectoRoute}>
-                    {vuelos.ida.ruta?.ciudad_origen?.nombre_ciudad} → {vuelos.ida.ruta?.ciudad_destino?.nombre_ciudad}
+                    {vuelos.ida.ruta?.origen?.nombre_ciudad} → {vuelos.ida.ruta?.destino?.nombre_ciudad}
                   </div>
                   <div className={styles.currentSeat}>
                     Asiento actual: <strong>{selectedViajero.segmentos.IDA?.asiento || 'N/A'}</strong>
@@ -306,7 +320,7 @@ export default function SeatSelectionPage() {
                 >
                   <div className={styles.trayectoLabel}>Vuelo de Vuelta</div>
                   <div className={styles.trayectoRoute}>
-                    {vuelos.vuelta.ruta?.ciudad_destino?.nombre_ciudad} → {vuelos.vuelta.ruta?.ciudad_origen?.nombre_ciudad}
+                    {vuelos.vuelta.ruta?.destino?.nombre_ciudad} → {vuelos.vuelta.ruta?.origen?.nombre_ciudad}
                   </div>
                   <div className={styles.currentSeat}>
                     Asiento actual: <strong>{selectedViajero.segmentos.VUELTA?.asiento || 'N/A'}</strong>

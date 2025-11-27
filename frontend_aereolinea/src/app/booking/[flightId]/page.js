@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -76,13 +76,13 @@ export default function BookingPage() {
     });
   }, [numPassengers]);
 
-  const handleTravelerUpdate = (index, data, errors) => {
+  const handleTravelerUpdate = useCallback((index, data, errors) => {
     setTravelers((prev) => {
       const updated = [...prev];
       updated[index] = { index, data, errors };
       return updated;
     });
-  };
+  }, []);
 
   const calculateTotalPrice = () => {
     if (!flight || !flight.ruta) return 0;
@@ -115,6 +115,63 @@ export default function BookingPage() {
     return edad;
   };
 
+  // Versión silenciosa de validación (sin mostrar errores) para usar en disabled
+  const isFormValid = () => {
+    // Verificar que todos los viajeros tengan campos completos
+    for (const traveler of travelers) {
+      if (
+        !traveler.data.dni_viajero ||
+        !traveler.data.primer_nombre ||
+        !traveler.data.primer_apellido ||
+        !traveler.data.fecha_nacimiento ||
+        !traveler.data.id_genero ||
+        !traveler.data.nombre_contacto ||
+        !traveler.data.telefono_contacto
+      ) {
+        return false;
+      }
+
+      // Verificar que no haya errores
+      if (Object.keys(traveler.errors).length > 0) {
+        return false;
+      }
+
+      // Validar que la fecha no sea en el futuro
+      const edad = calcularEdad(traveler.data.fecha_nacimiento);
+      if (edad < 0) {
+        return false;
+      }
+    }
+
+    // Validar que haya al menos un adulto
+    const edades = travelers.map(t => calcularEdad(t.data.fecha_nacimiento));
+    const hayAdultos = edades.some(edad => edad >= 18);
+
+    if (!hayAdultos) {
+      return false;
+    }
+
+    return true;
+  };
+
+  // Verificar si todos los viajeros son menores de edad
+  const soloHayMenores = () => {
+    // Verificar que todos los campos estén completos primero
+    const todosCompletos = travelers.every(traveler => 
+      traveler.data.fecha_nacimiento && 
+      Object.keys(traveler.errors).length === 0
+    );
+
+    if (!todosCompletos) return false;
+
+    // Verificar si todos son menores de 18
+    const edades = travelers.map(t => calcularEdad(t.data.fecha_nacimiento));
+    const hayAdultos = edades.some(edad => edad >= 18);
+    
+    return !hayAdultos && edades.length > 0;
+  };
+
+  // Validación con mensajes de error (solo se llama al hacer submit)
   const validateAllTravelers = () => {
     for (const traveler of travelers) {
       // Verificar campos obligatorios
@@ -136,13 +193,12 @@ export default function BookingPage() {
       }
     }
 
-    // Validar que si hay menores de edad, debe haber al menos un adulto
+    // Validar que SIEMPRE debe haber al menos un adulto (mayor de 18 años)
     const edades = travelers.map(t => calcularEdad(t.data.fecha_nacimiento));
-    const hayMenores = edades.some(edad => edad < 18);
     const hayAdultos = edades.some(edad => edad >= 18);
 
-    if (hayMenores && !hayAdultos) {
-      showError("Debe haber al menos un adulto (mayor de 18 años) cuando viajan menores de edad");
+    if (!hayAdultos) {
+      showError("Debe haber al menos un adulto (mayor de 18 años) en la reserva");
       return false;
     }
 
@@ -167,6 +223,47 @@ export default function BookingPage() {
     let viajerosCreados = [];
 
     try {
+      // PASO 0: Validar todos los datos ANTES de crear la reserva
+      console.log('🔍 Validando datos de viajeros antes de crear la reserva...');
+      
+      // Validar que todos los viajeros tienen datos completos
+      for (let i = 0; i < travelers.length; i++) {
+        const traveler = travelers[i];
+        const viajeroData = {
+          dni_viajero: traveler.data.dni_viajero,
+          primer_nombre: traveler.data.primer_nombre,
+          primer_apellido: traveler.data.primer_apellido,
+          fecha_nacimiento: traveler.data.fecha_nacimiento,
+          id_genero: parseInt(traveler.data.id_genero),
+          nombre_contacto: traveler.data.nombre_contacto,
+          telefono_contacto: traveler.data.telefono_contacto,
+        };
+
+        // Validar campos requeridos
+        if (!viajeroData.dni_viajero || !viajeroData.primer_nombre || 
+            !viajeroData.primer_apellido || !viajeroData.fecha_nacimiento ||
+            !viajeroData.id_genero || !viajeroData.nombre_contacto || 
+            !viajeroData.telefono_contacto) {
+          throw new Error(`El viajero ${i + 1} tiene campos requeridos vacíos. Por favor complete todos los campos obligatorios.`);
+        }
+
+        // Validar formato de email si se proporciona
+        if (traveler.data.correo_electronico) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(traveler.data.correo_electronico)) {
+            throw new Error(`El correo electrónico del viajero ${i + 1} no es válido.`);
+          }
+        }
+
+        // Validar edad (debe ser mayor de 0 años)
+        const edad = calcularEdad(traveler.data.fecha_nacimiento);
+        if (edad < 0) {
+          throw new Error(`La fecha de nacimiento del viajero ${i + 1} no puede ser en el futuro.`);
+        }
+      }
+
+      console.log('✅ Validación de datos completada exitosamente');
+
       // Paso 1: Crear la reserva
       const reservaData = {
         usuario_id: user.id_usuario,
@@ -195,19 +292,30 @@ export default function BookingPage() {
         const viajeroData = {
           dni_viajero: traveler.data.dni_viajero,
           primer_nombre: traveler.data.primer_nombre,
-          segundo_nombre: traveler.data.segundo_nombre || undefined,
           primer_apellido: traveler.data.primer_apellido,
-          segundo_apellido: traveler.data.segundo_apellido || undefined,
           fecha_nacimiento: traveler.data.fecha_nacimiento,
           id_genero: parseInt(traveler.data.id_genero),
-          telefono: traveler.data.telefono || undefined,
-          correo_electronico: traveler.data.correo_electronico || undefined,
           nombre_contacto: traveler.data.nombre_contacto,
           telefono_contacto: traveler.data.telefono_contacto,
           usuario_asociado: user.id_usuario,
           reserva_id: reservaId,
         };
 
+        // Solo agregar campos opcionales si tienen valor
+        if (traveler.data.segundo_nombre) {
+          viajeroData.segundo_nombre = traveler.data.segundo_nombre;
+        }
+        if (traveler.data.segundo_apellido) {
+          viajeroData.segundo_apellido = traveler.data.segundo_apellido;
+        }
+        if (traveler.data.telefono) {
+          viajeroData.telefono = traveler.data.telefono;
+        }
+        if (traveler.data.correo_electronico) {
+          viajeroData.correo_electronico = traveler.data.correo_electronico;
+        }
+
+        console.log('Creando viajero con datos:', viajeroData);
         const viajeroCreado = await reservationService.createTraveler(viajeroData);
         viajerosCreados.push(viajeroCreado);
       }
@@ -246,27 +354,36 @@ export default function BookingPage() {
       // Si hubo error y se creó la reserva, intentar cancelarla
       if (reservaCreada && reservaCreada.id_reserva) {
         try {
-          console.log('Intentando cancelar reserva creada:', reservaCreada.id_reserva);
+          console.log('⚠️ Cancelando reserva debido a error:', reservaCreada.id_reserva);
           await reservationService.cancelReservation(reservaCreada.id_reserva);
-          console.log('Reserva cancelada exitosamente');
+          console.log('✅ Reserva cancelada exitosamente');
         } catch (cancelError) {
-          console.error('Error al cancelar reserva:', cancelError);
+          console.error('❌ Error al cancelar reserva:', cancelError);
         }
       }
       
       // Mejorar el mensaje de error
       let errorMessage = error.message || "Error al procesar la solicitud";
       
-      if (errorMessage.includes("Cannot read properties of null") || errorMessage.includes("id_asiento")) {
-        errorMessage = "No hay asientos disponibles para la clase seleccionada. Por favor intente con otra clase o vuelo. La reserva ha sido cancelada automáticamente.";
-      } else if (errorMessage.includes("ya está asociado") || errorMessage.includes("ya está registrado")) {
-        // El mensaje ya viene formateado desde el servicio, solo mostrarlo
-        errorMessage = errorMessage;
-      } else if (errorMessage.includes("duplicate") || errorMessage.includes("unique")) {
-        errorMessage = "Uno de los pasajeros ya tiene una reserva en este vuelo. Por favor verifique los documentos de identidad.";
+      // Si el error ocurrió en la validación previa (no se creó reserva)
+      if (!reservaCreada) {
+        // Error de validación - no se llegó a crear la reserva ni enviar correo
+        showError(errorMessage);
+      } else {
+        // Error después de crear la reserva - se canceló automáticamente
+        if (errorMessage.includes("Cannot read properties of null") || errorMessage.includes("id_asiento")) {
+          errorMessage = "No hay asientos disponibles para la clase seleccionada. Por favor intente con otra clase o vuelo. La reserva ha sido cancelada automáticamente.";
+        } else if (errorMessage.includes("ya está asociado") || errorMessage.includes("ya está registrado")) {
+          // El mensaje ya viene formateado desde el servicio, agregar nota de cancelación
+          errorMessage = `${errorMessage}\n\nLa reserva ha sido cancelada automáticamente.`;
+        } else if (errorMessage.includes("duplicate") || errorMessage.includes("unique")) {
+          errorMessage = "Uno de los pasajeros ya tiene una reserva en este vuelo. Por favor verifique los documentos de identidad. La reserva ha sido cancelada automáticamente.";
+        } else {
+          errorMessage = `${errorMessage}\n\nLa reserva ha sido cancelada automáticamente.`;
+        }
+        
+        showError(errorMessage);
       }
-      
-      showError(errorMessage);
     } finally {
       setProcessing(false);
     }
@@ -433,6 +550,28 @@ export default function BookingPage() {
         {/* Botones de Acción */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Finalizar</h3>
+          
+          {/* Mensaje de advertencia si solo hay menores */}
+          {soloHayMenores() && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h4 className="text-sm font-semibold text-red-800">
+                    ⚠️ No se puede completar la reserva
+                  </h4>
+                  <p className="text-sm text-red-700 mt-1">
+                    Todos los pasajeros son menores de 18 años. Se requiere al menos un adulto (mayor de 18 años) para realizar la reserva o compra.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <p className="text-gray-600 mb-6">
             <strong>Reservar:</strong> Reserva tu vuelo por 24 horas. Deberás completar el pago
             dentro de este período.
@@ -445,9 +584,9 @@ export default function BookingPage() {
                 setActionType("RESERVAR");
                 handleSubmit();
               }}
-              disabled={processing || !validateAllTravelers()}
+              disabled={processing || !isFormValid()}
               className={`flex-1 px-6 py-4 rounded-lg font-bold text-white transition-colors ${
-                processing || !validateAllTravelers()
+                processing || !isFormValid()
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
@@ -459,9 +598,9 @@ export default function BookingPage() {
                 setActionType("COMPRAR");
                 handleSubmit();
               }}
-              disabled={processing || !validateAllTravelers()}
+              disabled={processing || !isFormValid()}
               className={`flex-1 px-6 py-4 rounded-lg font-bold text-white transition-colors ${
-                processing || !validateAllTravelers()
+                processing || !isFormValid()
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-green-600 hover:bg-green-700"
               }`}

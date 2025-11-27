@@ -359,7 +359,7 @@ export default function CheckInPage() {
                 >
                   <div className={styles.trayectoLabel}>Vuelo de Ida</div>
                   <div className={styles.trayectoRoute}>
-                    {vuelos.ida.ruta?.ciudad_origen?.nombre_ciudad} → {vuelos.ida.ruta?.ciudad_destino?.nombre_ciudad}
+                    {vuelos.ida.ruta?.origen?.nombre_ciudad} → {vuelos.ida.ruta?.destino?.nombre_ciudad}
                   </div>
                   <div className={styles.currentSeat}>
                     Asiento actual: <strong>{selectedViajero.segmentos.IDA?.asiento || 'N/A'}</strong>
@@ -376,7 +376,7 @@ export default function CheckInPage() {
                 >
                   <div className={styles.trayectoLabel}>Vuelo de Vuelta</div>
                   <div className={styles.trayectoRoute}>
-                    {vuelos.vuelta.ruta?.ciudad_destino?.nombre_ciudad} → {vuelos.vuelta.ruta?.ciudad_origen?.nombre_ciudad}
+                    {vuelos.vuelta.ruta?.destino?.nombre_ciudad} → {vuelos.vuelta.ruta?.origen?.nombre_ciudad}
                   </div>
                   <div className={styles.currentSeat}>
                     Asiento actual: <strong>{selectedViajero.segmentos.VUELTA?.asiento || 'N/A'}</strong>

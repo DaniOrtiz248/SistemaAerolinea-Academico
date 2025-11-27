@@ -2,11 +2,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { reservationService } from '../services/reservationService';
+import { segmentoService } from '../services/segmentoService';
 
 export default function Header() {
   const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [showChangeSeat, setShowChangeSeat] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -14,13 +17,86 @@ export default function Header() {
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        // Check if user has valid reservations for seat change
+        if (parsedUser.id_rol === 3) {
+          checkValidReservations(parsedUser.id_usuario);
+        }
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('user'); // Remove invalid data
       }
     }
   }, []);
+
+  const checkValidReservations = async (userId) => {
+    try {
+      const reservas = await reservationService.getUserReservations(userId);
+      console.log('Verificando reservas para cambio de silla:', reservas);
+      
+      // Check if there are any ACTIVA or PAGADA reservations with flights that haven't passed
+      const now = new Date();
+      
+      for (const reserva of reservas) {
+        if (reserva.estado_reserva === 'ACTIVA' || reserva.estado_reserva === 'PAGADA') {
+          console.log(`Reserva ${reserva.id_reserva} es ${reserva.estado_reserva}`);
+          
+          // Para reservas ACTIVAS o PAGADAS, verificar si el vuelo aún no ha pasado
+          if (reserva.vuelo_ida_id) {
+            try {
+              const vueloResponse = await reservationService.getFlightById(reserva.vuelo_ida_id);
+              const vuelo = vueloResponse?.success ? vueloResponse.data : vueloResponse;
+              
+              if (vuelo && vuelo.fecha_vuelo) {
+                const flightDate = new Date(vuelo.fecha_vuelo);
+                console.log(`Fecha vuelo: ${flightDate}, Ahora: ${now}, Válido: ${flightDate > now}`);
+                
+                if (flightDate > now) {
+                  console.log('✅ Hay vuelos válidos, mostrando cambio de silla');
+                  setShowChangeSeat(true);
+                  return;
+                }
+              }
+            } catch (error) {
+              console.error(`Error obteniendo vuelo ${reserva.vuelo_ida_id}:`, error);
+            }
+          }
+          
+          // Alternativa: verificar por segmentos si no se pudo con el vuelo
+          try {
+            const segmentos = await segmentoService.getSegmentosByReservaId(reserva.id_reserva);
+            console.log(`Segmentos de reserva ${reserva.id_reserva}:`, segmentos);
+            
+            if (segmentos && segmentos.length > 0) {
+              const hasValidFlight = segmentos.some(seg => {
+                if (seg.Vuelo && seg.Vuelo.fecha_vuelo) {
+                  const flightDate = new Date(seg.Vuelo.fecha_vuelo);
+                  console.log(`Fecha vuelo (segmento): ${flightDate}, Ahora: ${now}, Válido: ${flightDate > now}`);
+                  return flightDate > now;
+                }
+                return false;
+              });
+              
+              if (hasValidFlight) {
+                console.log('✅ Hay vuelos válidos (por segmentos), mostrando cambio de silla');
+                setShowChangeSeat(true);
+                return;
+              }
+            }
+          } catch (segError) {
+            console.error(`Error obteniendo segmentos para reserva ${reserva.id_reserva}:`, segError);
+          }
+        }
+      }
+      
+      console.log('❌ No hay reservas válidas para cambio de silla');
+      setShowChangeSeat(false);
+    } catch (error) {
+      console.error('Error checking valid reservations:', error);
+      setShowChangeSeat(false);
+    }
+  };
 
   // Don't render header for root users and administrators (they have their own dashboard headers)
   if (isMounted && user && (user.id_rol === 1 || user.id_rol === 2)) {
@@ -67,6 +143,9 @@ export default function Header() {
                 <>
                   <Link href="/account/reservations" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                     Reservas Activas
+                  </Link>
+                  <Link href="/account/change-seat" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Cambio de Silla
                   </Link>
                   <Link href="/account/history" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                     Historial
@@ -157,6 +236,9 @@ export default function Header() {
                 <>
                   <Link href="/account/reservations" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                     Reservas Activas
+                  </Link>
+                  <Link href="/account/change-seat" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
+                    Cambio de Silla
                   </Link>
                   <Link href="/account/history" className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                     Historial

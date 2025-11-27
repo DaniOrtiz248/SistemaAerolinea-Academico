@@ -21,7 +21,7 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
   useEffect(() => {
     // Notificar al padre cuando cambie la data
     onUpdate(index, formData, errors);
-  }, [formData]);
+  }, [formData, errors, index, onUpdate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

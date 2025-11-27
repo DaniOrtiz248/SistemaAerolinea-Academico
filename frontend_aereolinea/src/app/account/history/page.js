@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { reservationService } from "../../services/reservationService";
+import { segmentoService } from "../../services/segmentoService";
 
 export default function HistoryPage() {
   const router = useRouter();
@@ -11,6 +12,8 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [filterStatus, setFilterStatus] = useState("ALL"); // ALL, PAGADA, CANCELADA
+  const [segmentosPorReserva, setSegmentosPorReserva] = useState({});
+  const [vuelosPorReserva, setVuelosPorReserva] = useState({});
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -32,6 +35,46 @@ export default function HistoryPage() {
           return new Date(b.fecha_reserva) - new Date(a.fecha_reserva);
         });
         setReservations(reservasOrdenadas);
+
+        // Obtener segmentos y vuelos para cada reserva
+        const segmentosMap = {};
+        const vuelosMap = {};
+        for (const reserva of reservasOrdenadas) {
+          try {
+            const segmentos = await segmentoService.getSegmentosByReservaId(reserva.id_reserva);
+            segmentosMap[reserva.id_reserva] = segmentos;
+            
+            // Obtener información completa del vuelo de ida desde el backend
+            if (reserva.vuelo_ida_id) {
+              try {
+                const vueloResponse = await reservationService.getFlightById(reserva.vuelo_ida_id);
+                // Verificar si la respuesta tiene la estructura esperada
+                if (vueloResponse && vueloResponse.success && vueloResponse.data) {
+                  vuelosMap[reserva.id_reserva] = vueloResponse.data;
+                } else if (vueloResponse && !vueloResponse.success) {
+                  console.error(`Vuelo ${reserva.vuelo_ida_id} no encontrado:`, vueloResponse);
+                  // Fallback: usar vuelo del segmento si está disponible
+                  if (segmentos.length > 0 && segmentos[0].Vuelo) {
+                    vuelosMap[reserva.id_reserva] = segmentos[0].Vuelo;
+                  }
+                } else {
+                  vuelosMap[reserva.id_reserva] = vueloResponse;
+                }
+              } catch (vueloError) {
+                console.error(`Error obteniendo vuelo ${reserva.vuelo_ida_id}:`, vueloError);
+                // Fallback: usar vuelo del segmento si está disponible
+                if (segmentos.length > 0 && segmentos[0].Vuelo) {
+                  vuelosMap[reserva.id_reserva] = segmentos[0].Vuelo;
+                }
+              }
+            }
+          } catch (e) {
+            console.error(`Error obteniendo segmentos para reserva ${reserva.id_reserva}:`, e);
+            segmentosMap[reserva.id_reserva] = [];
+          }
+        }
+        setSegmentosPorReserva(segmentosMap);
+        setVuelosPorReserva(vuelosMap);
       } catch (error) {
         console.error("Error loading history:", error);
       } finally {
@@ -68,7 +111,7 @@ export default function HistoryPage() {
   const getStatusLabel = (status) => {
     switch (status) {
       case "PAGADA":
-        return "✅ Completada";
+        return "✅ Pagada";
       case "CANCELADA":
         return "❌ Cancelada";
       case "ACTIVA":
@@ -79,7 +122,30 @@ export default function HistoryPage() {
   };
 
   const filteredReservations = reservations.filter((reserva) => {
-    if (filterStatus === "ALL") return true;
+    // Si el filtro es ALL, mostrar todo excepto las reservas canceladas manualmente
+    if (filterStatus === "ALL") {
+      // Si está cancelada, verificar si fue por expiración de 24 horas
+      if (reserva.estado_reserva === "CANCELADA") {
+        const fechaExpiracion = new Date(reserva.fecha_expiracion);
+        const ahora = new Date();
+        // Solo mostrar si la fecha de expiración ya pasó (cancelada automáticamente por 24h)
+        return fechaExpiracion < ahora;
+      }
+      return true;
+    }
+    
+    // Si el filtro es CANCELADA, solo mostrar las canceladas por expiración
+    if (filterStatus === "CANCELADA") {
+      if (reserva.estado_reserva === "CANCELADA") {
+        const fechaExpiracion = new Date(reserva.fecha_expiracion);
+        const ahora = new Date();
+        // Solo mostrar si la fecha de expiración ya pasó (cancelada automáticamente por 24h)
+        return fechaExpiracion < ahora;
+      }
+      return false;
+    }
+    
+    // Para otros filtros (PAGADA, ACTIVA), filtrar normalmente
     return reserva.estado_reserva === filterStatus;
   });
 
@@ -109,53 +175,6 @@ export default function HistoryPage() {
           </p>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Filtrar por estado:</h3>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setFilterStatus("ALL")}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                filterStatus === "ALL"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Todas ({reservations.length})
-            </button>
-            <button
-              onClick={() => setFilterStatus("PAGADA")}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                filterStatus === "PAGADA"
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Completadas ({reservations.filter((r) => r.estado_reserva === "PAGADA").length})
-            </button>
-            <button
-              onClick={() => setFilterStatus("ACTIVA")}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                filterStatus === "ACTIVA"
-                  ? "bg-yellow-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Pendientes ({reservations.filter((r) => r.estado_reserva === "ACTIVA").length})
-            </button>
-            <button
-              onClick={() => setFilterStatus("CANCELADA")}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                filterStatus === "CANCELADA"
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Canceladas ({reservations.filter((r) => r.estado_reserva === "CANCELADA").length})
-            </button>
-          </div>
-        </div>
-
         {/* Lista de Reservas */}
         {filteredReservations.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
@@ -175,10 +194,10 @@ export default function HistoryPage() {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              No hay registros con este filtro
+              No hay registros
             </h3>
             <p className="text-gray-500">
-              Intenta cambiar el filtro o realiza tu primera reserva
+              Realiza tu primera reserva
             </p>
           </div>
         ) : (
@@ -186,7 +205,7 @@ export default function HistoryPage() {
             {filteredReservations.map((reserva) => (
               <div
                 key={reserva.id_reserva}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow border border-gray-200"
+                className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200"
               >
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
@@ -232,49 +251,65 @@ export default function HistoryPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                    <div>
-                      <p className="text-sm text-gray-600">Total</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${reserva.precio_total.toLocaleString()}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Silla(s)</p>
+                      <p className="font-semibold text-gray-900">
+                        {segmentosPorReserva[reserva.id_reserva] && segmentosPorReserva[reserva.id_reserva].length > 0
+                          ? segmentosPorReserva[reserva.id_reserva]
+                              .map(seg =>
+                                (seg.asiento && seg.asiento.asiento)
+                                  ? `${seg.asiento.asiento} (${seg.trayecto})`
+                                  : `Sin información (${seg.trayecto})`
+                              )
+                              .join(", ")
+                          : reserva.estado_reserva === "CANCELADA" 
+                            ? "Reserva cancelada antes de asignar asientos"
+                            : "Sin información"}
                       </p>
                     </div>
-
-                    <div className="flex gap-2">
-                      {reserva.estado_reserva === "ACTIVA" && (
-                        <button
-                          onClick={() => router.push("/account/reservations")}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                        >
-                          Completar Pago
-                        </button>
-                      )}
-                      
-                      {reserva.estado_reserva === "PAGADA" && (
-                        <button
-                          onClick={() => router.push(`/account/checkin/${reserva.id_reserva}`)}
-                          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                        >
-                          ✈️ Check-in y Asientos
-                        </button>
-                      )}
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Ciudades</p>
+                      <p className="font-semibold text-gray-900">
+                        {(() => {
+                          const vuelo = vuelosPorReserva[reserva.id_reserva];
+                          const segmentos = segmentosPorReserva[reserva.id_reserva];
+                          
+                          // Intentar obtener ciudades del vuelo
+                          if (vuelo && vuelo.ruta && vuelo.ruta.origen && vuelo.ruta.destino) {
+                            return `${vuelo.ruta.origen.nombre_ciudad} → ${vuelo.ruta.destino.nombre_ciudad}`;
+                          }
+                          
+                          // Fallback: obtener del primer segmento
+                          if (segmentos && segmentos.length > 0 && segmentos[0].Vuelo && segmentos[0].Vuelo.Ruta) {
+                            const ruta = segmentos[0].Vuelo.Ruta;
+                            if (ruta.origen && ruta.destino) {
+                              return `${ruta.origen.nombre_ciudad} → ${ruta.destino.nombre_ciudad}`;
+                            }
+                          }
+                          
+                          // Si es cancelada
+                          if (reserva.estado_reserva === "CANCELADA") {
+                            return "Reserva cancelada antes de completar";
+                          }
+                          
+                          return "Sin información";
+                        })()}
+                      </p>
                     </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-600">Total</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      ${reserva.precio_total.toLocaleString()}
+                    </p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-
-        {/* Botón para volver */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => router.push("/account")}
-            className="text-blue-600 hover:text-blue-700 font-semibold underline"
-          >
-            ← Volver a Mi Cuenta
-          </button>
-        </div>
       </section>
       <Footer />
     </div>

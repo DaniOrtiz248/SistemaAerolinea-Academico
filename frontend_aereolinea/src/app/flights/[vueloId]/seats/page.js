@@ -160,7 +160,7 @@ export default function FlightSeatsViewPage() {
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>Ruta:</span>
                 <span className={styles.infoValue}>
-                  {vuelo.ruta?.ciudad_origen?.nombre_ciudad} → {vuelo.ruta?.ciudad_destino?.nombre_ciudad}
+                  {vuelo.ruta?.origen?.nombre_ciudad} → {vuelo.ruta?.destino?.nombre_ciudad}
                 </span>
               </div>
               <div className={styles.infoItem}>

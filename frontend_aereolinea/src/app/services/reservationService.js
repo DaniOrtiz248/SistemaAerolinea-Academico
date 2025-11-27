@@ -80,29 +80,43 @@ export const reservationService = {
       console.log('Traveler response:', data);
 
       if (!response.ok) {
+        // Manejar error de validación estructurado del backend
+        if (data.code === 'VALIDATION_ERROR' && data.fields) {
+          const fieldErrors = data.fields.map(field => {
+            if (field.field === 'fecha_nacimiento') {
+              return `Fecha de nacimiento inválida: ${field.message || 'La fecha no puede ser en el futuro'}`;
+            }
+            return `${field.field}: ${field.message}`;
+          }).join(', ');
+          throw new Error(`Error de validación: ${fieldErrors}`);
+        }
+
         // Manejar diferentes tipos de errores
         if (data.details) {
           // Verificar si es un error de DNI duplicado
           const detailsStr = typeof data.details === 'string' ? data.details : JSON.stringify(data.details);
+          console.error('Error details:', detailsStr);
           if (detailsStr.includes('ya está asociado') || detailsStr.includes('duplicate') || detailsStr.includes('unique')) {
             throw new Error(`El DNI ${viajeroData.dni_viajero} ya está registrado en este vuelo. Por favor use un documento diferente o cancele la reserva anterior.`);
           }
-          throw new Error(data.details);
+          throw new Error(`Error al crear viajero: ${detailsStr}`);
         }
         if (data.error) {
           const errorStr = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+          console.error('Error message:', errorStr);
           if (errorStr.includes('ya está asociado') || errorStr.includes('duplicate') || errorStr.includes('unique')) {
             throw new Error(`El DNI ${viajeroData.dni_viajero} ya está registrado en este vuelo. Por favor use un documento diferente o cancele la reserva anterior.`);
           }
           if (Array.isArray(data.error)) {
-            throw new Error(JSON.stringify(data.error));
+            throw new Error(`Error de validación: ${JSON.stringify(data.error)}`);
           } else if (typeof data.error === 'object') {
-            throw new Error(JSON.stringify(data.error));
+            throw new Error(`Error al crear viajero: ${JSON.stringify(data.error)}`);
           } else {
             throw new Error(data.error);
           }
         }
-        throw new Error('Error al crear el viajero');
+        console.error('Response status:', response.status, 'Full response:', data);
+        throw new Error(`Error al crear el viajero (código ${response.status}). Por favor verifica que todos los campos estén completos y correctos.`);
       }
 
       return data;
