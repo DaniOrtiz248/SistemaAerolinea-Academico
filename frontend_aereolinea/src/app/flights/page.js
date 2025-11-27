@@ -374,8 +374,15 @@ export default function FlightsPage() {
                       </div>
                     </div>
                   </div>
-                  <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md">
-                    Reservar Ahora
+                  <button 
+                    disabled={flight.estado !== 1}
+                    className={`w-full mt-4 font-bold py-3 px-4 rounded-lg transition-colors shadow-md ${
+                      flight.estado === 1
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                        : 'bg-gray-400 text-gray-800 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    {flight.estado === 1 ? 'Reservar Ahora' : 'No Disponible'}
                   </button>
                 </div>
               </div>
