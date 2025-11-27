@@ -79,3 +79,15 @@ Cookie: access_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjUsImRlc2NyaX
 ### Obtener vuelo por id 29
 GET http://localhost:3001/api/v1/flights/29
 Accept: application/json
+
+
+##cambio de sillas
+
+PATCH http://localhost:3001/api/v1/segmentos-viaje/1/cambiar-asiento
+Content-Type: application/json
+Cookie: access_token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjUsImRlc2NyaXBjaW9uX3VzdWFyaW8iOiJQRVBFU0lUTyIsImVtYWlsIjoidml5dWVsYUBnbWFpbC5jb20iLCJyb2xlIjozLCJpYXQiOjE3NjQyMDc1MDQsImV4cCI6MTc2NDIxMTEwNH0.RRK7HRlGEpk-LV8Kh0POPbmOuVKs8mkvZ3PTPFg7B-Mxt2vf0IpPVamsGZicburC_2SF55tglPUyeIZKsDZJ_R5EI1Hf_78f0uDjFZS53iyx3gx5ALDQXOi22aOzSyLNz5z6mEGyO3005Kir_E9cEqwl6JBkOwaBxdXS6eN402B6En_-tMOlnCwJeJN2rebpcq_hflu8AKFnSPJc9KIIYPDR_WJ4_RujnWizz_Px2zNHreNFKX5ILYVwqjhZe--Z2ZcXIvktAfCnI22Hhn0SF6PMsb6HQ_ZS2ranCUnr1vzncoSJwSKsBm5G8kJMO1sNjagDcLlaycfGq-5cduteJQ
+{
+  "nuevo_asiento_id": 30
+}
+### ============================================
+

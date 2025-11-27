@@ -1,0 +1,56 @@
+### Variables
+@baseUrl = http://localhost:3001/api/v1
+@token = tu_token_aqui
+@segmentoId = 1
+@nuevoAsientoId = 25
+
+### 1. Obtener segmento por ID
+GET {{baseUrl}}/segmentos-viaje/{{segmentoId}}
+Authorization: Bearer {{token}}
+
+### 2. Obtener todos los segmentos de un viajero
+GET {{baseUrl}}/segmentos-viaje/viajero/1
+Authorization: Bearer {{token}}
+
+### 3. Obtener todos los segmentos de una reserva
+GET {{baseUrl}}/segmentos-viaje/reserva/1
+Authorization: Bearer {{token}}
+
+### 4. Verificar si puede cambiar de asiento
+GET {{baseUrl}}/segmentos-viaje/{{segmentoId}}/verificar-cambio
+Authorization: Bearer {{token}}
+
+### 5. Cambiar de asiento
+PATCH {{baseUrl}}/segmentos-viaje/{{segmentoId}}/cambiar-asiento
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nuevo_asiento_id": {{nuevoAsientoId}}
+}
+
+### 6. Crear segmento de viaje
+POST {{baseUrl}}/segmentos-viaje
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "viajero_id": 1,
+  "vuelo_id": 1,
+  "trayecto": "IDA",
+  "asiento_id": 15,
+  "reserva_id": 1
+}
+
+### 7. Actualizar segmento de viaje
+PUT {{baseUrl}}/segmentos-viaje/{{segmentoId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "trayecto": "VUELTA"
+}
+
+### 8. Eliminar segmento de viaje
+DELETE {{baseUrl}}/segmentos-viaje/{{segmentoId}}
+Authorization: Bearer {{token}}

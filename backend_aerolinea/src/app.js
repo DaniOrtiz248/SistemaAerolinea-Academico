@@ -18,6 +18,7 @@ import { imageRoutes } from './routes/imageRoutes.js'
 import { reservaRoutes } from './routes/reservaRoutes.js'
 import { asientoRoutes } from './routes/asientoRoutes.js'
 import { tarjetaRoutes } from './routes/tarjetaRoutes.js'
+import segmentoViajeRoutes from './routes/segmentoViajeRoutes.js'
 dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
@@ -48,6 +49,7 @@ app.use('/api/v1/viajeros', viajeroRouter)
 app.use('/api/v1/reservas', reservaRoutes)
 app.use('/api/v1/asientos', asientoRoutes)
 app.use('/api/v1/tarjetas', tarjetaRoutes)
+app.use('/api/v1/segmentos-viaje', segmentoViajeRoutes)
 
 // Manejo de errores
 app.use((req, res, next) => {

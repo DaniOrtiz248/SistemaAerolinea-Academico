@@ -65,4 +65,20 @@ export class SegmentoViajeService {
       throw new Error('Error getting segmentos viaje by reserva ID: ' + error.message)
     }
   }
+
+  static async cambiarAsiento (id_segmento, nuevo_asiento_id) {
+    try {
+      return await SegmentoViajeRepository.cambiarAsiento(id_segmento, nuevo_asiento_id)
+    } catch (error) {
+      throw new Error('Error cambiando asiento: ' + error.message)
+    }
+  }
+
+  static async verificarCambioAsiento (id_segmento) {
+    try {
+      return await SegmentoViajeRepository.puedeCambiarAsiento(id_segmento)
+    } catch (error) {
+      throw new Error('Error verificando cambio de asiento: ' + error.message)
+    }
+  }
 }
