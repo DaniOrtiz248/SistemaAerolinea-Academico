@@ -57,7 +57,7 @@ export default function SeatSelectionPage() {
 
       // Obtener segmentos de viaje de la reserva
       console.log('Obteniendo segmentos de reserva...');
-      const segmentosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/segmentos-viaje/reserva/${reservaId}`, {
+      const segmentosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/segmentos-viaje/reserva/${reservaId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

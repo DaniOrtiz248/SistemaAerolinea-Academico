@@ -70,27 +70,42 @@ export default function ReservationsPage() {
     );
   };
 
-  const handleContinuePayment = async (reservaId) => {
-    showConfirm(
-      "¿Desea procesar el pago de esta reserva? Se enviará un correo de confirmación a todos los pasajeros.",
-      async () => {
-        try {
-          setProcessingCancel(reservaId); // Reusar el estado para mostrar loading
-          const result = await reservationService.procesarPago(reservaId);
-          showSuccess(
-            `¡Pago procesado exitosamente! Se han enviado ${result.correos_enviados} correos de confirmación.`
-          );
-          // Recargar reservas para actualizar el estado
-          await loadReservations();
-        } catch (error) {
-          console.error("Error processing payment:", error);
-          showError(error.message || "Error al procesar el pago");
-        } finally {
-          setProcessingCancel(null);
-        }
-      },
-      "Confirmar Pago"
-    );
+  const handleContinuePayment = async (reserva) => {
+    try {
+      setProcessingCancel(reserva.id_reserva);
+      
+      // Crear sesión de checkout de Stripe
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reservaId: reserva.id_reserva,
+          amount: parseFloat(reserva.precio_total),
+          currency: 'usd',
+          reservaInfo: {
+            codigo_reserva: reserva.codigo_reserva,
+            cantidad_viajeros: reserva.cantidad_viajeros,
+            description: `Vuelo ${reserva.clase_reserva === 'PRIMERACLASE' ? 'Primera Clase' : 'Segunda Clase'} para ${reserva.cantidad_viajeros} pasajero(s)`,
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear la sesión de pago');
+      }
+
+      // Redirigir a Stripe Checkout
+      window.location.href = data.url;
+
+    } catch (error) {
+      console.error("Error initiating payment:", error);
+      showError(error.message || "Error al iniciar el pago");
+      setProcessingCancel(null);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -252,10 +267,20 @@ export default function ReservationsPage() {
 
                     <div className="space-y-2">
                       <button
-                        onClick={() => handleContinuePayment(reserva.id_reserva)}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                        onClick={() => handleContinuePayment(reserva)}
+                        disabled={processingCancel === reserva.id_reserva}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        💳 Continuar con el Pago
+                        {processingCancel === reserva.id_reserva ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                            Redirigiendo a Stripe...
+                          </>
+                        ) : (
+                          <>
+                            💳 Pagar con Stripe
+                          </>
+                        )}
                       </button>
 
                       <button
