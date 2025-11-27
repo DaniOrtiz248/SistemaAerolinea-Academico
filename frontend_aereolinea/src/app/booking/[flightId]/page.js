@@ -102,6 +102,19 @@ export default function BookingPage() {
     return precioBase * numPassengers;
   };
 
+  const calcularEdad = (fechaNacimiento) => {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    
+    return edad;
+  };
+
   const validateAllTravelers = () => {
     for (const traveler of travelers) {
       // Verificar campos obligatorios
@@ -122,6 +135,17 @@ export default function BookingPage() {
         return false;
       }
     }
+
+    // Validar que si hay menores de edad, debe haber al menos un adulto
+    const edades = travelers.map(t => calcularEdad(t.data.fecha_nacimiento));
+    const hayMenores = edades.some(edad => edad < 18);
+    const hayAdultos = edades.some(edad => edad >= 18);
+
+    if (hayMenores && !hayAdultos) {
+      showError("Debe haber al menos un adulto (mayor de 18 años) cuando viajan menores de edad");
+      return false;
+    }
+
     return true;
   };
 

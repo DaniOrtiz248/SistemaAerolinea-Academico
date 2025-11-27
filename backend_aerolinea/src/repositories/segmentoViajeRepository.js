@@ -2,6 +2,10 @@ import SegmentoViaje from '../models/segmento_viaje.js'
 import Reserva from '../models/reserva.js'
 import Asiento from '../models/asiento.js'
 import Compra from '../models/compra.js'
+import Viajero from '../models/viajero.js'
+import Vuelo from '../models/vuelo.js'
+import Ruta from '../models/ruta.js'
+import Ciudad from '../models/ciudad.js'
 
 export class SegmentoViajeRepository {
   static async create (segmentoData) {
@@ -40,7 +44,33 @@ export class SegmentoViajeRepository {
   }
 
   static async findAllByReservaId (reservaId) {
-    return await SegmentoViaje.findAll({ where: { reserva_id: reservaId } })
+    return await SegmentoViaje.findAll({ 
+      where: { reserva_id: reservaId },
+      include: [
+        { 
+          model: Viajero,
+          attributes: ['id_viajero', 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido', 'correo_electronico']
+        },
+        { 
+          model: Asiento,
+          attributes: ['id_asiento', 'asiento', 'fila', 'columna', 'estado', 'clase']
+        },
+        {
+          model: Vuelo,
+          as: 'vuelo',
+          include: [
+            {
+              model: Ruta,
+              as: 'ruta',
+              include: [
+                { model: Ciudad, as: 'origen' },
+                { model: Ciudad, as: 'destino' }
+              ]
+            }
+          ]
+        }
+      ]
+    })
   }
 
   /**

@@ -82,6 +82,40 @@ export class ViajeroController {
 
     try {
       const viajero = await ViajeroService.create({ viajero: req.body })
+      
+      // Validar que si hay menores de edad, debe haber al menos un adulto
+      if (req.body.reserva_id) {
+        const todosViajeros = await ViajeroService.getViajerosByReservaId(req.body.reserva_id)
+        
+        const calcularEdad = (fechaNacimiento) => {
+          const hoy = new Date()
+          const nacimiento = new Date(fechaNacimiento)
+          let edad = hoy.getFullYear() - nacimiento.getFullYear()
+          const mes = hoy.getMonth() - nacimiento.getMonth()
+          
+          if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+            edad--
+          }
+          
+          return edad
+        }
+        
+        const edades = todosViajeros.map(v => calcularEdad(v.fecha_nacimiento))
+        const hayMenores = edades.some(edad => edad < 18)
+        const hayAdultos = edades.some(edad => edad >= 18)
+        
+        if (hayMenores && !hayAdultos) {
+          // Eliminar el viajero recién creado si la validación falla
+          await ViajeroService.delete({ id_viajero: viajero.id_viajero })
+          
+          return res.status(400).json({
+            success: false,
+            error: 'Debe haber al menos un adulto (mayor de 18 años) cuando viajan menores de edad',
+            code: 'MINOR_WITHOUT_ADULT'
+          })
+        }
+      }
+      
       res.status(201).json({
         success: true,
         data: viajero,

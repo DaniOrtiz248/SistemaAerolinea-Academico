@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
+import SegmentoViaje from '../models/segmento_viaje.js'
+import Viajero from '../models/viajero.js'
+import Asiento from '../models/asiento.js'
 dotenv.config()
 
 const MAIL_USER = process.env.MAIL_USER
@@ -273,6 +276,43 @@ export async function sendReservationConfirmation(toEmail, reserva) {
     `
 
   // -----------------------------
+  // OBTENER INFORMACIÓN DE ASIENTOS
+  // -----------------------------
+  const segmentos = await SegmentoViaje.findAll({
+    where: { reserva_id: reserva.id_reserva },
+    include: [
+      { model: Viajero },
+      { model: Asiento }
+    ]
+  })
+
+  // Construir HTML de asientos por trayecto
+  const segmentosIda = segmentos.filter(seg => seg.trayecto === 'IDA')
+  const segmentosVuelta = segmentos.filter(seg => seg.trayecto === 'VUELTA')
+
+  const htmlAsientosIda = segmentosIda.length > 0 ? `
+    <div style="margin-top:15px; padding:10px; background:#e0f2fe; border-radius:5px;">
+      <p style="margin:5px 0; font-weight:bold; color:#0369a1;">Asientos asignados:</p>
+      ${segmentosIda.map(seg => `
+        <p style="margin:3px 0; font-size:14px;">
+          • ${seg.viajero?.nombre || 'Viajero'} ${seg.viajero?.apellido || ''}: <strong>${seg.asiento?.asiento || 'Sin asignar'}</strong>
+        </p>
+      `).join('')}
+    </div>
+  ` : ''
+
+  const htmlAsientosVuelta = segmentosVuelta.length > 0 ? `
+    <div style="margin-top:15px; padding:10px; background:#dbeafe; border-radius:5px;">
+      <p style="margin:5px 0; font-weight:bold; color:#1e40af;">Asientos asignados:</p>
+      ${segmentosVuelta.map(seg => `
+        <p style="margin:3px 0; font-size:14px;">
+          • ${seg.viajero?.nombre || 'Viajero'} ${seg.viajero?.apellido || ''}: <strong>${seg.asiento?.asiento || 'Sin asignar'}</strong>
+        </p>
+      `).join('')}
+    </div>
+  ` : ''
+
+  // -----------------------------
   // BLOQUE DEL VUELO IDA
   // -----------------------------
 
@@ -284,6 +324,7 @@ export async function sendReservationConfirmation(toEmail, reserva) {
         <p><strong>Fecha del vuelo:</strong> ${new Date(vueloIda.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
         <p><strong>Hora de salida:</strong> ${new Date(vueloIda.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Clase:</strong> ${clase_reserva}</p>
+        ${htmlAsientosIda}
     </div>
   `
 
@@ -299,6 +340,7 @@ export async function sendReservationConfirmation(toEmail, reserva) {
         <p><strong>Fecha del vuelo:</strong> ${new Date(vueloVuelta.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
         <p><strong>Hora de salida:</strong> ${new Date(vueloVuelta.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Clase:</strong> ${clase_reserva}</p>
+        ${htmlAsientosVuelta}
     </div>
   ` : ''
 
@@ -429,6 +471,43 @@ export async function sendPurchaseConfirmation(ownerEmail, viajeros, reserva) {
   }
 
   // -----------------------------
+  // OBTENER INFORMACIÓN DE ASIENTOS
+  // -----------------------------
+  const segmentos = await SegmentoViaje.findAll({
+    where: { reserva_id: reserva.id_reserva },
+    include: [
+      { model: Viajero },
+      { model: Asiento }
+    ]
+  })
+
+  // Construir HTML de asientos por trayecto
+  const segmentosIda = segmentos.filter(seg => seg.trayecto === 'IDA')
+  const segmentosVuelta = segmentos.filter(seg => seg.trayecto === 'VUELTA')
+
+  const htmlAsientosIda = segmentosIda.length > 0 ? `
+    <div style="margin-top:15px; padding:10px; background:#e0f2fe; border-radius:5px;">
+      <p style="margin:5px 0; font-weight:bold; color:#0369a1;">Asientos asignados:</p>
+      ${segmentosIda.map(seg => `
+        <p style="margin:3px 0; font-size:14px;">
+          • ${seg.viajero?.nombre || 'Viajero'} ${seg.viajero?.apellido || ''}: <strong>${seg.asiento?.asiento || 'Sin asignar'}</strong>
+        </p>
+      `).join('')}
+    </div>
+  ` : ''
+
+  const htmlAsientosVuelta = segmentosVuelta.length > 0 ? `
+    <div style="margin-top:15px; padding:10px; background:#dbeafe; border-radius:5px;">
+      <p style="margin:5px 0; font-weight:bold; color:#1e40af;">Asientos asignados:</p>
+      ${segmentosVuelta.map(seg => `
+        <p style="margin:3px 0; font-size:14px;">
+          • ${seg.viajero?.nombre || 'Viajero'} ${seg.viajero?.apellido || ''}: <strong>${seg.asiento?.asiento || 'Sin asignar'}</strong>
+        </p>
+      `).join('')}
+    </div>
+  ` : ''
+
+  // -----------------------------
   // BLOQUE DEL VUELO IDA
   // -----------------------------
 
@@ -439,6 +518,7 @@ export async function sendPurchaseConfirmation(ownerEmail, viajeros, reserva) {
         <p><strong>Fecha:</strong> ${new Date(vueloIda.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
         <p><strong>Hora de salida:</strong> ${new Date(vueloIda.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Clase:</strong> ${clase_reserva}</p>
+        ${htmlAsientosIda}
     </div>
   `
 
@@ -449,6 +529,7 @@ export async function sendPurchaseConfirmation(ownerEmail, viajeros, reserva) {
         <p><strong>Fecha:</strong> ${new Date(vueloVuelta.fecha_vuelo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
         <p><strong>Hora de salida:</strong> ${new Date(vueloVuelta.hora_salida_vuelo).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
         <p><strong>Clase:</strong> ${clase_reserva}</p>
+        ${htmlAsientosVuelta}
     </div>
   ` : ''
 

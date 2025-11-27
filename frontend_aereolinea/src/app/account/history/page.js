@@ -27,7 +27,11 @@ export default function HistoryPage() {
 
         // Obtener todas las reservas del usuario
         const reservas = await reservationService.getUserReservations(userData.id_usuario);
-        setReservations(reservas);
+        // Ordenar por fecha de reserva descendente (más recientes primero)
+        const reservasOrdenadas = reservas.sort((a, b) => {
+          return new Date(b.fecha_reserva) - new Date(a.fecha_reserva);
+        });
+        setReservations(reservasOrdenadas);
       } catch (error) {
         console.error("Error loading history:", error);
       } finally {
@@ -236,14 +240,25 @@ export default function HistoryPage() {
                       </p>
                     </div>
 
-                    {reserva.estado_reserva === "ACTIVA" && (
-                      <button
-                        onClick={() => router.push("/account/reservations")}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                      >
-                        Completar Pago
-                      </button>
-                    )}
+                    <div className="flex gap-2">
+                      {reserva.estado_reserva === "ACTIVA" && (
+                        <button
+                          onClick={() => router.push("/account/reservations")}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                        >
+                          Completar Pago
+                        </button>
+                      )}
+                      
+                      {reserva.estado_reserva === "PAGADA" && (
+                        <button
+                          onClick={() => router.push(`/account/checkin/${reserva.id_reserva}`)}
+                          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                        >
+                          ✈️ Check-in y Asientos
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
