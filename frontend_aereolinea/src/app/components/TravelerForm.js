@@ -41,29 +41,72 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
       case "dni_viajero":
         if (!value.trim()) {
           newErrors.dni_viajero = "El DNI es obligatorio";
+        } else if (!/^[0-9]+[a-zA-Z0-9]?$/.test(value)) {
+          newErrors.dni_viajero = "El DNI solo puede contener números";
         } else {
           delete newErrors.dni_viajero;
+        }
+        break;
+        case "telefono":
+        if (value.trim() && !/^[0-9]+$/.test(value)) {
+          newErrors.telefono = "El teléfono solo puede contener números";
+        } else if (value.length > 20) {
+          newErrors.telefono = "El teléfono no puede tener más de 20 dígitos";
+        } else {
+          delete newErrors.telefono;
         }
         break;
       case "primer_nombre":
         if (!value.trim()) {
           newErrors.primer_nombre = "El primer nombre es obligatorio";
+        } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+          newErrors.primer_nombre = "El nombre solo puede contener letras";
         } else {
           delete newErrors.primer_nombre;
+        }
+        break;
+      case "segundo_nombre":
+        if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+          newErrors.segundo_nombre = "El nombre solo puede contener letras";
+        } else {
+          delete newErrors.segundo_nombre;
         }
         break;
       case "primer_apellido":
         if (!value.trim()) {
           newErrors.primer_apellido = "El primer apellido es obligatorio";
+        } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+          newErrors.primer_apellido = "El apellido solo puede contener letras";
         } else {
           delete newErrors.primer_apellido;
+        }
+        break;
+      case "segundo_apellido":
+        if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+          newErrors.segundo_apellido = "El apellido solo puede contener letras";
+        } else {
+          delete newErrors.segundo_apellido;
         }
         break;
       case "fecha_nacimiento":
         if (!value) {
           newErrors.fecha_nacimiento = "La fecha de nacimiento es obligatoria";
         } else {
-          delete newErrors.fecha_nacimiento;
+          const fechaNacimiento = new Date(value);
+          const fechaActual = new Date();
+          const fechaMinima = new Date();
+          fechaMinima.setMonth(fechaMinima.getMonth() - 1);
+          const fechaMinima1915 = new Date("1915-01-01");
+          
+          if (fechaNacimiento > fechaActual) {
+            newErrors.fecha_nacimiento = "La fecha de nacimiento no puede ser futura";
+          } else if (fechaNacimiento > fechaMinima) {
+            newErrors.fecha_nacimiento = "La fecha de nacimiento debe ser al menos 1 mes anterior";
+          } else if (fechaNacimiento < fechaMinima1915) {
+            newErrors.fecha_nacimiento = "La fecha de nacimiento no puede ser anterior a 1915";
+          } else {
+            delete newErrors.fecha_nacimiento;
+          }
         }
         break;
       case "id_genero":
@@ -83,6 +126,8 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
       case "nombre_contacto":
         if (!value.trim()) {
           newErrors.nombre_contacto = "El nombre de contacto es obligatorio";
+        } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+          newErrors.nombre_contacto = "El nombre de contacto solo puede contener letras";
         } else {
           delete newErrors.nombre_contacto;
         }
@@ -90,6 +135,10 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
       case "telefono_contacto":
         if (!value.trim()) {
           newErrors.telefono_contacto = "El teléfono de contacto es obligatorio";
+        } else if (!/^\d+$/.test(value)) {
+          newErrors.telefono_contacto = "El teléfono solo puede contener números";
+        } else if (value.length > 20) {
+          newErrors.telefono_contacto = "El teléfono no puede tener más de 20 dígitos";
         } else {
           delete newErrors.telefono_contacto;
         }
@@ -171,9 +220,14 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
             name="segundo_nombre"
             value={formData.segundo_nombre}
             onChange={handleChange}
-            className="w-full px-3 py-2 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.segundo_nombre ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Ej: Carlos"
           />
+          {errors.segundo_nombre && (
+            <p className="text-red-500 text-xs mt-1">{errors.segundo_nombre}</p>
+          )}
         </div>
 
         {/* Primer Apellido */}
@@ -206,9 +260,14 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
             name="segundo_apellido"
             value={formData.segundo_apellido}
             onChange={handleChange}
-            className="w-full px-3 py-2 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.segundo_apellido ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Ej: García"
           />
+          {errors.segundo_apellido && (
+            <p className="text-red-500 text-xs mt-1">{errors.segundo_apellido}</p>
+          )}
         </div>
 
         {/* Fecha de Nacimiento */}
@@ -265,9 +324,14 @@ export default function TravelerForm({ index, travelerData, onUpdate, generos = 
             name="telefono"
             value={formData.telefono}
             onChange={handleChange}
-            className="w-full px-3 py-2 border text-gray-800 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.telefono ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Ej: 3001234567"
           />
+          {errors.telefono && (
+            <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>
+          )}
         </div>
 
         {/* Correo Electrónico (Opcional) */}

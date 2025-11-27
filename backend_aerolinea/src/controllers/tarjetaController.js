@@ -70,4 +70,41 @@ export class TarjetaController {
       res.status(500).json({ error: 'Error al obtener tarjetas por ID de usuario' })
     }
   }
+
+  static async aumentarSaldo (req, res) {
+    try {
+      const { monto } = req.body
+      if (!monto) {
+        return res.status(400).json({ error: 'El monto es requerido' })
+      }
+      const tarjeta = await TarjetaService.aumentarSaldo(req.params.id, monto)
+      if (!tarjeta) {
+        return res.status(404).json({ error: 'Tarjeta no encontrada' })
+      }
+      res.json({ message: 'Saldo aumentado exitosamente', tarjeta })
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: err.message || 'Error al aumentar saldo' })
+    }
+  }
+
+  static async disminuirSaldo (req, res) {
+    try {
+      const { monto } = req.body
+      if (!monto) {
+        return res.status(400).json({ error: 'El monto es requerido' })
+      }
+      const tarjeta = await TarjetaService.disminuirSaldo(req.params.id, monto)
+      if (!tarjeta) {
+        return res.status(404).json({ error: 'Tarjeta no encontrada' })
+      }
+      res.json({ message: 'Saldo disminuido exitosamente', tarjeta })
+    } catch (err) {
+      console.error(err)
+      if (err.message === 'Saldo insuficiente') {
+        return res.status(400).json({ error: 'Saldo insuficiente' })
+      }
+      res.status(500).json({ error: err.message || 'Error al disminuir saldo' })
+    }
+  }
 }

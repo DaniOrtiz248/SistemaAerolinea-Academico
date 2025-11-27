@@ -235,8 +235,11 @@ export default function BookingPage() {
       
       if (errorMessage.includes("Cannot read properties of null") || errorMessage.includes("id_asiento")) {
         errorMessage = "No hay asientos disponibles para la clase seleccionada. Por favor intente con otra clase o vuelo. La reserva ha sido cancelada automáticamente.";
-      } else if (errorMessage.includes("ya está asociado a una reserva")) {
-        errorMessage = "Este pasajero ya tiene una reserva en este vuelo. Use un documento diferente o cancele la reserva anterior.";
+      } else if (errorMessage.includes("ya está asociado") || errorMessage.includes("ya está registrado")) {
+        // El mensaje ya viene formateado desde el servicio, solo mostrarlo
+        errorMessage = errorMessage;
+      } else if (errorMessage.includes("duplicate") || errorMessage.includes("unique")) {
+        errorMessage = "Uno de los pasajeros ya tiene una reserva en este vuelo. Por favor verifique los documentos de identidad.";
       }
       
       showError(errorMessage);

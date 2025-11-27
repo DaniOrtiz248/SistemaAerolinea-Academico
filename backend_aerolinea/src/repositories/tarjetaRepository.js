@@ -29,4 +29,25 @@ export class TarjetaRepository {
   static async findByUsuarioId (id_usuario_tarjeta) {
     return await Tarjeta.findAll({ where: { id_usuario_tarjeta } })
   }
+
+  static async aumentarSaldo (id_info_tarjeta, monto) {
+    const tarjeta = await Tarjeta.findByPk(id_info_tarjeta)
+    if (!tarjeta) {
+      return null
+    }
+    const nuevoSaldo = parseFloat(tarjeta.saldo) + parseFloat(monto)
+    return await tarjeta.update({ saldo: nuevoSaldo })
+  }
+
+  static async disminuirSaldo (id_info_tarjeta, monto) {
+    const tarjeta = await Tarjeta.findByPk(id_info_tarjeta)
+    if (!tarjeta) {
+      return null
+    }
+    const nuevoSaldo = parseFloat(tarjeta.saldo) - parseFloat(monto)
+    if (nuevoSaldo < 0) {
+      throw new Error('Saldo insuficiente')
+    }
+    return await tarjeta.update({ saldo: nuevoSaldo })
+  }
 }

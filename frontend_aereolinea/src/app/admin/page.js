@@ -153,13 +153,6 @@ export default function AdminDashboard() {
                 <span>Gestionar Rutas</span>
               </Link>
               <Link
-                href="/admin/ciudades"
-                className="flex items-center space-x-3 p-3 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-              >
-                <span className="text-lg">🏙️</span>
-                <span>Ciudades</span>
-              </Link>
-              <Link
                 href="/admin/profile"
                 className="flex items-center space-x-3 p-3 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
               >
