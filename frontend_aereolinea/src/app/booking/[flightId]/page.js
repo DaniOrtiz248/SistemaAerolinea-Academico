@@ -7,6 +7,7 @@ import TravelerForm from "../../components/TravelerForm";
 import { reservationService } from "../../services/reservationService";
 import CustomPopup from "../../components/CustomPopup";
 import usePopup from "../../hooks/usePopup";
+import LoadingScreen from "../../components/LoadingScreen";
 
 export default function BookingPage() {
   const params = useParams();
@@ -410,16 +411,7 @@ export default function BookingPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando información del vuelo...</p>
-        </div>
-        <Footer />
-      </div>
-    );
+    return <LoadingScreen message="Cargando información del vuelo..." />;
   }
 
   if (!flight) {

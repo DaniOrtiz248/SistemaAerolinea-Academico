@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import LoadingScreen from "../../components/LoadingScreen";
 import { reservationService } from "../../services/reservationService";
 import { segmentoService } from "../../services/segmentoService";
 
@@ -169,16 +170,7 @@ export default function ChangeSeatPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando reservas válidas...</p>
-        </div>
-        <Footer />
-      </div>
-    );
+    return <LoadingScreen message="Cargando reservas válidas..." />;
   }
 
   return (

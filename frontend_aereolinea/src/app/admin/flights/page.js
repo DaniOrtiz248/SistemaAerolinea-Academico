@@ -5,6 +5,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { getCityTimezone } from '../../../utils/timezones';
 import CustomPopup from '../../components/CustomPopup';
 import usePopup from '../../hooks/usePopup';
+import LoadingScreen from '../../components/LoadingScreen';
 
 export default function AdminFlights() {
   const router = useRouter();
@@ -880,16 +881,7 @@ export default function AdminFlights() {
   };
 
   if (loading) {
-    return (
-      <AdminLayout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando vuelos...</p>
-          </div>
-        </div>
-      </AdminLayout>
-    );
+    return <LoadingScreen message="Cargando vuelos..." />;
   }
 
   return (

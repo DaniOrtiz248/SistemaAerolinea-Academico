@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '../../components/AdminLayout';
 import EditProfile from '../../components/EditProfile';
+import LoadingScreen from '../../components/LoadingScreen';
 
 export default function AdminProfile() {
   const router = useRouter();
@@ -145,16 +146,7 @@ export default function AdminProfile() {
   };
 
   if (loading) {
-    return (
-      <AdminLayout>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando perfil...</p>
-          </div>
-        </div>
-      </AdminLayout>
-    );
+    return <LoadingScreen message="Cargando perfil..." />;
   }
 
   return (

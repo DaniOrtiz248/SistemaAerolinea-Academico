@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '../../../../components/AdminLayout';
 import CustomPopup from '../../../../components/CustomPopup';
 import usePopup from '../../../../hooks/usePopup';
+import LoadingScreen from '../../../../components/LoadingScreen';
 
 export default function FlightReservations() {
   const router = useRouter();
@@ -152,14 +153,7 @@ export default function FlightReservations() {
   });
 
   if (loading) {
-    return (
-      <AdminLayout>
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando reservas...</p>
-        </div>
-      </AdminLayout>
-    );
+    return <LoadingScreen message="Cargando reservas..." />;
   }
 
   if (!vuelo) {

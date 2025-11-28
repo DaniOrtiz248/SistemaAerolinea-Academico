@@ -7,6 +7,7 @@ import { seatService } from '../../../services/seatService';
 import { reservationService } from '../../../services/reservationService';
 import usePopup from '../../../hooks/usePopup';
 import CustomPopup from '../../../components/CustomPopup';
+import LoadingScreen from '../../../components/LoadingScreen';
 import styles from './page.module.css';
 
 export default function SeatSelectionPage() {
@@ -230,14 +231,7 @@ export default function SeatSelectionPage() {
   };
 
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>
-          <div className={styles.spinner}></div>
-          <p>Cargando información de asientos...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Cargando información de asientos..." />;
   }
 
   if (!reserva) {

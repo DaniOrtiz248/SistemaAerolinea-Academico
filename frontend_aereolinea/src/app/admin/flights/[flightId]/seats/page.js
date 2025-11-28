@@ -6,6 +6,7 @@ import SeatMap from "../../../../components/SeatMap";
 import { seatService } from "../../../../services/seatService";
 import CustomPopup from "../../../../components/CustomPopup";
 import usePopup from "../../../../hooks/usePopup";
+import LoadingScreen from "../../../../components/LoadingScreen";
 
 export default function AdminFlightSeatsPage() {
   const params = useParams();
@@ -75,14 +76,7 @@ export default function AdminFlightSeatsPage() {
   const ocupacionPorcentaje = ((stats.ocupados + stats.reservados) / stats.total * 100).toFixed(1);
 
   if (loading) {
-    return (
-      <AdminLayout>
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando información de asientos...</p>
-        </div>
-      </AdminLayout>
-    );
+    return <LoadingScreen message="Cargando información de asientos..." />;
   }
 
   if (!vuelo) {

@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getCityTimezone } from "../../utils/timezones";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function FlightsPage() {
   const searchParams = useSearchParams();
@@ -204,10 +205,7 @@ export default function FlightsPage() {
           </div>
         </div>
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando vuelos...</p>
-          </div>
+          <LoadingScreen message="Cargando vuelos..." />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {flights.filter(flight => {

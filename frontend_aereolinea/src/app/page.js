@@ -6,6 +6,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import CustomPopup from './components/CustomPopup';
 import usePopup from './hooks/usePopup';
+import LoadingScreen from './components/LoadingScreen';
 
 export default function Home() {
   const router = useRouter();
@@ -421,10 +422,7 @@ export default function Home() {
           </h2>
           
           {loadingFlights ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Cargando vuelos...</p>
-            </div>
+            <LoadingScreen message="Cargando vuelos..." />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {flights.map((flight) => (
