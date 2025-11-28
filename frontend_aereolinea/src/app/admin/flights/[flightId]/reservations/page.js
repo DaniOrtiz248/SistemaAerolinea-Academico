@@ -295,9 +295,6 @@ export default function FlightReservations() {
                     N° Viajeros
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Asientos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Precio Total
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -311,15 +308,12 @@ export default function FlightReservations() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredReservas.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                       {searchTerm ? 'No se encontraron reservas con ese criterio' : 'No hay reservas para este vuelo'}
                     </td>
                   </tr>
                 ) : (
                   filteredReservas.map((reserva) => {
-                    const viajeros = reserva.viajeros || [];
-                    const asientos = viajeros.map(v => v.asiento).filter(Boolean).join(', ');
-                    
                     return (
                       <tr key={reserva.id_reserva} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -343,11 +337,6 @@ export default function FlightReservations() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 font-semibold">
                             👥 {reserva.cantidad_viajeros} {reserva.cantidad_viajeros === 1 ? 'viajero' : 'viajeros'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 font-mono">
-                            {asientos || 'Sin asignar'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
