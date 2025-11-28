@@ -26,6 +26,14 @@ export default function LoadingScreen({ message = 'Cargando...' }) {
               <div className={styles.eye + ' ' + styles.eyeLeft}></div>
               <div className={styles.eye + ' ' + styles.eyeRight}></div>
               <div className={styles.beak}></div>
+              
+              {/* Gorro de piloto */}
+              <div className={styles.pilotHat}>
+                <div className={styles.hatTop}></div>
+                <div className={styles.hatBrim}></div>
+                <div className={styles.hatVisor}></div>
+                <div className={styles.hatBadge}></div>
+              </div>
             </div>
             
             {/* Alas */}

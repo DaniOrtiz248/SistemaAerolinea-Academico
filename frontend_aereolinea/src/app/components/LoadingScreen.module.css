@@ -101,9 +101,12 @@
   transform: translateX(-50%);
   width: 70px;
   height: 80px;
-  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(135deg, #1a252f 0%, #2c3e50 30%, #34495e 70%, #2c3e50 100%);
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset -5px -5px 10px rgba(0, 0, 0, 0.2),
+    inset 5px 5px 10px rgba(255, 255, 255, 0.05);
 }
 
 .belly {
@@ -113,8 +116,11 @@
   transform: translateX(-50%);
   width: 45px;
   height: 60px;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 50%, #e8e8e8 100%);
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(255, 255, 255, 0.6);
 }
 
 /* Cabeza */
@@ -130,27 +136,110 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Gorro de piloto */
+.pilotHat {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 65px;
+  height: 35px;
+  z-index: 10;
+}
+
+.hatTop {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 25px;
+  background: linear-gradient(180deg, #1565c0 0%, #1976d2 100%);
+  border-radius: 50% 50% 0 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.hatBrim {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 65px;
+  height: 8px;
+  background: linear-gradient(180deg, #0d47a1 0%, #1565c0 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hatVisor {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 45px;
+  height: 6px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.4) 100%);
+  border-radius: 50%;
+  clip-path: ellipse(50% 100% at 50% 0%);
+}
+
+.hatBadge {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+  border-radius: 50%;
+  border: 2px solid #b8860b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.hatBadge::after {
+  content: '✈';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  color: #0d47a1;
+}
+
 /* Ojos */
 .eye {
   position: absolute;
   top: 20px;
-  width: 12px;
-  height: 12px;
-  background: #ffffff;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f5f5f5 100%);
   border-radius: 50%;
-  border: 2px solid #2c3e50;
+  border: 2px solid #1a252f;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .eye::after {
   content: '';
   position: absolute;
-  top: 2px;
-  left: 3px;
-  width: 5px;
-  height: 5px;
-  background: #000;
+  top: 3px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle at 30% 30%, #1a1a1a 0%, #000 100%);
   border-radius: 50%;
   animation: blink 3s infinite;
+}
+
+.eye::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  z-index: 1;
 }
 
 @keyframes blink {
@@ -178,9 +267,22 @@
   transform: translateX(-50%);
   width: 0;
   height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 14px solid #ff9800;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.beak::after {
+  content: '';
+  position: absolute;
+  top: -14px;
+  left: -8px;
+  width: 0;
+  height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 12px solid #ff9800;
+  border-top: 10px solid #ffb74d;
 }
 
 /* Alas */
@@ -189,9 +291,12 @@
   top: 35px;
   width: 25px;
   height: 50px;
-  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(135deg, #1a252f 0%, #2c3e50 50%, #34495e 100%);
   border-radius: 50% 0 50% 50%;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.2),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.05);
 }
 
 .wingLeft {
@@ -236,23 +341,25 @@
 }
 
 .foot {
-  width: 20px;
-  height: 8px;
-  background: #ff9800;
+  width: 22px;
+  height: 10px;
+  background: linear-gradient(180deg, #ff9800 0%, #f57c00 100%);
   border-radius: 50% 50% 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .foot::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 6px solid #ff9800;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 7px solid #f57c00;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 /* Mensaje */
