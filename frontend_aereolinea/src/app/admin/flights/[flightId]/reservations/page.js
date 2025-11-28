@@ -178,10 +178,12 @@ export default function FlightReservations() {
   const reservasCanceladas = reservas.filter(r => r.estado_reserva === 'CANCELADA').length;
   const reservasPagadas = reservas.filter(r => r.estado_reserva === 'PAGADA').length;
   
-  // Calcular total de viajeros
-  const totalViajeros = reservas.reduce((sum, r) => {
-    return sum + (r.cantidad_viajeros || 0);
-  }, 0);
+  // Calcular total de viajeros (solo de reservas no canceladas)
+  const totalViajeros = reservas
+    .filter(r => r.estado_reserva !== 'CANCELADA')
+    .reduce((sum, r) => {
+      return sum + (r.cantidad_viajeros || 0);
+    }, 0);
 
   return (
     <AdminLayout>
