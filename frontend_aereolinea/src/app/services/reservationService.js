@@ -53,7 +53,14 @@ export const reservationService = {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al crear la compra');
+        console.error('Error del backend al crear compra:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          message: data.message,
+          fullResponse: data
+        });
+        throw new Error(data.error || data.message || 'Error al crear la compra');
       }
 
       return data;
