@@ -11,14 +11,23 @@ export const segmentoService = {
         },
         credentials: 'include',
       });
+      
+      // Si es 404, la reserva no tiene segmentos (fue cancelada antes de asignar asientos)
+      if (response.status === 404) {
+        return [];
+      }
+      
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Error al obtener los segmentos de viaje');
+        // Log solo para otros errores (500, 401, etc), no para 404
+        console.warn(`Error ${response.status} al obtener segmentos de reserva ${reservaId}`);
+        return [];
       }
       return data.data || data;
     } catch (error) {
-      console.error('Error fetching segmentos:', error);
-      throw error;
+      // Error de red o parsing - retornar array vacío sin hacer ruido
+      console.warn(`No se pudieron obtener segmentos para reserva ${reservaId}:`, error.message);
+      return [];
     }
   },
 };

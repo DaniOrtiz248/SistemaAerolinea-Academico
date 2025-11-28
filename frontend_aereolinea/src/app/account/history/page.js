@@ -40,11 +40,11 @@ export default function HistoryPage() {
         const segmentosMap = {};
         const vuelosMap = {};
         for (const reserva of reservasOrdenadas) {
-          try {
-            const segmentos = await segmentoService.getSegmentosByReservaId(reserva.id_reserva);
-            segmentosMap[reserva.id_reserva] = segmentos;
-            
-            // Obtener información completa del vuelo de ida desde el backend
+          // Obtener segmentos (retorna [] si no existen - reserva cancelada temprano)
+          const segmentos = await segmentoService.getSegmentosByReservaId(reserva.id_reserva);
+          segmentosMap[reserva.id_reserva] = segmentos;
+          
+          // Obtener información completa del vuelo de ida desde el backend
             if (reserva.vuelo_ida_id) {
               try {
                 const vueloResponse = await reservationService.getFlightById(reserva.vuelo_ida_id);
@@ -68,10 +68,6 @@ export default function HistoryPage() {
                 }
               }
             }
-          } catch (e) {
-            console.error(`Error obteniendo segmentos para reserva ${reserva.id_reserva}:`, e);
-            segmentosMap[reserva.id_reserva] = [];
-          }
         }
         setSegmentosPorReserva(segmentosMap);
         setVuelosPorReserva(vuelosMap);

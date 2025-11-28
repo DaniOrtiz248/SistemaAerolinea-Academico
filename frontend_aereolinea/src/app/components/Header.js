@@ -64,28 +64,24 @@ export default function Header() {
           }
           
           // Alternativa: verificar por segmentos si no se pudo con el vuelo
-          try {
-            const segmentos = await segmentoService.getSegmentosByReservaId(reserva.id_reserva);
-            console.log(`Segmentos de reserva ${reserva.id_reserva}:`, segmentos);
-            
-            if (segmentos && segmentos.length > 0) {
-              const hasValidFlight = segmentos.some(seg => {
-                if (seg.Vuelo && seg.Vuelo.fecha_vuelo) {
-                  const flightDate = new Date(seg.Vuelo.fecha_vuelo);
-                  console.log(`Fecha vuelo (segmento): ${flightDate}, Ahora: ${now}, Válido: ${flightDate > now}`);
-                  return flightDate > now;
-                }
-                return false;
-              });
-              
-              if (hasValidFlight) {
-                console.log('✅ Hay vuelos válidos (por segmentos), mostrando cambio de silla');
-                setShowChangeSeat(true);
-                return;
+          const segmentos = await segmentoService.getSegmentosByReservaId(reserva.id_reserva);
+          console.log(`Segmentos de reserva ${reserva.id_reserva}:`, segmentos);
+          
+          if (segmentos && segmentos.length > 0) {
+            const hasValidFlight = segmentos.some(seg => {
+              if (seg.Vuelo && seg.Vuelo.fecha_vuelo) {
+                const flightDate = new Date(seg.Vuelo.fecha_vuelo);
+                console.log(`Fecha vuelo (segmento): ${flightDate}, Ahora: ${now}, Válido: ${flightDate > now}`);
+                return flightDate > now;
               }
+              return false;
+            });
+            
+            if (hasValidFlight) {
+              console.log('✅ Hay vuelos válidos (por segmentos), mostrando cambio de silla');
+              setShowChangeSeat(true);
+              return;
             }
-          } catch (segError) {
-            console.error(`Error obteniendo segmentos para reserva ${reserva.id_reserva}:`, segError);
           }
         }
       }
