@@ -1,6 +1,17 @@
 # SistemaAerolinea
 Repositorio de un sistema de gestión de aerolínea
 
+## 👥 Colaboradores
+
+Este proyecto fue desarrollado en colaboración por:
+
+- **Daniel Ortiz** - [@DaniOrtiz248](https://github.com/DaniOrtiz248) - danielsolano248@gmail.com
+- **Sofia Jaramillo** - [@SofiaJara](https://github.com/SofiaJara) - sofi.171025@gmail.com
+- **Brayan Stiven Valencia** - [@BrayanStiven45](https://github.com/BrayanStiven45) - bravalen45@gmail.com
+- **Luis Felipe Garzón Bonilla** - luis.garzon@utp.edu.co
+
+## 📋 Descripción
+
 Flujo de datos entre capas
 
 Ejemplo de cómo viaja un request:
